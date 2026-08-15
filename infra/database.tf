@@ -23,7 +23,13 @@ resource "google_sql_database_instance" "main" {
   deletion_protection = var.deletion_protection
 
   settings {
-    tier              = var.db_tier
+    tier = var.db_tier
+
+    # Postgres 17 defaults to ENTERPRISE_PLUS, which rejects shared-core tiers
+    # outright ("Invalid Tier (db-f1-micro) for (ENTERPRISE_PLUS) Edition").
+    # ENTERPRISE is the tier family that still allows db-f1-micro.
+    edition = "ENTERPRISE"
+
     availability_type = "ZONAL"
     disk_size         = 10
     disk_type         = "PD_HDD"

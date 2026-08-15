@@ -226,8 +226,11 @@ src/app/
 Only ever consume layer 2 or 3 in product code. Reaching for `--el-blue-600` in a
 component means a system token is missing.
 
-Theme switching flips `data-theme` on `<html>`, which is what the dark palette
-hangs off, and sets `color-scheme` so native controls follow.
+The app always starts in light. Dark is opt-in from the toggle in the app bar,
+and that choice is remembered per browser — the OS `prefers-color-scheme` is
+deliberately not consulted, so a first-time visitor on a dark desktop still sees
+the light palette. Switching flips `data-theme` on `<html>`, which is what the
+dark palette hangs off, and sets `color-scheme` so native controls follow.
 
 Fonts (Instrument Sans, Geist, Geist Mono, Material Symbols Rounded) load from
 Google Fonts, matching the design system file. Build-time font inlining is turned

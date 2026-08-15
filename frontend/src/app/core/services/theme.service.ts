@@ -29,12 +29,14 @@ export class ThemeService {
   }
 
   private initialMode(): ThemeMode {
+    // Only an explicit choice from the app bar is remembered. The OS setting is
+    // deliberately ignored: light is the product's default presentation, and a
+    // first-time visitor on a dark desktop should still land on it. Once someone
+    // toggles, that choice wins on every later visit.
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === 'light' || stored === 'dark') return stored;
 
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
+    return 'light';
   }
 
   private apply(mode: ThemeMode): void {
