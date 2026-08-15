@@ -1,0 +1,115 @@
+worker_processes auto;
+error_log /dev/stderr warn;
+pid /tmp/nginx.pid;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+
+  # Cloud Run terminates TLS and forwards the real client IP in X-Forwarded-For.
+  log_format json escape=json '{"time":"$time_iso8601","method":"$request_method",'
+    '"uri":"$request_uri","status":$status,"bytes":$body_bytes_sent,'
+    '"referer":"$http_referer","ua":"$http_user_agent","ip":"$http_x_forwarded_for"}';
+  access_log /dev/stdout json;
+
+  sendfile        on;
+  tcp_nopush      on;
+  keepalive_timeout 65;
+  server_tokens   off;
+
+  # Everything nginx needs to write lives under /tmp so the container can run
+  # read-only as an unprivileged user.
+  client_body_temp_path /tmp/client_body;
+  proxy_temp_path       /tmp/proxy;
+  fastcgi_temp_path     /tmp/fastcgi;
+  uwsgi_temp_path       /tmp/uwsgi;
+  scgi_temp_path        /tmp/scgi;
+
+  gzip on;
+  gzip_vary on;
+  gzip_min_length 1024;
+  gzip_proxied any;
+  gzip_types text/plain text/css text/javascript application/javascript
+             application/json application/xml image/svg+xml font/woff2;
+
+  # Cloud Run's internal DNS. Needed because proxy_pass below uses a variable,
+  # which makes nginx resolve the upstream per request instead of once at boot —
+  # that is what lets a new API revision be picked up without restarting nginx.
+  resolver 169.254.169.254 ipv6=off valid=30s;
+
+  server {
+    listen ${PORT};
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Health endpoint for Cloud Run's startup probe. Answered by nginx itself so
+    # the frontend stays up even when the API is down.
+    location = /healthz {
+      access_log off;
+      add_header Content-Type text/plain;
+      return 200 'ok';
+    }
+
+    # The API is a separate Cloud Run service, but the browser only ever talks to
+    # this origin. Same-origin means no CORS preflights and no build-time API URL
+    # baked into the bundle — the backend URL is runtime configuration.
+    location /api/ {
+      set $api_upstream ${API_HOST};
+      proxy_pass https://$api_upstream$request_uri;
+
+      # Cloud Run routes by Host header, so it must name the API service, not us.
+      proxy_set_header Host              ${API_HOST};
+      proxy_ssl_server_name on;
+      proxy_ssl_name        ${API_HOST};
+
+      proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Real-IP         $remote_addr;
+
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+
+      proxy_connect_timeout 10s;
+      proxy_send_timeout    60s;
+      proxy_read_timeout    60s;
+      proxy_buffering off;
+    }
+
+    # nginx only inherits add_header from an outer block when the inner block
+    # declares none of its own. Any location below that sets a header therefore
+    # has to repeat the security ones, so they are kept together here.
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+    # Hashed build artefacts are immutable — cache them hard.
+    location ~* \.(?:js|css|woff2?|ttf|eot|otf|svg|png|jpg|jpeg|gif|webp|ico)$ {
+      expires 1y;
+      add_header Cache-Control "public, immutable";
+      add_header X-Content-Type-Options nosniff always;
+      add_header X-Frame-Options SAMEORIGIN always;
+      add_header Referrer-Policy strict-origin-when-cross-origin always;
+      try_files $uri =404;
+    }
+
+    # index.html must never be cached, or users keep loading an old bundle that
+    # references chunks which no longer exist.
+    location = /index.html {
+      add_header Cache-Control "no-store, must-revalidate";
+      add_header X-Content-Type-Options nosniff always;
+      add_header X-Frame-Options SAMEORIGIN always;
+      add_header Referrer-Policy strict-origin-when-cross-origin always;
+    }
+
+    # Angular owns the routing: anything that is not a real file falls back to
+    # index.html so a deep link like /app/institutions works on a hard refresh.
+    location / {
+      try_files $uri $uri/ /index.html;
+    }
+  }
+}

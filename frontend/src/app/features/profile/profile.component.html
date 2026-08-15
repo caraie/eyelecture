@@ -1,0 +1,114 @@
+@if (user(); as currentUser) {
+  <header class="page-head">
+    <div>
+      <p class="el-overline">Account</p>
+      <h1 class="el-headline">Profile</h1>
+    </div>
+  </header>
+
+  <div class="cols">
+    <section class="el-card">
+      <h2 class="el-title">Your details</h2>
+      <p class="el-lede small">
+        Your email address cannot be changed here — it is what links you to your
+        institution.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="row">
+          <mat-form-field appearance="outline">
+            <mat-label>First name</mat-label>
+            <input matInput formControlName="firstName" />
+            @if (form.controls.firstName.hasError('required')) {
+              <mat-error>Required</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Last name</mat-label>
+            <input matInput formControlName="lastName" />
+            @if (form.controls.lastName.hasError('required')) {
+              <mat-error>Required</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput [value]="currentUser.email" disabled />
+          <mat-icon matPrefix>alternate_email</mat-icon>
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+            @if (saving()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              Save changes
+            }
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <aside class="el-stack">
+      <section class="el-card identity">
+        <span class="el-avatar el-avatar-lg big">{{ initials() }}</span>
+        <h3 class="el-title">{{ currentUser.fullName }}</h3>
+        <p class="el-muted">{{ roleLabel() }}</p>
+        <el-status-badge [user]="currentUser" />
+      </section>
+
+      <section class="el-card">
+        <h3 class="el-title">Membership</h3>
+        <dl class="kv">
+          <dt>Institution</dt>
+          <dd>{{ currentUser.institution?.name ?? 'Not linked' }}</dd>
+
+          <dt>How it was confirmed</dt>
+          <dd>
+            @switch (currentUser.validationMethod) {
+              @case ('email_domain') {
+                Automatically — your address is on a domain
+                {{ currentUser.institution?.name }} owns
+              }
+              @case ('manual') {
+                By a program director or administrator
+              }
+              @default {
+                Not confirmed yet
+              }
+            }
+          </dd>
+
+          @if (currentUser.validatedAt) {
+            <dt>Confirmed on</dt>
+            <dd>{{ currentUser.validatedAt | date: 'mediumDate' }}</dd>
+          }
+
+          @if (currentUser.validationNote) {
+            <dt>Note</dt>
+            <dd>{{ currentUser.validationNote }}</dd>
+          }
+
+          <dt>Email</dt>
+          <dd>
+            {{ currentUser.emailVerified ? 'Verified' : 'Not verified yet' }}
+          </dd>
+
+          <dt>Member since</dt>
+          <dd>{{ currentUser.createdAt | date: 'mediumDate' }}</dd>
+        </dl>
+      </section>
+
+      <section class="el-card">
+        <h3 class="el-title">Session</h3>
+        <p class="el-lede small">Sign out of this device.</p>
+        <button mat-stroked-button type="button" (click)="signOutEverywhere()">
+          <mat-icon>logout</mat-icon>
+          Sign out
+        </button>
+      </section>
+    </aside>
+  </div>
+}

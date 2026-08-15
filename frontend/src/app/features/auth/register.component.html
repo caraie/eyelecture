@@ -1,0 +1,202 @@
+@if (result(); as outcome) {
+  <!-- Post-signup: the message differs a lot depending on whether the address
+       matched an institution domain, so it gets its own screen rather than a toast. -->
+  <div class="result">
+    <div class="ico" [class.good]="outcome.autoValidated" [class.wait]="!outcome.autoValidated">
+      <mat-icon>{{ outcome.autoValidated ? 'verified' : 'mark_email_unread' }}</mat-icon>
+    </div>
+
+    <h2 class="el-headline">Check your inbox</h2>
+    <p>{{ outcome.message }}</p>
+
+    @if (outcome.autoValidated && outcome.user.institution) {
+      <div class="el-alert el-alert-success">
+        <mat-icon>school</mat-icon>
+        <div>
+          <strong>{{ outcome.user.institution.name }}</strong>
+          Your address is on a domain this institution owns, so no one needs to
+          approve you by hand.
+        </div>
+      </div>
+    } @else {
+      <div class="el-alert el-alert-warning">
+        <mat-icon>schedule</mat-icon>
+        <div>
+          <strong>One more step after you verify</strong>
+          @if (outcome.user.requestedInstitution) {
+            A program director at {{ outcome.user.requestedInstitution.name }} will
+            confirm you belong there. You can sign in meanwhile.
+          } @else {
+            An administrator will confirm your membership. You can sign in meanwhile.
+          }
+        </div>
+      </div>
+    }
+
+    @if (isDev && outcome.devEmailVerificationToken) {
+      <div class="dev-token">
+        <div class="lbl">Development only — no mail server configured</div>
+        <a [href]="verificationLink(outcome.devEmailVerificationToken)">
+          Open the verification link
+        </a>
+      </div>
+    }
+
+    <p class="switch">
+      <a routerLink="/auth/login">Back to sign in</a>
+    </p>
+  </div>
+} @else {
+  <header class="head">
+    <p class="el-overline">Get started</p>
+    <h2 class="el-headline">Create your account</h2>
+    <p class="el-lede">
+      Use your institution address and you are <span class="el-hl-em">in right away</span>.
+    </p>
+  </header>
+
+  @if (errorMessage(); as message) {
+    <div class="el-alert el-alert-error" role="alert">
+      <mat-icon>error</mat-icon>
+      <div>
+        <strong>We could not create the account</strong>
+        {{ message }}
+      </div>
+    </div>
+  }
+
+  <div class="role-picker">
+    <button
+      type="button"
+      class="role-option"
+      [class.selected]="role() === 'student'"
+      (click)="setRole('student')"
+    >
+      <span class="rt"><mat-icon>school</mat-icon> Student</span>
+      <span class="rd">Watch lectures, answer questions, track your progress.</span>
+    </button>
+    <button
+      type="button"
+      class="role-option"
+      [class.selected]="role() === 'program_director'"
+      (click)="setRole('program_director')"
+    >
+      <span class="rt"><mat-icon>supervisor_account</mat-icon> Program director</span>
+      <span class="rd">Run a program and vouch for students. Needs approval.</span>
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="row">
+      <mat-form-field appearance="outline">
+        <mat-label>First name</mat-label>
+        <input matInput formControlName="firstName" autocomplete="given-name" />
+        @if (form.controls.firstName.hasError('required')) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Last name</mat-label>
+        <input matInput formControlName="lastName" autocomplete="family-name" />
+        @if (form.controls.lastName.hasError('required')) {
+          <mat-error>Required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input
+        matInput
+        type="email"
+        formControlName="email"
+        autocomplete="email"
+        placeholder="you@stanford.edu"
+      />
+      <mat-icon matPrefix>alternate_email</mat-icon>
+      @if (form.controls.email.hasError('required')) {
+        <mat-error>Your email is required</mat-error>
+      } @else if (form.controls.email.hasError('email')) {
+        <mat-error>That does not look like an email address</mat-error>
+      }
+    </mat-form-field>
+
+    @if (matchedInstitution(); as institution) {
+      <div class="domain-hint matched">
+        <mat-icon>verified</mat-icon>
+        <span>
+          Recognised — <strong>{{ institution.name }}</strong
+          >. You will be validated automatically.
+        </span>
+      </div>
+    } @else if (needsInstitutionPicker()) {
+      <div class="domain-hint unmatched">
+        <mat-icon>info</mat-icon>
+        <span>
+          We do not recognise this domain. Tell us where you study and a program
+          director there will confirm it.
+        </span>
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Institution (optional)</mat-label>
+        <mat-select formControlName="requestedInstitutionId">
+          <mat-option value="">I am not sure yet</mat-option>
+          @for (institution of institutions(); track institution.id) {
+            <mat-option [value]="institution.id">{{ institution.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Leave blank and an administrator will review you instead.</mat-hint>
+      </mat-form-field>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Password</mat-label>
+      <input
+        matInput
+        [type]="hidePassword() ? 'password' : 'text'"
+        formControlName="password"
+        autocomplete="new-password"
+      />
+      <mat-icon matPrefix>lock</mat-icon>
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+        (click)="hidePassword.set(!hidePassword())"
+      >
+        <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <div class="password-rules">
+      @for (check of passwordChecks(); track check.label) {
+        <span [class.met]="check.met">
+          <mat-icon>{{ check.met ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+          {{ check.label }}
+        </span>
+      }
+    </div>
+
+    <button
+      mat-flat-button
+      color="primary"
+      class="submit"
+      type="submit"
+      [disabled]="submitting()"
+    >
+      @if (submitting()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        Create account
+      }
+    </button>
+  </form>
+
+  <p class="switch">
+    Already have an account?
+    <a routerLink="/auth/login">Sign in</a>
+  </p>
+}

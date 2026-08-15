@@ -1,0 +1,251 @@
+/* ============================================================
+   MATERIAL BRIDGE
+   Angular Material reads --mat-sys-* variables. The design system speaks
+   --md-sys-*. This file is the single translation layer between them:
+   every Material component picks up EyeLecture colour, shape and type
+   without a single component-level override.
+
+   If a Material component looks off-brand, the fix belongs here — not in
+   a ::ng-deep in some feature component.
+   ============================================================ */
+
+:root {
+  /* ---- Colour roles ---- */
+  --mat-sys-primary: var(--md-sys-color-primary);
+  --mat-sys-on-primary: var(--md-sys-color-on-primary);
+  --mat-sys-primary-container: var(--md-sys-color-primary-container);
+  --mat-sys-on-primary-container: var(--md-sys-color-on-primary-container);
+  --mat-sys-primary-fixed: var(--md-sys-color-primary-container);
+  --mat-sys-primary-fixed-dim: var(--md-sys-color-primary-container);
+  --mat-sys-on-primary-fixed: var(--md-sys-color-on-primary-container);
+  --mat-sys-on-primary-fixed-variant: var(--md-sys-color-on-primary-container);
+
+  --mat-sys-secondary: var(--md-sys-color-secondary);
+  --mat-sys-on-secondary: var(--md-sys-color-on-secondary);
+  --mat-sys-secondary-container: var(--md-sys-color-secondary-container);
+  --mat-sys-on-secondary-container: var(--md-sys-color-on-secondary-container);
+  --mat-sys-secondary-fixed: var(--md-sys-color-secondary-container);
+  --mat-sys-secondary-fixed-dim: var(--md-sys-color-secondary-container);
+  --mat-sys-on-secondary-fixed: var(--md-sys-color-on-secondary-container);
+  --mat-sys-on-secondary-fixed-variant: var(--md-sys-color-on-secondary-container);
+
+  --mat-sys-tertiary: var(--md-sys-color-tertiary);
+  --mat-sys-on-tertiary: var(--md-sys-color-on-tertiary);
+  --mat-sys-tertiary-container: var(--md-sys-color-tertiary-container);
+  --mat-sys-on-tertiary-container: var(--md-sys-color-on-tertiary-container);
+  --mat-sys-tertiary-fixed: var(--md-sys-color-tertiary-container);
+  --mat-sys-tertiary-fixed-dim: var(--md-sys-color-tertiary-container);
+  --mat-sys-on-tertiary-fixed: var(--md-sys-color-on-tertiary-container);
+  --mat-sys-on-tertiary-fixed-variant: var(--md-sys-color-on-tertiary-container);
+
+  --mat-sys-error: var(--md-sys-color-error);
+  --mat-sys-on-error: var(--md-sys-color-on-error);
+  --mat-sys-error-container: var(--md-sys-color-error-container);
+  --mat-sys-on-error-container: var(--md-sys-color-on-error-container);
+
+  --mat-sys-background: var(--md-sys-color-background);
+  --mat-sys-on-background: var(--md-sys-color-on-surface);
+  --mat-sys-surface: var(--md-sys-color-surface);
+  --mat-sys-on-surface: var(--md-sys-color-on-surface);
+  --mat-sys-surface-variant: var(--md-sys-color-surface-container-high);
+  --mat-sys-on-surface-variant: var(--md-sys-color-on-surface-variant);
+  --mat-sys-surface-dim: var(--md-sys-color-surface-dim);
+  --mat-sys-surface-bright: var(--md-sys-color-surface);
+  --mat-sys-surface-container-lowest: var(--md-sys-color-surface);
+  --mat-sys-surface-container-low: var(--md-sys-color-surface-container);
+  --mat-sys-surface-container: var(--md-sys-color-surface-container);
+  --mat-sys-surface-container-high: var(--md-sys-color-surface-container-high);
+  --mat-sys-surface-container-highest: var(--md-sys-color-surface-container-high);
+  --mat-sys-surface-tint: var(--md-sys-color-primary);
+
+  --mat-sys-outline: var(--md-sys-color-outline);
+  --mat-sys-outline-variant: var(--md-sys-color-outline-variant);
+  --mat-sys-inverse-surface: var(--md-sys-color-inverse-surface);
+  --mat-sys-inverse-on-surface: var(--md-sys-color-on-inverse-surface);
+  --mat-sys-inverse-primary: var(--el-blue-300);
+  --mat-sys-shadow: rgba(15, 23, 42, 1);
+  --mat-sys-scrim: rgba(15, 23, 42, 0.42);
+  --mat-sys-neutral10: var(--md-sys-color-on-surface);
+  --mat-sys-neutral-variant20: var(--md-sys-color-on-surface-variant);
+
+  /* ---- State layer opacities ---- */
+  --mat-sys-hover-state-layer-opacity: var(--md-sys-state-hover-opacity);
+  --mat-sys-focus-state-layer-opacity: var(--md-sys-state-focus-opacity);
+  --mat-sys-pressed-state-layer-opacity: var(--md-sys-state-pressed-opacity);
+
+  /* ---- Shape ---- */
+  --mat-sys-corner-extra-small: var(--md-sys-shape-corner-xs);
+  --mat-sys-corner-small: var(--md-sys-shape-corner-sm);
+  --mat-sys-corner-medium: var(--md-sys-shape-corner-md);
+  --mat-sys-corner-large: var(--md-sys-shape-corner-lg);
+  --mat-sys-corner-extra-large: var(--md-sys-shape-corner-xl);
+  --mat-sys-corner-full: var(--md-sys-shape-corner-full);
+  --mat-sys-corner-none: 0;
+
+  /* ---- Elevation ---- */
+  --mat-sys-level0: var(--md-sys-elevation-0);
+  --mat-sys-level1: var(--md-sys-elevation-1);
+  --mat-sys-level2: var(--md-sys-elevation-2);
+  --mat-sys-level3: var(--md-sys-elevation-3);
+  --mat-sys-level4: var(--md-sys-elevation-4);
+  --mat-sys-level5: var(--md-sys-elevation-5);
+
+  /* ---- Typography ----
+     Display and headline use Instrument Sans; everything else uses Geist,
+     matching the "display font for structure, body font for reading" rule. */
+  --mat-sys-display-large: 600 44px / 1.08 var(--font-display);
+  --mat-sys-display-medium: 600 36px / 1.12 var(--font-display);
+  --mat-sys-display-small: 600 30px / 1.16 var(--font-display);
+  --mat-sys-headline-large: 600 30px / 1.2 var(--font-display);
+  --mat-sys-headline-medium: 600 24px / 1.24 var(--font-display);
+  --mat-sys-headline-small: 600 19px / 1.3 var(--font-display);
+  --mat-sys-title-large: 600 19px / 1.3 var(--font-display);
+  --mat-sys-title-medium: 600 16px / 1.4 var(--font-display);
+  --mat-sys-title-small: 500 14px / 1.45 var(--font-body);
+  --mat-sys-body-large: 400 16px / 1.62 var(--font-body);
+  --mat-sys-body-medium: 400 14px / 1.57 var(--font-body);
+  --mat-sys-body-small: 400 12.5px / 1.5 var(--font-body);
+  --mat-sys-label-large: 500 14px / 1.45 var(--font-body);
+  --mat-sys-label-medium: 500 12px / 1.4 var(--font-body);
+  --mat-sys-label-small: 500 11px / 1.4 var(--font-body);
+
+  --mat-sys-display-large-font: var(--font-display);
+  --mat-sys-headline-large-font: var(--font-display);
+  --mat-sys-title-large-font: var(--font-display);
+  --mat-sys-body-large-font: var(--font-body);
+  --mat-sys-body-medium-font: var(--font-body);
+  --mat-sys-label-large-font: var(--font-body);
+}
+
+/* ============================================================
+   COMPONENT ADJUSTMENTS
+   The design system is flatter and squarer than stock MD3: buttons are
+   12px-cornered rectangles at 40px tall, not pills, and surfaces are led by
+   a 1px border instead of a shadow. These are the deltas.
+   ============================================================ */
+
+.mat-mdc-button-base {
+  --mdc-text-button-label-text-font: var(--font-body);
+  --mdc-filled-button-label-text-font: var(--font-body);
+  --mdc-outlined-button-label-text-font: var(--font-body);
+  --mdc-protected-button-label-text-font: var(--font-body);
+  letter-spacing: 0.01em;
+}
+
+.mat-mdc-raised-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button,
+.mat-mdc-button {
+  --mdc-filled-button-container-shape: var(--md-sys-shape-corner-md);
+  --mdc-outlined-button-container-shape: var(--md-sys-shape-corner-md);
+  --mdc-text-button-container-shape: var(--md-sys-shape-corner-md);
+  --mdc-protected-button-container-shape: var(--md-sys-shape-corner-md);
+  --mdc-filled-button-container-height: 40px;
+  --mdc-outlined-button-container-height: 40px;
+  --mdc-text-button-container-height: 40px;
+  font-weight: 500;
+}
+
+/* Buttons lift by 1px on hover and compress on press — from the motion section. */
+.mat-mdc-unelevated-button:not(:disabled):hover,
+.mat-mdc-raised-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--md-sys-elevation-1);
+}
+.mat-mdc-button-base:not(:disabled) {
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-fast) var(--ease-standard);
+}
+.mat-mdc-button-base:not(:disabled):active {
+  transform: scale(0.965);
+}
+
+/* Cards: border-led, not shadow-led. */
+.mat-mdc-card {
+  --mdc-elevated-card-container-shape: var(--md-sys-shape-corner-lg);
+  --mdc-outlined-card-container-shape: var(--md-sys-shape-corner-lg);
+  --mdc-elevated-card-container-color: var(--md-sys-color-surface);
+  --mdc-outlined-card-container-color: var(--md-sys-color-surface);
+  --mdc-outlined-card-outline-color: var(--md-sys-color-outline-variant);
+  --mdc-elevated-card-container-elevation: var(--md-sys-elevation-1);
+}
+
+/* Form fields: the design system uses a 44px outlined box with a 12px corner
+   and a 3px focus ring, which is squarer and taller than the MDC default. */
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-container-shape: var(--md-sys-shape-corner-md);
+  --mdc-outlined-text-field-outline-color: var(--md-sys-color-outline);
+  --mdc-outlined-text-field-hover-outline-color: var(--md-sys-color-on-surface-variant);
+  --mdc-outlined-text-field-focus-outline-color: var(--md-sys-color-primary);
+  --mdc-outlined-text-field-focus-outline-width: 2px;
+  --mdc-outlined-text-field-label-text-font: var(--font-body);
+  --mdc-outlined-text-field-input-text-font: var(--font-body);
+  --mat-form-field-container-text-font: var(--font-body);
+  width: 100%;
+}
+
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-shape: var(--md-sys-shape-corner-xl);
+  --mdc-dialog-container-color: var(--md-sys-color-surface);
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-shape: var(--md-sys-shape-corner-md);
+  --mdc-snackbar-container-color: var(--md-sys-color-inverse-surface);
+  --mdc-snackbar-supporting-text-color: var(--md-sys-color-on-inverse-surface);
+  --mdc-snackbar-supporting-text-font: var(--font-body);
+}
+
+.mat-mdc-menu-panel {
+  --mat-menu-container-shape: var(--md-sys-shape-corner-md);
+  --mat-menu-container-color: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.mat-mdc-table {
+  --mat-table-background-color: var(--md-sys-color-surface);
+  --mat-table-header-headline-font: var(--font-body);
+  --mat-table-row-item-label-text-font: var(--font-body);
+}
+
+.mat-mdc-tab-group,
+.mat-mdc-tab-nav-bar {
+  --mat-tab-header-label-text-font: var(--font-body);
+  --mat-tab-header-label-text-weight: 500;
+  --mat-tab-header-active-label-text-color: var(--md-sys-color-primary);
+  --mat-tab-header-active-focus-label-text-color: var(--md-sys-color-primary);
+  --mat-tab-header-active-hover-label-text-color: var(--md-sys-color-primary);
+  --mat-tab-header-active-indicator-color: var(--md-sys-color-primary);
+}
+
+.mat-mdc-progress-bar {
+  --mdc-linear-progress-track-color: var(--viz-track);
+  --mdc-linear-progress-active-indicator-color: var(--md-sys-color-primary);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.mat-mdc-chip {
+  --mdc-chip-container-shape-radius: var(--md-sys-shape-corner-sm);
+  --mdc-chip-label-text-font: var(--font-body);
+}
+
+.mat-toolbar {
+  --mat-toolbar-container-background-color: var(--md-sys-color-surface);
+  --mat-toolbar-container-text-color: var(--md-sys-color-on-surface);
+  --mat-toolbar-title-text-font: var(--font-display);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.mat-mdc-paginator {
+  --mat-paginator-container-background-color: var(--md-sys-color-surface);
+  --mat-paginator-container-text-font: var(--font-body);
+}
+
+/* Focus ring, applied globally rather than per-component. */
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--md-sys-color-primary) 55%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

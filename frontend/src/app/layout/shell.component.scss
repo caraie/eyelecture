@@ -1,0 +1,192 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.appbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  height: 60px;
+  padding: 0 var(--sp-5);
+  background: color-mix(in srgb, var(--md-sys-color-surface) 92%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.brandmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-size: 17px;
+  color: var(--md-sys-color-on-surface);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.nav-toggle {
+  display: none;
+}
+
+.account {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  max-width: 240px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--md-sys-shape-corner-md);
+  background: transparent;
+  font-family: var(--font-body);
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast) var(--ease-standard),
+    border-color var(--motion-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--md-sys-color-surface-container-high);
+  }
+
+  &[aria-expanded='true'] {
+    background: var(--md-sys-color-surface-container-high);
+    border-color: var(--md-sys-color-outline-variant);
+  }
+
+  .el-avatar {
+    flex: none;
+  }
+
+  .account-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    // Without this the flex item refuses to shrink below its content width and
+    // a long name pushes the chevron out of the bar instead of ellipsing.
+    min-width: 0;
+    line-height: 1.25;
+
+    .nm,
+    .sub {
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .nm {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .sub {
+      font-size: 11.5px;
+      color: var(--md-sys-color-on-surface-muted);
+    }
+  }
+
+  .chev {
+    flex: none;
+    color: var(--md-sys-color-on-surface-muted);
+  }
+}
+
+.menu-head {
+  padding: var(--sp-3) var(--sp-4);
+
+  .nm {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .sub {
+    font-size: 12px;
+    color: var(--md-sys-color-on-surface-muted);
+  }
+}
+
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: var(--sp-6);
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--sp-6) var(--sp-6) var(--sp-16);
+}
+
+.sidenav {
+  position: sticky;
+  top: 84px;
+  align-self: start;
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-lg);
+  max-height: calc(100vh - 108px);
+  overflow-y: auto;
+}
+
+.content {
+  min-width: 0;
+}
+
+.scrim {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .nav-toggle {
+    display: inline-flex;
+  }
+
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--sp-4);
+  }
+
+  .sidenav {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    bottom: 0;
+    width: 262px;
+    z-index: 40;
+    border-radius: 0;
+    border-left: 0;
+    max-height: none;
+    transform: translateX(-100%);
+    transition: transform var(--motion-base) var(--ease-emphasized);
+
+    &.open {
+      transform: translateX(0);
+      box-shadow: var(--md-sys-elevation-4);
+    }
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 60px 0 0 0;
+    background: rgba(15, 23, 42, 0.42);
+    z-index: 35;
+  }
+
+  .account .account-text {
+    display: none;
+  }
+}

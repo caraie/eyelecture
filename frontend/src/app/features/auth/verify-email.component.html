@@ -1,0 +1,40 @@
+<div class="result">
+  @switch (state()) {
+    @case ('working') {
+      <div class="ico good">
+        <mat-spinner diameter="32" />
+      </div>
+      <h2 class="el-headline">Confirming your email</h2>
+      <p>One moment.</p>
+    }
+
+    @case ('done') {
+      <div class="ico good">
+        <mat-icon>check_circle</mat-icon>
+      </div>
+      <h2 class="el-headline">You are all set</h2>
+      <p>Your email is confirmed. Taking you to your dashboard.</p>
+      <a mat-flat-button color="primary" routerLink="/app/dashboard">
+        Go to the dashboard
+      </a>
+    }
+
+    @case ('failed') {
+      <div class="ico bad">
+        <mat-icon>link_off</mat-icon>
+      </div>
+      <h2 class="el-headline">This link did not work</h2>
+      <p>{{ message() }}</p>
+      <a mat-stroked-button routerLink="/auth/login">Back to sign in</a>
+    }
+
+    @case ('missing') {
+      <div class="ico bad">
+        <mat-icon>help</mat-icon>
+      </div>
+      <h2 class="el-headline">Nothing to confirm</h2>
+      <p>This page needs a verification token. Open the link from your email instead.</p>
+      <a mat-stroked-button routerLink="/auth/login">Back to sign in</a>
+    }
+  }
+</div>

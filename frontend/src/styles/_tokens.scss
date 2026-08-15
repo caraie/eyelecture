@@ -1,0 +1,240 @@
+/* ============================================================
+   EYELECTURE DESIGN TOKENS
+   Ported verbatim from eyelecture-design-system.html.
+
+   Layer 1: reference tokens (--el-*)  = the raw brand palette
+   Layer 2: system tokens (--md-sys-*) = Material 3 roles
+   Layer 3: component tokens           = per-component overrides
+
+   Only ever consume layer 2 or 3 in product code. If you find yourself
+   reaching for --el-blue-600 in a component, add a system token instead.
+   ============================================================ */
+
+:root {
+  /* ---- Reference: Ocular Blue (primary) ---- */
+  --el-blue-50: #eef3fe;
+  --el-blue-100: #d9e4fd;
+  --el-blue-200: #b4c8fa;
+  --el-blue-300: #8aa8f5;
+  --el-blue-400: #5b82ec;
+  --el-blue-500: #2e5fdd;
+  --el-blue-600: #1b4fd1;
+  --el-blue-700: #163fa8;
+  --el-blue-800: #12327f;
+  --el-blue-900: #0e2557;
+  --el-blue-950: #081533;
+
+  /* ---- Reference: Retina Emerald (secondary / correct) ---- */
+  --el-green-50: #e8f9f0;
+  --el-green-100: #c9f0de;
+  --el-green-200: #97e3c0;
+  --el-green-300: #5fd09e;
+  --el-green-400: #2cba7e;
+  --el-green-500: #0fa968;
+  --el-green-600: #0a7d4c;
+  --el-green-700: #096e44;
+  --el-green-800: #075334;
+  --el-green-900: #053a25;
+
+  /* ---- Reference: Neutral (cool grey, 2% blue) ---- */
+  --el-n-0: #ffffff;
+  --el-n-25: #fbfcfe;
+  --el-n-50: #f6f8fb;
+  --el-n-100: #edf1f7;
+  --el-n-200: #dfe5ee;
+  --el-n-300: #c7d0de;
+  --el-n-400: #97a3b6;
+  --el-n-500: #6b7789;
+  --el-n-600: #4b5566;
+  --el-n-700: #343d4c;
+  --el-n-800: #1f2836;
+  --el-n-900: #0f172a;
+  --el-n-950: #060b14;
+
+  /* ---- Reference: functional ---- */
+  --el-amber-50: #fff6e5;
+  --el-amber-500: #d98a00;
+  --el-amber-700: #9a6100;
+  --el-red-50: #fef2f2;
+  --el-red-500: #d92d20;
+  --el-red-700: #a81e14;
+  --el-violet-50: #f4f1fe;
+  --el-violet-500: #6e4bef;
+  --el-violet-700: #4e31c0;
+  --el-teal-500: #0e93a6;
+
+  /* ---- System: Material 3 colour roles (light) ---- */
+  --md-sys-color-primary: var(--el-blue-600);
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: var(--el-blue-50);
+  --md-sys-color-on-primary-container: var(--el-blue-800);
+  --md-sys-color-secondary: var(--el-green-600);
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: var(--el-green-50);
+  --md-sys-color-on-secondary-container: var(--el-green-800);
+  --md-sys-color-tertiary: var(--el-violet-500);
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: var(--el-violet-50);
+  --md-sys-color-on-tertiary-container: var(--el-violet-700);
+  --md-sys-color-error: var(--el-red-500);
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: var(--el-red-50);
+  --md-sys-color-on-error-container: var(--el-red-700);
+  --md-sys-color-warning: var(--el-amber-500);
+  --md-sys-color-warning-container: var(--el-amber-50);
+  --md-sys-color-on-warning-container: var(--el-amber-700);
+
+  --md-sys-color-background: var(--el-n-50);
+  --md-sys-color-surface: var(--el-n-0);
+  --md-sys-color-surface-dim: var(--el-n-100);
+  --md-sys-color-surface-container: var(--el-n-50);
+  --md-sys-color-surface-container-high: var(--el-n-100);
+  --md-sys-color-on-surface: var(--el-n-900);
+  --md-sys-color-on-surface-variant: var(--el-n-600);
+  --md-sys-color-on-surface-muted: var(--el-n-500);
+  --md-sys-color-outline: var(--el-n-300);
+  --md-sys-color-outline-variant: var(--el-n-200);
+  --md-sys-color-inverse-surface: var(--el-n-900);
+  --md-sys-color-on-inverse-surface: var(--el-n-25);
+
+  /* ---- System: state layers (MD3) ---- */
+  --md-sys-state-hover-opacity: 0.08;
+  --md-sys-state-focus-opacity: 0.12;
+  --md-sys-state-pressed-opacity: 0.12;
+
+  /* ---- System: shape scale (rounder than stock MD3) ---- */
+  --md-sys-shape-corner-xs: 4px;
+  --md-sys-shape-corner-sm: 8px;
+  --md-sys-shape-corner-md: 12px;
+  --md-sys-shape-corner-lg: 16px;
+  --md-sys-shape-corner-xl: 24px;
+  --md-sys-shape-corner-2xl: 32px;
+  --md-sys-shape-corner-full: 999px;
+
+  /* ---- System: accent surfaces (tinted panels for student-facing tiles) ---- */
+  --acc-blue-surface: #dce7fc;
+  --acc-blue-on: #12327f;
+  --acc-blue-solid: #1b4fd1;
+  --acc-emerald-surface: #cfefe0;
+  --acc-emerald-on: #075334;
+  --acc-emerald-solid: #0a7d4c;
+  --acc-amber-surface: #fce9c4;
+  --acc-amber-on: #7a4e00;
+  --acc-amber-solid: #c77e00;
+  --acc-violet-surface: #e5ddfc;
+  --acc-violet-on: #4930b8;
+  --acc-violet-solid: #6e4bef;
+
+  /* ---- System: elevation (flatter than stock MD3, border-led) ---- */
+  --md-sys-elevation-0: none;
+  --md-sys-elevation-1: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --md-sys-elevation-2: 0 2px 6px rgba(15, 23, 42, 0.08);
+  --md-sys-elevation-3: 0 6px 16px rgba(15, 23, 42, 0.1);
+  --md-sys-elevation-4: 0 12px 28px rgba(15, 23, 42, 0.12);
+  --md-sys-elevation-5: 0 24px 48px rgba(15, 23, 42, 0.16);
+
+  /* ---- System: spacing (4pt grid) ---- */
+  --sp-0: 0;
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+
+  /* ---- System: typography ---- */
+  --font-display: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* ---- System: motion ---- */
+  --motion-fast: 120ms;
+  --motion-base: 220ms;
+  --motion-slow: 360ms;
+  --motion-flip: 520ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  /* strong decel — things arrive and settle */
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  /* slight overshoot — lift, press, pop */
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+  /* ---- Data visualisation ---- */
+  --viz-correct: var(--el-green-500);
+  --viz-1: var(--el-blue-600);
+  --viz-2: var(--el-green-500);
+  --viz-3: var(--el-violet-500);
+  --viz-4: var(--el-amber-500);
+  --viz-5: var(--el-teal-500);
+  --viz-6: var(--el-n-400);
+  --viz-track: var(--el-n-100);
+}
+
+[data-theme='dark'] {
+  --md-sys-color-primary: #8aa8f5;
+  --md-sys-color-on-primary: var(--el-blue-950);
+  --md-sys-color-primary-container: #173872;
+  --md-sys-color-on-primary-container: #d9e4fd;
+  --md-sys-color-secondary: #5fd09e;
+  --md-sys-color-on-secondary: #04301e;
+  --md-sys-color-secondary-container: #0a5537;
+  --md-sys-color-on-secondary-container: #c9f0de;
+  --md-sys-color-tertiary: #a793f7;
+  --md-sys-color-on-tertiary: #241a5c;
+  --md-sys-color-tertiary-container: #3b2a8c;
+  --md-sys-color-on-tertiary-container: #e6defe;
+  --md-sys-color-error: #ff8a80;
+  --md-sys-color-on-error: #4a0f0a;
+  --md-sys-color-error-container: #5a1710;
+  --md-sys-color-on-error-container: #ffd9d6;
+  --md-sys-color-warning: #f0b33b;
+  --md-sys-color-warning-container: #4a3204;
+  --md-sys-color-on-warning-container: #ffe7b8;
+
+  --md-sys-color-background: #0b1220;
+  --md-sys-color-surface: #131b2b;
+  --md-sys-color-surface-dim: #0b1220;
+  --md-sys-color-surface-container: #182134;
+  --md-sys-color-surface-container-high: #202b41;
+  --md-sys-color-on-surface: #e8ecf4;
+  --md-sys-color-on-surface-variant: #a7b2c6;
+  --md-sys-color-on-surface-muted: #7e8ca3;
+  --md-sys-color-outline: #33405a;
+  --md-sys-color-outline-variant: #26314699;
+  --md-sys-color-inverse-surface: #e8ecf4;
+  --md-sys-color-on-inverse-surface: #131b2b;
+
+  --md-sys-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --md-sys-elevation-2: 0 2px 6px rgba(0, 0, 0, 0.45);
+  --md-sys-elevation-3: 0 6px 16px rgba(0, 0, 0, 0.5);
+  --md-sys-elevation-4: 0 12px 28px rgba(0, 0, 0, 0.55);
+  --md-sys-elevation-5: 0 24px 48px rgba(0, 0, 0, 0.6);
+
+  --acc-blue-surface: #1c3462;
+  --acc-blue-on: #cfddfc;
+  --acc-blue-solid: #4e7bee;
+  --acc-emerald-surface: #0f4231;
+  --acc-emerald-on: #afebd0;
+  --acc-emerald-solid: #20b87a;
+  --acc-amber-surface: #45330b;
+  --acc-amber-on: #f7d89c;
+  --acc-amber-solid: #e0a02b;
+  --acc-violet-surface: #2c2359;
+  --acc-violet-on: #d6cbfc;
+  --acc-violet-solid: #8b6df5;
+
+  --viz-track: #26314a;
+  --viz-correct: #3fc98b;
+  --viz-1: #8aa8f5;
+  --viz-2: #3fc98b;
+  --viz-3: #a793f7;
+  --viz-4: #f0b33b;
+  --viz-5: #4cc2d3;
+  --viz-6: #7e8ca3;
+}

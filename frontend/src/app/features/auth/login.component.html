@@ -1,0 +1,83 @@
+<header class="head">
+  <p class="el-overline">Welcome back</p>
+  <h2 class="el-headline">Sign in</h2>
+  <p class="el-lede">Pick up where you left off.</p>
+</header>
+
+@if (errorMessage(); as message) {
+  <div class="el-alert el-alert-error" role="alert">
+    <mat-icon>error</mat-icon>
+    <div>
+      <strong>We could not sign you in</strong>
+      {{ message }}
+      @if (needsVerification()) {
+        <div class="alert-action">
+          <button mat-button type="button" (click)="resendVerification()">
+            Resend the verification link
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <mat-form-field appearance="outline">
+    <mat-label>Email</mat-label>
+    <input
+      matInput
+      type="email"
+      formControlName="email"
+      autocomplete="email"
+      placeholder="you@stanford.edu"
+    />
+    <mat-icon matPrefix>alternate_email</mat-icon>
+    @if (form.controls.email.hasError('required')) {
+      <mat-error>Your email is required</mat-error>
+    } @else if (form.controls.email.hasError('email')) {
+      <mat-error>That does not look like an email address</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Password</mat-label>
+    <input
+      matInput
+      [type]="hidePassword() ? 'password' : 'text'"
+      formControlName="password"
+      autocomplete="current-password"
+    />
+    <mat-icon matPrefix>lock</mat-icon>
+    <button
+      mat-icon-button
+      matSuffix
+      type="button"
+      [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+      (click)="hidePassword.set(!hidePassword())"
+    >
+      <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+    </button>
+    @if (form.controls.password.hasError('required')) {
+      <mat-error>Your password is required</mat-error>
+    }
+  </mat-form-field>
+
+  <button
+    mat-flat-button
+    color="primary"
+    class="submit"
+    type="submit"
+    [disabled]="submitting()"
+  >
+    @if (submitting()) {
+      <mat-spinner diameter="20" />
+    } @else {
+      Sign in
+    }
+  </button>
+</form>
+
+<p class="switch">
+  New here?
+  <a routerLink="/auth/register">Create an account</a>
+</p>

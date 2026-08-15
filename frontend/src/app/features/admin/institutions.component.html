@@ -1,0 +1,151 @@
+<header class="page-head">
+  <div>
+    <p class="el-overline">Administration</p>
+    <h1 class="el-headline">Institutions</h1>
+    <p class="el-lede">
+      An institution owns one or more email domains. Anyone who signs up with an
+      address on one of them is <span class="el-hl-em">validated automatically</span> —
+      everybody else goes to a program director for review.
+    </p>
+  </div>
+  <button mat-flat-button color="primary" type="button" (click)="toggleCreate()">
+    <mat-icon>{{ showCreate() ? 'close' : 'add' }}</mat-icon>
+    {{ showCreate() ? 'Cancel' : 'New institution' }}
+  </button>
+</header>
+
+@if (showCreate()) {
+  <form class="el-card create" [formGroup]="createForm" (ngSubmit)="create()" novalidate>
+    <h3 class="el-title">New institution</h3>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" placeholder="Stanford University School of Medicine" />
+      <mat-hint>The URL slug is derived from this automatically.</mat-hint>
+      @if (createForm.controls.name.hasError('required')) {
+        <mat-error>A name is required</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Description (optional)</mat-label>
+      <input matInput formControlName="description" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email domains</mat-label>
+      <input matInput formControlName="domains" placeholder="@stanford.edu, med.stanford.edu" />
+      <mat-hint>
+        Separate with commas or spaces. The leading “@” is optional. You can add more later.
+      </mat-hint>
+    </mat-form-field>
+
+    <div class="form-actions">
+      <button mat-button type="button" (click)="toggleCreate()">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+        @if (saving()) {
+          <mat-spinner diameter="20" />
+        } @else {
+          Create
+        }
+      </button>
+    </div>
+  </form>
+}
+
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (institutions().length === 0) {
+  <div class="el-card">
+    <div class="el-empty">
+      <div class="ico"><mat-icon>school</mat-icon></div>
+      <h4>No institutions yet</h4>
+      <p>
+        Add the first one and give it an email domain. From then on, students with
+        that address skip the review queue entirely.
+      </p>
+      <button mat-flat-button color="primary" type="button" (click)="toggleCreate()">
+        Add an institution
+      </button>
+    </div>
+  </div>
+} @else {
+  <div class="list">
+    @for (institution of institutions(); track institution.id) {
+      <article class="el-card item" [class.paused]="!institution.isActive">
+        <header class="item-head">
+          <div class="titles">
+            <h3 class="el-title">{{ institution.name }}</h3>
+            <p class="slug el-mono">/{{ institution.slug }}</p>
+            @if (institution.description) {
+              <p class="desc">{{ institution.description }}</p>
+            }
+          </div>
+
+          <mat-slide-toggle
+            [checked]="institution.isActive"
+            [disabled]="busyId() === institution.id"
+            (change)="toggleActive(institution, $event.checked)"
+            [matTooltip]="
+              institution.isActive
+                ? 'Pausing stops its domains from auto-validating new signups'
+                : 'Resume auto-validation for this institution'
+            "
+          >
+            {{ institution.isActive ? 'Active' : 'Paused' }}
+          </mat-slide-toggle>
+        </header>
+
+        <div class="domains">
+          <p class="el-overline">Email domains</p>
+
+          @if (institution.domains.length === 0) {
+            <p class="none">
+              No domains yet — nobody is auto-validated into this institution.
+            </p>
+          } @else {
+            <div class="chips">
+              @for (domain of institution.domains; track domain.id) {
+                <span class="chip">
+                  <mat-icon>alternate_email</mat-icon>
+                  {{ domain.domain }}
+                  <button
+                    type="button"
+                    class="x"
+                    [disabled]="busyId() === institution.id"
+                    [attr.aria-label]="'Remove ' + domain.domain"
+                    matTooltip="Remove. People already validated keep their access."
+                    (click)="removeDomain(institution, domain.id)"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </span>
+              }
+            </div>
+          }
+
+          <div class="add-domain">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Add a domain</mat-label>
+              <input
+                matInput
+                placeholder="@stanford.edu"
+                [value]="draftFor(institution.id)"
+                (input)="setDraft(institution.id, $any($event.target).value)"
+                (keyup.enter)="addDomain(institution)"
+              />
+            </mat-form-field>
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="!draftFor(institution.id) || busyId() === institution.id"
+              (click)="addDomain(institution)"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </article>
+    }
+  </div>
+}

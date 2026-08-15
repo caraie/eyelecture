@@ -1,0 +1,160 @@
+<header class="page-head">
+  <div>
+    <p class="el-overline">Administration</p>
+    <h1 class="el-headline">People</h1>
+    <p class="el-lede">Everyone with an account, across every institution.</p>
+  </div>
+</header>
+
+<div class="el-table-wrap">
+  <div class="el-toolbar-row">
+    <mat-form-field appearance="outline" class="search" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="search"
+        placeholder="Name or email"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+        (keyup.enter)="applyFilters()"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter" subscriptSizing="dynamic">
+      <mat-label>Role</mat-label>
+      <mat-select
+        [ngModel]="roleFilter()"
+        (ngModelChange)="roleFilter.set($event); applyFilters()"
+      >
+        <mat-option value="">Any role</mat-option>
+        @for (role of roles; track role) {
+          <mat-option [value]="role">{{ roleLabels[role] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter" subscriptSizing="dynamic">
+      <mat-label>Status</mat-label>
+      <mat-select
+        [ngModel]="statusFilter()"
+        (ngModelChange)="statusFilter.set($event); applyFilters()"
+      >
+        <mat-option value="">Any status</mat-option>
+        @for (status of statuses; track status) {
+          <mat-option [value]="status">{{ statusLabels[status] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <span class="el-spacer"></span>
+    <button mat-icon-button type="button" aria-label="Reload" (click)="load()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="state"><mat-spinner diameter="28" /></div>
+  } @else if (people().length === 0) {
+    <div class="el-empty">
+      <div class="ico"><mat-icon>search_off</mat-icon></div>
+      <h4>Nobody matches</h4>
+      <p>Try a different search or clear the filters.</p>
+    </div>
+  } @else {
+    <div class="scroll">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th>Person</th>
+            <th>Role</th>
+            <th>Institution</th>
+            <th>Membership</th>
+            <th>Account</th>
+            <th>Joined</th>
+            <th class="right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (person of people(); track person.id) {
+            <tr>
+              <td>
+                <div class="el-person">
+                  <span class="el-avatar">{{ initials(person) }}</span>
+                  <span class="who">
+                    <span class="nm">{{ person.fullName }}</span>
+                    <span class="sub">{{ person.email }}</span>
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="el-badge el-badge-neutral">{{ roleLabels[person.role] }}</span>
+              </td>
+              <td class="wrap">{{ person.institution?.name ?? '—' }}</td>
+              <td><el-status-badge [user]="person" /></td>
+              <td>
+                <span
+                  class="el-badge"
+                  [class.el-badge-success]="person.status === 'active'"
+                  [class.el-badge-warning]="person.status === 'pending_email_verification'"
+                  [class.el-badge-error]="person.status === 'suspended'"
+                >
+                  {{ statusLabels[person.status] }}
+                </span>
+              </td>
+              <td class="nowrap el-muted">{{ person.createdAt | date: 'mediumDate' }}</td>
+              <td class="right">
+                @if (person.id !== currentUserId) {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    [matMenuTriggerFor]="rowMenu"
+                    aria-label="Actions"
+                  >
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+
+                  <mat-menu #rowMenu="matMenu">
+                    <div class="menu-label">Change role</div>
+                    @for (role of roles; track role) {
+                      <button
+                        mat-menu-item
+                        type="button"
+                        [disabled]="role === person.role"
+                        (click)="setRole(person, role)"
+                      >
+                        <mat-icon>{{ role === person.role ? 'check' : 'person' }}</mat-icon>
+                        <span>{{ roleLabels[role] }}</span>
+                      </button>
+                    }
+                    <div class="menu-label">Account</div>
+                    @if (person.status === 'suspended') {
+                      <button mat-menu-item type="button" (click)="setStatus(person, 'active')">
+                        <mat-icon>lock_open</mat-icon>
+                        <span>Reinstate</span>
+                      </button>
+                    } @else {
+                      <button mat-menu-item type="button" (click)="setStatus(person, 'suspended')">
+                        <mat-icon>block</mat-icon>
+                        <span>Suspend</span>
+                      </button>
+                    }
+                  </mat-menu>
+                } @else {
+                  <span class="el-muted you">You</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <mat-paginator
+      [length]="total()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50, 100]"
+      (page)="onPage($event)"
+    />
+  }
+</div>

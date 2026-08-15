@@ -1,0 +1,131 @@
+/* ============================================================
+   EYELECTURE GLOBAL STYLES
+
+   Load order matters:
+   1. tokens           — the raw design system variables (--el-*, --md-sys-*)
+   2. Material theme   — Angular Material's own variable definitions
+   3. material-bridge  — maps --md-sys-* onto --mat-sys-*, overriding step 2
+   4. components       — the design system's own presentational classes
+   ============================================================ */
+
+@use '@angular/material' as mat;
+@use 'styles/tokens';
+@use 'styles/material-bridge';
+@use 'styles/components';
+
+html {
+  height: 100%;
+  // Generates the --mat-sys-* variable set. Every colour, shape and type value
+  // it produces is then overridden by _material-bridge.scss, which loads after
+  // it. The palettes below are only a fallback for tokens we do not remap.
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$violet-palette,
+      ),
+      typography: (
+        plain-family: 'Geist',
+        brand-family: 'Instrument Sans',
+      ),
+      density: 0,
+    )
+  );
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  background: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-surface);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+  transition:
+    background var(--motion-base) var(--ease-standard),
+    color var(--motion-base) var(--ease-standard);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: var(--font-display);
+  margin: 0;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--md-sys-color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code,
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+/* ------------------------------------------------------------
+   Material Symbols Rounded — the icon font the design system uses.
+   MatIconRegistry is configured with this class in app.config.ts.
+   ------------------------------------------------------------ */
+.material-symbols-rounded,
+.mat-icon.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  width: 20px;
+  height: 20px;
+  user-select: none;
+  /* Clip rather than spill. If the icon font fails to load, <mat-icon> falls back
+     to rendering the ligature name as plain text ("how_to_reg"), which would
+     otherwise overflow and shove the surrounding layout apart. */
+  overflow: hidden;
+}
+
+/* Snackbar variants used by NotificationService. */
+.el-snack-success {
+  --mdc-snackbar-container-color: var(--el-green-700);
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #c9f0de;
+}
+
+.el-snack-error {
+  --mdc-snackbar-container-color: var(--el-red-700);
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #ffd9d6;
+}

@@ -1,0 +1,128 @@
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-6);
+
+  .el-overline {
+    margin-bottom: var(--sp-1);
+  }
+
+  .el-headline {
+    margin-bottom: var(--sp-1);
+  }
+}
+
+.banner {
+  margin-bottom: var(--sp-4);
+}
+
+.section {
+  margin-top: var(--sp-8);
+
+  .el-title {
+    margin-bottom: var(--sp-4);
+  }
+}
+
+.tile {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  .tile-ico {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--md-sys-shape-corner-md);
+    display: grid;
+    place-items: center;
+    margin-bottom: var(--sp-3);
+    transition:
+      transform var(--motion-base) var(--ease-spring),
+      border-radius var(--motion-base);
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+      color: #fff;
+    }
+
+    &.blue {
+      background: var(--acc-blue-solid);
+    }
+    &.emerald {
+      background: var(--acc-emerald-solid);
+    }
+    &.violet {
+      background: var(--acc-violet-solid);
+    }
+  }
+
+  &:hover .tile-ico {
+    transform: scale(1.08) rotate(-5deg);
+    border-radius: var(--md-sys-shape-corner-lg);
+  }
+
+  .k {
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--md-sys-color-on-surface-muted);
+  }
+
+  .v {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .d {
+    font-size: 12.5px;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: 2px;
+  }
+}
+
+.kv {
+  margin: 0 0 var(--sp-5);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+
+  div {
+    min-width: 0;
+  }
+
+  dt {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--md-sys-color-on-surface-muted);
+    margin-bottom: 3px;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 14.5px;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 640px) {
+  .kv {
+    grid-template-columns: 1fr;
+  }
+}

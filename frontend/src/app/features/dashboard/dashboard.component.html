@@ -1,0 +1,129 @@
+@if (user(); as currentUser) {
+  <header class="page-head">
+    <div>
+      <p class="el-overline">{{ roleLabel() }}</p>
+      <h1 class="el-headline">
+        {{ greeting() }}, <span class="el-hl">{{ currentUser.firstName }}</span>
+      </h1>
+      <p class="el-lede">
+        @if (currentUser.institution) {
+          {{ currentUser.institution.name }}
+        } @else {
+          No institution linked to your account yet.
+        }
+      </p>
+    </div>
+    <el-status-badge [user]="currentUser" />
+  </header>
+
+  <!-- Membership banner. Only shown when there is actually something to say. -->
+  @switch (membershipState()) {
+    @case ('pending') {
+      <div class="el-alert el-alert-warning banner">
+        <mat-icon>hourglass_top</mat-icon>
+        <div>
+          <strong>Your membership is being reviewed</strong>
+          @if (currentUser.requestedInstitution) {
+            A program director at {{ currentUser.requestedInstitution.name }} needs to
+            confirm you belong there. You will get access to your cohort's material
+            as soon as they do.
+          } @else if (currentUser.role === 'program_director') {
+            An administrator needs to approve your program director account.
+          } @else {
+            We could not match {{ currentUser.email }} to an institution
+            automatically, so someone needs to confirm your membership by hand.
+          }
+        </div>
+      </div>
+    }
+    @case ('rejected') {
+      <div class="el-alert el-alert-error banner">
+        <mat-icon>block</mat-icon>
+        <div>
+          <strong>Your membership request was turned down</strong>
+          {{ currentUser.validationNote ?? 'Reach out to your program director if you think this is a mistake.' }}
+        </div>
+      </div>
+    }
+  }
+
+  @if (!currentUser.emailVerified) {
+    <div class="el-alert el-alert-info banner">
+      <mat-icon>mark_email_unread</mat-icon>
+      <div>
+        <strong>Confirm your email</strong>
+        We sent a link to {{ currentUser.email }}.
+      </div>
+    </div>
+  }
+
+  <!-- Role-specific work surfaces. -->
+  @if (canReview()) {
+    <section class="section">
+      <h2 class="el-title">Your queue</h2>
+      <div class="el-grid" [class.el-g3]="isAdmin()" [class.el-g2]="!isAdmin()">
+        <a class="el-card el-card-hover tile" routerLink="/app/validation">
+          <div class="tile-ico blue"><mat-icon>how_to_reg</mat-icon></div>
+          <div class="k">Waiting for review</div>
+          <div class="v">{{ pendingCount() ?? '—' }}</div>
+          <div class="d">
+            @if (pendingCount() === 0) {
+              Nothing to do right now
+            } @else {
+              People who need you to confirm them
+            }
+          </div>
+        </a>
+
+        @if (isAdmin()) {
+          <a class="el-card el-card-hover tile" routerLink="/app/institutions">
+            <div class="tile-ico emerald"><mat-icon>school</mat-icon></div>
+            <div class="k">Institutions</div>
+            <div class="v">{{ institutionCount() ?? '—' }}</div>
+            <div class="d">Email domains that auto-validate</div>
+          </a>
+
+          <a class="el-card el-card-hover tile" routerLink="/app/users">
+            <div class="tile-ico violet"><mat-icon>group</mat-icon></div>
+            <div class="k">People</div>
+            <div class="v">{{ totalUsers() ?? '—' }}</div>
+            <div class="d">Across every institution</div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
+  <section class="section">
+    <h2 class="el-title">Your account</h2>
+    <div class="el-card">
+      <dl class="kv">
+        <div>
+          <dt>Email</dt>
+          <dd>{{ currentUser.email }}</dd>
+        </div>
+        <div>
+          <dt>Role</dt>
+          <dd>{{ roleLabel() }}</dd>
+        </div>
+        <div>
+          <dt>Institution</dt>
+          <dd>{{ currentUser.institution?.name ?? 'Not linked' }}</dd>
+        </div>
+        <div>
+          <dt>Membership</dt>
+          <dd>
+            @if (currentUser.validationMethod === 'email_domain') {
+              Confirmed automatically by email domain
+            } @else if (currentUser.validationMethod === 'manual') {
+              Confirmed by a reviewer
+            } @else {
+              Not confirmed yet
+            }
+          </dd>
+        </div>
+      </dl>
+      <a mat-stroked-button routerLink="/app/profile">Edit profile</a>
+    </div>
+  </section>
+}

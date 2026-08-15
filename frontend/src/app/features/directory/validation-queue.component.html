@@ -1,0 +1,130 @@
+<header class="page-head">
+  <div>
+    <p class="el-overline">People</p>
+    <h1 class="el-headline">Validation queue</h1>
+    <p class="el-lede">
+      @if (isAdmin()) {
+        Everyone waiting to be confirmed, across every institution.
+      } @else if (reviewerInstitution()) {
+        Students at {{ reviewerInstitution() }} whose address did not match an
+        institution domain.
+      } @else {
+        You need to belong to an institution before you can validate students.
+      }
+    </p>
+  </div>
+</header>
+
+<div class="el-table-wrap">
+  <div class="el-toolbar-row">
+    <mat-form-field appearance="outline" class="search" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="search"
+        placeholder="Search by name or email"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+        (keyup.enter)="applySearch()"
+      />
+    </mat-form-field>
+
+    <button mat-stroked-button type="button" (click)="applySearch()">Search</button>
+    <span class="el-spacer"></span>
+    <span class="count-label">{{ total() }} waiting</span>
+    <button mat-icon-button type="button" aria-label="Reload" (click)="load()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="state">
+      <mat-spinner diameter="28" />
+    </div>
+  } @else if (people().length === 0) {
+    <div class="el-empty">
+      <div class="ico"><mat-icon>task_alt</mat-icon></div>
+      <h4>Nothing waiting</h4>
+      <p>
+        Everyone who signed up has either been confirmed automatically by their
+        email domain or already reviewed.
+      </p>
+    </div>
+  } @else {
+    <ul class="queue">
+      @for (person of people(); track person.id) {
+        <li class="queue-row" [class.busy]="isBusy(person.id)">
+          <div class="el-person">
+            <span class="el-avatar el-avatar-lg">{{ initials(person) }}</span>
+            <span class="who">
+              <span class="nm">{{ person.fullName }}</span>
+              <span class="sub">{{ person.email }}</span>
+            </span>
+          </div>
+
+          <div class="meta">
+            <span class="el-badge el-badge-neutral">{{ roleLabels[person.role] }}</span>
+
+            @if (person.requestedInstitution) {
+              <span
+                class="el-badge el-badge-info"
+                [matTooltip]="'They said they belong to this institution'"
+              >
+                <mat-icon>school</mat-icon>
+                {{ person.requestedInstitution.name }}
+              </span>
+            } @else if (person.institution) {
+              <span class="el-badge el-badge-info">
+                <mat-icon>school</mat-icon>
+                {{ person.institution.name }}
+              </span>
+            } @else {
+              <span
+                class="el-badge el-badge-warning"
+                matTooltip="No institution — you will need to pick one"
+              >
+                <mat-icon>help</mat-icon>
+                Unaffiliated
+              </span>
+            }
+
+            @if (!person.emailVerified) {
+              <span
+                class="el-badge el-badge-warning"
+                matTooltip="They have not confirmed their email address yet"
+              >
+                <mat-icon>mark_email_unread</mat-icon>
+                Email unverified
+              </span>
+            }
+
+            <span class="since">Signed up {{ person.createdAt | date: 'mediumDate' }}</span>
+          </div>
+
+          <div class="actions">
+            @if (isBusy(person.id)) {
+              <mat-spinner diameter="24" />
+            } @else {
+              <button
+                mat-stroked-button
+                type="button"
+                class="reject"
+                (click)="reject(person)"
+              >
+                Turn down
+              </button>
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                (click)="approve(person)"
+              >
+                Validate
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

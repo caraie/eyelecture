@@ -1,0 +1,164 @@
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-6);
+
+  .el-overline {
+    margin-bottom: var(--sp-1);
+  }
+
+  .el-headline {
+    margin-bottom: var(--sp-2);
+  }
+}
+
+.create {
+  margin-bottom: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+
+  .el-title {
+    margin-bottom: var(--sp-4);
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.state {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-12);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.item {
+  &.paused {
+    opacity: 0.72;
+    border-style: dashed;
+  }
+}
+
+.item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+
+  .titles {
+    min-width: 0;
+  }
+
+  .slug {
+    color: var(--md-sys-color-on-surface-muted);
+    font-size: 12px;
+    margin-top: 2px;
+  }
+
+  .desc {
+    font-size: 13.5px;
+    color: var(--md-sys-color-on-surface-variant);
+    margin-top: 6px;
+    max-width: 60ch;
+  }
+}
+
+.domains {
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  padding-top: var(--sp-4);
+
+  .el-overline {
+    margin-bottom: var(--sp-3);
+  }
+
+  .none {
+    font-size: 13.5px;
+    color: var(--md-sys-color-on-surface-muted);
+    margin-bottom: var(--sp-3);
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 6px 0 10px;
+  border-radius: var(--md-sys-shape-corner-sm);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+
+  > mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+  }
+
+  .x {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    padding: 0;
+    opacity: 0.65;
+    transition: all var(--motion-fast);
+
+    mat-icon {
+      font-size: 15px;
+      width: 15px;
+      height: 15px;
+    }
+
+    &:hover:not(:disabled) {
+      opacity: 1;
+      background: color-mix(in srgb, currentColor 16%, transparent);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.3;
+    }
+  }
+}
+
+.add-domain {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 460px;
+
+  mat-form-field {
+    flex: 1;
+  }
+}

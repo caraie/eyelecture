@@ -1,0 +1,127 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: eyelecture
+  REGION: us-central1
+  REGISTRY: us-central1-docker.pkg.dev/eyelecture/eyelecture
+
+# Never run two deploys against the same environment at once — the second would
+# race the first while Cloud Run is still shifting traffic.
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Required for Workload Identity Federation: the job asks GitHub for an
+      # OIDC token and trades it for short-lived Google credentials. There is no
+      # service account key anywhere in this repo or in GitHub secrets.
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/693861601488/locations/global/workloadIdentityPools/github/providers/github-oidc
+          service_account: github-deployer@eyelecture.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Set image tags
+        id: tags
+        run: |
+          echo "api=${REGISTRY}/api:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "web=${REGISTRY}/web:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push the API image
+        run: |
+          docker build \
+            --tag "${{ steps.tags.outputs.api }}" \
+            --tag "${REGISTRY}/api:latest" \
+            ./backend
+          docker push "${{ steps.tags.outputs.api }}"
+          docker push "${REGISTRY}/api:latest"
+
+      - name: Build and push the web image
+        run: |
+          docker build \
+            --tag "${{ steps.tags.outputs.web }}" \
+            --tag "${REGISTRY}/web:latest" \
+            ./frontend
+          docker push "${{ steps.tags.outputs.web }}"
+          docker push "${REGISTRY}/web:latest"
+
+      # Migrations run before the new revision serves traffic, so the schema is
+      # never behind the code. The job shares the API image, so it always carries
+      # exactly the migrations this commit expects.
+      - name: Run database migrations
+        run: |
+          gcloud run jobs update eyelecture-migrate \
+            --image="${{ steps.tags.outputs.api }}" \
+            --region="${REGION}" \
+            --quiet
+          gcloud run jobs execute eyelecture-migrate \
+            --region="${REGION}" \
+            --wait
+
+      - name: Deploy the API
+        run: |
+          gcloud run deploy eyelecture-api \
+            --image="${{ steps.tags.outputs.api }}" \
+            --region="${REGION}" \
+            --quiet
+
+      - name: Deploy the web frontend
+        run: |
+          gcloud run deploy eyelecture-web \
+            --image="${{ steps.tags.outputs.web }}" \
+            --region="${REGION}" \
+            --quiet
+
+      - name: Smoke-test the deployment
+        run: |
+          API_URL=$(gcloud run services describe eyelecture-api --region="${REGION}" --format='value(status.url)')
+          WEB_URL=$(gcloud run services describe eyelecture-web --region="${REGION}" --format='value(status.url)')
+
+          echo "API: ${API_URL}"
+          echo "WEB: ${WEB_URL}"
+
+          # A deploy that returns a 200 but cannot reach Postgres is still broken,
+          # so assert on the body rather than just the status code.
+          health=$(curl -fsS --retry 5 --retry-delay 5 --retry-all-errors "${API_URL}/api/v1/health")
+          echo "health: ${health}"
+          echo "${health}" | grep -q '"database":"up"' || {
+            echo "::error::API is up but cannot reach the database"; exit 1;
+          }
+
+          # The SPA must be served through nginx, and its /api proxy must reach
+          # the API on the same origin — that path is what the browser actually uses.
+          curl -fsS --retry 5 --retry-delay 5 --retry-all-errors "${WEB_URL}/" | grep -q "<app-root>" || {
+            echo "::error::Frontend did not serve the Angular shell"; exit 1;
+          }
+          curl -fsS --retry 3 --retry-delay 5 --retry-all-errors "${WEB_URL}/api/v1/health" | grep -q '"status":"ok"' || {
+            echo "::error::The /api proxy on the frontend is not reaching the API"; exit 1;
+          }
+
+          {
+            echo "### Deployed"
+            echo ""
+            echo "| Service | URL |"
+            echo "| --- | --- |"
+            echo "| App | ${WEB_URL} |"
+            echo "| API | ${API_URL} |"
+          } >> "$GITHUB_STEP_SUMMARY"
