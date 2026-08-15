@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="EyeLecture">
+  <!--
+    The in-product brandmark is the eye alone, with no plate. A favicon is the one
+    place that rule has to bend: a tab strip may be light or dark, and the ocular
+    blue of the bare mark washes out against a dark one. The plate keeps contrast
+    identical everywhere.
+
+    Tuned by looking at the 16px raster, not by eyeballing it large:
+      - the highlight dot is dropped - at 16px it lands on half a pixel and only
+        muddies the iris
+      - the pupil is enlarged from 2.4 to 2.6 so it survives as a distinct dark
+        dot instead of blending into the emerald
+      - the lid stroke is heavier than the 2.1 used at display sizes
+      - the eye is scaled to 78% so it does not swallow the corner radius
+  -->
+  <rect width="32" height="32" rx="7" fill="#1B4FD1"/>
+  <g transform="translate(16 16) scale(.78) translate(-16 -16)">
+    <path d="M2.6 16C6.2 10 10.9 7 16 7s9.8 3 13.4 9c-3.6 6-8.3 9-13.4 9S6.2 22 2.6 16Z"
+          fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="16" cy="16" r="5.4" fill="#5FD09E"/>
+    <circle cx="16" cy="16" r="2.6" fill="#0B1220"/>
+  </g>
+</svg>
