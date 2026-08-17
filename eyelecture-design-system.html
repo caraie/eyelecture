@@ -777,6 +777,7 @@ pre.code .p{color:var(--md-sys-color-primary)}
     <a href="#space">Spacing &amp; layout</a>
     <a href="#shape">Shape &amp; elevation</a>
     <a href="#icons">Iconography</a>
+    <a href="#favicon">Favicon &amp; app icons</a>
     <a href="#motion">Motion</a>
     <a href="#a11y">Accessibility</a>
     <div class="grp">02 · Components</div>
@@ -1121,6 +1122,103 @@ pre.code .p{color:var(--md-sys-color-primary)}
         <li>Sizes: <b>16</b> inline with text · <b>20</b> in buttons and lists · <b>24</b> in nav · <b>32+</b> only in empty states.</li>
         <li>Icons are never the only carrier of meaning; they are always paired with a label or an <code>aria-label</code>.</li>
         <li>Ship the icon subset self-hosted, not from a CDN, so the offline app renders correctly.</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="favicon">
+      <div class="sec-num">01 — Foundations</div>
+      <h2>Favicon &amp; app icons</h2>
+      <p class="lede">The in-product brandmark is the eye alone, on whatever surface it sits on. The favicon is the <b>one</b> place that rule bends: it gets a solid ocular-blue plate. A tab strip can be light or dark and is not ours to control, so a bare mark would wash out against half the browsers in use. The plate makes contrast identical everywhere.</p>
+
+      <div class="demo">
+        <div class="row" style="gap:var(--sp-6);align-items:flex-end;flex-wrap:wrap">
+          <span class="stack" style="align-items:center;gap:8px;font-size:12px;color:var(--md-sys-color-on-surface-variant)">
+            <svg width="16" height="16" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EyeLecture favicon at 16 pixels">
+              <rect width="32" height="32" rx="7" fill="#1B4FD1"/>
+              <g transform="translate(16 16) scale(.78) translate(-16 -16)">
+                <path d="M2.6 16C6.2 10 10.9 7 16 7s9.8 3 13.4 9c-3.6 6-8.3 9-13.4 9S6.2 22 2.6 16Z" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="16" cy="16" r="5.4" fill="#5FD09E"/>
+                <circle cx="16" cy="16" r="2.6" fill="#0B1220"/>
+              </g>
+            </svg>
+            16 · tab
+          </span>
+          <span class="stack" style="align-items:center;gap:8px;font-size:12px;color:var(--md-sys-color-on-surface-variant)">
+            <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EyeLecture favicon at 32 pixels">
+              <rect width="32" height="32" rx="7" fill="#1B4FD1"/>
+              <g transform="translate(16 16) scale(.78) translate(-16 -16)">
+                <path d="M2.6 16C6.2 10 10.9 7 16 7s9.8 3 13.4 9c-3.6 6-8.3 9-13.4 9S6.2 22 2.6 16Z" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="16" cy="16" r="5.4" fill="#5FD09E"/>
+                <circle cx="16" cy="16" r="2.6" fill="#0B1220"/>
+              </g>
+            </svg>
+            32 · bookmark
+          </span>
+          <span class="stack" style="align-items:center;gap:8px;font-size:12px;color:var(--md-sys-color-on-surface-variant)">
+            <svg width="48" height="48" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EyeLecture favicon at 48 pixels">
+              <rect width="32" height="32" rx="7" fill="#1B4FD1"/>
+              <g transform="translate(16 16) scale(.78) translate(-16 -16)">
+                <path d="M2.6 16C6.2 10 10.9 7 16 7s9.8 3 13.4 9c-3.6 6-8.3 9-13.4 9S6.2 22 2.6 16Z" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="16" cy="16" r="5.4" fill="#5FD09E"/>
+                <circle cx="16" cy="16" r="2.6" fill="#0B1220"/>
+              </g>
+            </svg>
+            48 · shortcut
+          </span>
+          <span class="stack" style="align-items:center;gap:8px;font-size:12px;color:var(--md-sys-color-on-surface-variant)">
+            <svg width="90" height="90" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EyeLecture apple touch icon">
+              <rect width="32" height="32" rx="7" fill="#1B4FD1"/>
+              <g transform="translate(16 16) scale(.78) translate(-16 -16)">
+                <path d="M2.6 16C6.2 10 10.9 7 16 7s9.8 3 13.4 9c-3.6 6-8.3 9-13.4 9S6.2 22 2.6 16Z" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="16" cy="16" r="5.4" fill="#5FD09E"/>
+                <circle cx="16" cy="16" r="2.6" fill="#0B1220"/>
+              </g>
+            </svg>
+            180 · apple-touch
+          </span>
+        </div>
+      </div>
+
+      <p class="note">The <code>.ico</code> is <b>not</b> one image downscaled three times. Each frame was rasterised separately at its exact size, because 16px needs different proportions than 48px does. This is the part that gets skipped and it is the part that shows.</p>
+
+      <div class="demo tight">
+        <table class="dt">
+          <thead>
+            <tr><th>Asset</th><th>Sizes</th><th>What changes at small sizes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>favicon.svg</code></td>
+              <td>any</td>
+              <td>Preferred where supported — stays crisp on any display density.</td>
+            </tr>
+            <tr>
+              <td><code>favicon.ico</code></td>
+              <td>16 · 32 · 48</td>
+              <td>Highlight dot dropped (at 16px it lands on half a pixel and only muddies the iris); pupil grown 2.4 → 2.6 so it survives as a distinct dark dot; lid stroke heavier than the 2.1 used at display sizes.</td>
+            </tr>
+            <tr>
+              <td><code>apple-touch-icon.png</code></td>
+              <td>180</td>
+              <td>Full detail. iOS applies its own mask, so the artwork is drawn edge to edge with the eye at 78% scale.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+<pre class="code"><span class="c">&lt;!-- SVG first, .ico as the fallback. Order matters. --&gt;</span>
+&lt;link rel="icon" type="image/svg+xml" href="<span class="p">favicon.svg</span>" /&gt;
+&lt;link rel="icon" type="image/x-icon" href="<span class="p">favicon.ico</span>" sizes="16x16 32x32 48x48" /&gt;
+&lt;link rel="apple-touch-icon" href="<span class="p">apple-touch-icon.png</span>" /&gt;
+<span class="c">&lt;!-- Tints the browser chrome on mobile. Same blue as the plate. --&gt;</span>
+&lt;meta name="theme-color" content="<span class="p">#1B4FD1</span>" /&gt;</pre>
+
+      <ul class="rule-list">
+        <li>Plate is <code>#1B4FD1</code> (ocular blue) with a <b>7/32</b> corner radius — proportionally the same <code>corner-lg</code> used on cards, so the icon reads as part of the family.</li>
+        <li>The eye is scaled to <b>78%</b> inside the plate. Larger and it swallows the corner radius; smaller and it looks timid in a crowded tab strip.</li>
+        <li><code>theme-color</code> matches the plate exactly. A mismatch here is very visible on Android Chrome, where the address bar sits directly against the icon.</li>
+        <li>The favicon does <b>not</b> follow the light/dark theme. It is one fixed mark, because the surface it lands on belongs to the browser.</li>
+        <li>Never use the plated version inside the product. In-app, the mark is bare — see the brandmark in the app bar.</li>
       </ul>
     </section>
 
@@ -2233,7 +2331,7 @@ pre.code .p{color:var(--md-sys-color-primary)}
           </ul></div>
         <div class="card"><h4>Open — outstanding design debt</h4>
           <ul class="rule-list" style="margin-bottom:0">
-            <li>The eye mark here is a first pass and needs a proper lockup (horizontal, stacked, favicon, monochrome) before it ships.</li>
+            <li>The eye mark here is a first pass and still needs the rest of the lockup (horizontal, stacked, monochrome) before it ships. The favicon and app icons are <a href="#favicon">done</a>.</li>
             <li>Charts beyond bars: score distributions and trend lines over blocks.</li>
             <li>The full question-authoring flow, including AI draft review states.</li>
             <li>Print/PDF stylesheet for transcripts and cohort reports.</li>
