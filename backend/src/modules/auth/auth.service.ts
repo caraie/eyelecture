@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   Logger,
@@ -22,6 +23,7 @@ import {
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import { RefreshToken } from './entities/refresh-token.entity';
 import { EmailVerificationToken } from './entities/email-verification-token.entity';
+import { VerificationPurpose } from './enums/verification-purpose.enum';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import {
@@ -70,9 +72,16 @@ export class AuthService {
    *     admin reviews it (a director validates others, so nobody self-appoints)
    */
   async register(dto: RegisterDto): Promise<RegisterResponseDto> {
-    if (await this.users.emailExists(dto.email)) {
+    if (await this.users.emailInUse(dto.email)) {
       throw new ConflictException('An account with this email already exists');
     }
+
+    const secondaryEmail = dto.secondaryEmail
+      ? await this.users.assertSecondaryEmailAllowed(
+          dto.secondaryEmail,
+          dto.email,
+        )
+      : null;
 
     const role = dto.role ?? UserRole.STUDENT;
     const domain = emailDomainOf(dto.email);
@@ -83,13 +92,19 @@ export class AuthService {
     const user = await this.users.create({
       email: dto.email,
       emailDomain: domain,
+      secondaryEmail,
+      // Deliberately null. The address is usable for sign-in unverified; confirming
+      // it is something the person can do later from their profile.
+      secondaryEmailVerifiedAt: null,
       passwordHash: await bcrypt.hash(dto.password, BCRYPT_ROUNDS),
       firstName: dto.firstName,
       lastName: dto.lastName,
       role,
       status: UserStatus.PENDING_EMAIL_VERIFICATION,
       institutionId: matched?.id ?? null,
-      requestedInstitutionId: matched ? null : (dto.requestedInstitutionId ?? null),
+      requestedInstitutionId: matched
+        ? null
+        : (dto.requestedInstitutionId ?? null),
       validationStatus: autoValidated
         ? ValidationStatus.VALIDATED
         : ValidationStatus.PENDING,
@@ -102,8 +117,14 @@ export class AuthService {
     return {
       user: UserResponseDto.from(user),
       autoValidated,
-      message: this.registrationMessage(user, matched?.name ?? null, autoValidated),
-      ...(this.isProduction() ? {} : { devEmailVerificationToken: verificationToken }),
+      message: this.registrationMessage(
+        user,
+        matched?.name ?? null,
+        autoValidated,
+      ),
+      ...(this.isProduction()
+        ? {}
+        : { devEmailVerificationToken: verificationToken }),
     };
   }
 
@@ -123,34 +144,61 @@ export class AuthService {
 
   // --- Email verification -----------------------------------------------------
 
-  private async issueEmailVerificationToken(user: User): Promise<string> {
+  private async issueEmailVerificationToken(
+    user: User,
+    purpose: VerificationPurpose = VerificationPurpose.PRIMARY_EMAIL,
+  ): Promise<string> {
     const token = randomBytes(32).toString('hex');
     const ttlHours = this.config.getOrThrow<number>(
       'app.emailVerificationTtlHours',
     );
 
+    const isSecondary = purpose === VerificationPurpose.SECONDARY_EMAIL;
+    const targetEmail = isSecondary ? user.secondaryEmail : user.email;
+
+    if (!targetEmail) {
+      throw new BadRequestException('There is no address to send a link to');
+    }
+
     await this.verificationTokens.save(
       this.verificationTokens.create({
         tokenHash: hashToken(token),
         userId: user.id,
+        purpose,
+        targetEmail,
         expiresAt: new Date(Date.now() + ttlHours * 3_600_000),
       }),
     );
 
-    const link = `${this.config.getOrThrow<string>('app.frontendUrl')}/auth/verify-email?token=${token}`;
+    const path = isSecondary
+      ? '/app/profile/confirm-personal-email'
+      : '/auth/verify-email';
+    const link = `${this.config.getOrThrow<string>('app.frontendUrl')}${path}?token=${token}`;
     // No mail transport wired up yet — the link goes to the log so the flow is
     // testable end to end. Swap this for your provider when you add one.
-    this.logger.log(`Email verification link for ${user.email}: ${link}`);
+    this.logger.log(`Email verification link for ${targetEmail}: ${link}`);
 
     return token;
   }
 
-  async verifyEmail(token: string): Promise<AuthResponseDto> {
+  /**
+   * Redeems a token, checking that it was minted for the purpose being claimed.
+   * Everything past this point can assume the token is fresh and single-use.
+   */
+  private async consumeVerificationToken(
+    token: string,
+    purpose: VerificationPurpose,
+  ): Promise<EmailVerificationToken> {
     const record = await this.verificationTokens.findOne({
       where: { tokenHash: hashToken(token) },
     });
 
-    if (!record || record.consumedAt || record.expiresAt < new Date()) {
+    if (
+      !record ||
+      record.consumedAt ||
+      record.expiresAt < new Date() ||
+      record.purpose !== purpose
+    ) {
       throw new UnauthorizedException(
         'This verification link is invalid or has expired',
       );
@@ -158,9 +206,181 @@ export class AuthService {
 
     record.consumedAt = new Date();
     await this.verificationTokens.save(record);
+    return record;
+  }
 
-    const user = await this.users.markEmailVerified(record.userId);
-    return this.buildAuthResponse(user);
+  async verifyEmail(token: string): Promise<AuthResponseDto> {
+    const record = await this.consumeVerificationToken(
+      token,
+      VerificationPurpose.PRIMARY_EMAIL,
+    );
+
+    const user = await this.users.findByIdOrFail(record.userId);
+
+    // The address must still be the one the link was sent to. This matters more here
+    // than on the secondary path, because succeeding also hands back a live session:
+    // without the check, someone who registered an address they controlled, never
+    // clicked, and then had an admin move the account to a different address, could
+    // spend the stale link to verify that new address and sign in as the account.
+    //
+    // `targetEmail` is null only for tokens minted before the column existed; those
+    // are allowed through rather than being broken by the upgrade.
+    if (record.targetEmail !== null && record.targetEmail !== user.email) {
+      throw new UnauthorizedException(
+        'This link was sent to a different address than the one on the account now',
+      );
+    }
+
+    const verified = await this.users.markEmailVerified(record.userId);
+    return this.buildAuthResponse(verified);
+  }
+
+  // --- Secondary (personal) address -------------------------------------------
+
+  /**
+   * Set or replace the personal address on your own account, then send a
+   * confirmation link. The address is live for sign-in immediately either way —
+   * confirming it is about trusting the address, not about unlocking it.
+   */
+  async setSecondaryEmail(
+    userId: string,
+    secondaryEmail: string,
+  ): Promise<{ user: UserResponseDto; devToken?: string }> {
+    // setSecondaryEmail runs assertSecondaryEmailAllowed itself, so the rule is
+    // applied whether the caller comes through here or straight to the service.
+    const user = await this.users.setSecondaryEmail(userId, secondaryEmail);
+
+    // Any link already in flight pointed at the previous address.
+    await this.verificationTokens.delete({
+      userId,
+      purpose: VerificationPurpose.SECONDARY_EMAIL,
+      consumedAt: IsNull(),
+    });
+
+    const token = await this.issueEmailVerificationToken(
+      user,
+      VerificationPurpose.SECONDARY_EMAIL,
+    );
+
+    return {
+      user: UserResponseDto.from(user),
+      ...(this.isProduction() ? {} : { devToken: token }),
+    };
+  }
+
+  async removeSecondaryEmail(userId: string): Promise<UserResponseDto> {
+    await this.verificationTokens.delete({
+      userId,
+      purpose: VerificationPurpose.SECONDARY_EMAIL,
+      consumedAt: IsNull(),
+    });
+    return UserResponseDto.from(await this.users.clearSecondaryEmail(userId));
+  }
+
+  async resendSecondaryEmailVerification(
+    userId: string,
+  ): Promise<{ message: string; devToken?: string }> {
+    const user = await this.users.findByIdOrFail(userId);
+
+    if (!user.secondaryEmail) {
+      throw new BadRequestException(
+        'You have not added a personal address yet',
+      );
+    }
+    if (user.secondaryEmailVerifiedAt) {
+      throw new BadRequestException('That address is already confirmed');
+    }
+
+    await this.verificationTokens.delete({
+      userId,
+      purpose: VerificationPurpose.SECONDARY_EMAIL,
+      consumedAt: IsNull(),
+    });
+
+    const token = await this.issueEmailVerificationToken(
+      user,
+      VerificationPurpose.SECONDARY_EMAIL,
+    );
+
+    return {
+      message: `A confirmation link is on its way to ${user.secondaryEmail}.`,
+      ...(this.isProduction() ? {} : { devToken: token }),
+    };
+  }
+
+  /**
+   * Confirm the personal address.
+   *
+   * The token records the address it was sent to. If the person has changed it since,
+   * the old link must not confirm the new one, so a mismatch is treated as expired.
+   */
+  async verifySecondaryEmail(
+    token: string,
+  ): Promise<{ secondaryEmail: string; message: string }> {
+    const record = await this.consumeVerificationToken(
+      token,
+      VerificationPurpose.SECONDARY_EMAIL,
+    );
+
+    const user = await this.users.findByIdOrFail(record.userId);
+
+    if (!user.secondaryEmail || user.secondaryEmail !== record.targetEmail) {
+      throw new UnauthorizedException(
+        'This link was sent to a different address than the one on the account now',
+      );
+    }
+
+    const updated = await this.users.markSecondaryEmailVerified(record.userId);
+
+    // Deliberately not the full user. This endpoint is public — the token is the only
+    // credential — and a forwarded email or a proxy log should not be enough to read
+    // back somebody's institutional address, role and validation state.
+    return {
+      secondaryEmail: updated.secondaryEmail!,
+      message: 'That address is confirmed.',
+    };
+  }
+
+  // --- Password changes -------------------------------------------------------
+
+  /**
+   * Change your own password. Also the exit from a temporary password handed out by
+   * an admin, which is why the current one is required rather than assumed.
+   *
+   * Every existing session is revoked on success — if a temporary password did leak,
+   * whoever else used it is signed out by the legitimate owner's change. A fresh pair
+   * is then issued for the caller, so the device doing the change stays signed in
+   * instead of being bounced to the login screen for doing the right thing.
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+    context: SessionContext = {},
+  ): Promise<AuthResponseDto> {
+    const user = await this.users.findByIdWithPassword(userId);
+    if (!user) throw new UnauthorizedException('Session expired');
+
+    const matches = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!matches) {
+      throw new UnauthorizedException('Your current password is not correct');
+    }
+
+    if (await bcrypt.compare(newPassword, user.passwordHash)) {
+      throw new BadRequestException(
+        'Choose a password you have not been using already',
+      );
+    }
+
+    await this.users.setPassword(
+      userId,
+      await bcrypt.hash(newPassword, BCRYPT_ROUNDS),
+    );
+
+    // Order matters: revoke first, then mint. The other way round would kill the
+    // token we just handed out.
+    await this.logoutAll(userId);
+    return this.buildAuthResponse(user, context);
   }
 
   async resendVerification(email: string): Promise<{ message: string }> {
@@ -172,19 +392,43 @@ export class AuthService {
 
     if (!user || user.emailVerifiedAt) return { message };
 
-    await this.verificationTokens.delete({ userId: user.id, consumedAt: IsNull() });
+    // Scoped to PRIMARY_EMAIL. Without the filter this also discarded any pending
+    // link for the personal address, so asking for a new primary link silently broke
+    // an unrelated confirmation the person was waiting on.
+    await this.revokePendingPrimaryEmailTokens(user.id);
     await this.issueEmailVerificationToken(user);
     return { message };
   }
 
+  /**
+   * Invalidates any unclicked primary-address link for an account.
+   *
+   * Called when an admin changes somebody's main address: a link issued for the old
+   * address must not stay spendable, because redeeming it marks the *new* address
+   * verified and hands back a session.
+   */
+  async revokePendingPrimaryEmailTokens(userId: string): Promise<void> {
+    await this.verificationTokens.delete({
+      userId,
+      purpose: VerificationPurpose.PRIMARY_EMAIL,
+      consumedAt: IsNull(),
+    });
+  }
+
   // --- Login / sessions -------------------------------------------------------
 
-  async login(dto: LoginDto, context: SessionContext = {}): Promise<AuthResponseDto> {
-    const user = await this.users.findByEmailWithPassword(dto.email);
+  async login(
+    dto: LoginDto,
+    context: SessionContext = {},
+  ): Promise<AuthResponseDto> {
+    // Either address signs the user in — institutional or personal, verified or not.
+    const user = await this.users.findByAnyEmailWithPassword(dto.email);
 
     // Compare against a dummy hash when the user is missing so that a wrong email
     // and a wrong password take the same amount of time.
-    const hash = user?.passwordHash ?? '$2b$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidinva';
+    const hash =
+      user?.passwordHash ??
+      '$2b$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidinva';
     const passwordMatches = await bcrypt.compare(dto.password, hash);
 
     if (!user || !passwordMatches) {
@@ -244,7 +488,9 @@ export class AuthService {
   /** Housekeeping: drop refresh tokens that expired more than 30 days ago. */
   async purgeExpiredTokens(): Promise<number> {
     const cutoff = new Date(Date.now() - 30 * 24 * 3_600_000);
-    const result = await this.refreshTokens.delete({ expiresAt: LessThan(cutoff) });
+    const result = await this.refreshTokens.delete({
+      expiresAt: LessThan(cutoff),
+    });
     return result.affected ?? 0;
   }
 

@@ -85,6 +85,11 @@ export class ShellComponent {
         title: 'Administration',
         items: [
           { label: 'Institutions', icon: 'school', route: '/app/institutions' },
+          {
+            label: 'Administrators',
+            icon: 'admin_panel_settings',
+            route: '/app/admins',
+          },
         ],
       });
     }

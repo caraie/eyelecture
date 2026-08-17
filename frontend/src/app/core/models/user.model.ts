@@ -17,6 +17,13 @@ export interface UserInstitution {
 export interface User {
   id: string;
   email: string;
+  /** Optional personal address. Signs the user in just like `email` does. */
+  secondaryEmail: string | null;
+  /**
+   * Unverified is a normal, usable state — sign-in works either way. It only means
+   * nobody has proven they can read that mailbox yet.
+   */
+  secondaryEmailVerified: boolean;
   firstName: string;
   lastName: string;
   fullName: string;
@@ -29,6 +36,8 @@ export interface User {
   institution: UserInstitution | null;
   requestedInstitution: UserInstitution | null;
   emailVerified: boolean;
+  /** True while an admin-issued temporary password is still in place. */
+  mustChangePassword: boolean;
   createdAt: string;
 }
 

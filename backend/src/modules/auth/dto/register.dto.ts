@@ -20,6 +20,25 @@ export class RegisterDto {
   @Transform(({ value }) => String(value).trim().toLowerCase())
   email!: string;
 
+  @ApiPropertyOptional({
+    example: 'ana.perez@gmail.com',
+    description:
+      'Optional personal address. Signs the user in just like the main one, so the ' +
+      'account survives losing the institutional mailbox. Must not be on a domain ' +
+      'that belongs to a known institution — that is what the main address is for.',
+  })
+  @IsOptional()
+  // Empty string means "left blank", not "invalid". Browsers submit '' for an
+  // untouched optional input, and rejecting that would fail a form nobody filled in.
+  @Transform(({ value }) =>
+    value === null || value === undefined || String(value).trim() === ''
+      ? undefined
+      : String(value).trim().toLowerCase(),
+  )
+  @IsEmail({}, { message: 'The personal email address is not valid' })
+  @MaxLength(320)
+  secondaryEmail?: string;
+
   @ApiProperty({
     minLength: 8,
     description: 'At least 8 characters, including one number or symbol.',

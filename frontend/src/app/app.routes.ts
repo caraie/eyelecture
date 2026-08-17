@@ -1,5 +1,10 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, roleGuard } from './core/guards/auth.guard';
+import {
+  authGuard,
+  guestGuard,
+  passwordChangeGuard,
+  roleGuard,
+} from './core/guards/auth.guard';
 
 /**
  * Two shells: /auth/* for signed-out screens, /app/* for the product.
@@ -72,6 +77,13 @@ export const routes: Routes = [
           import('./features/admin/users.component').then((m) => m.UsersComponent),
       },
       {
+        path: 'admins',
+        canActivate: [roleGuard('admin')],
+        title: 'Administrators · EyeLecture',
+        loadComponent: () =>
+          import('./features/admin/admins.component').then((m) => m.AdminsComponent),
+      },
+      {
         path: 'institutions',
         canActivate: [roleGuard('admin')],
         title: 'Institutions · EyeLecture',
@@ -81,8 +93,28 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'change-password',
+        canActivate: [passwordChangeGuard],
+        title: 'Change your password · EyeLecture',
+        loadComponent: () =>
+          import('./features/auth/change-password.component').then(
+            (m) => m.ChangePasswordComponent,
+          ),
+      },
+      {
         path: 'profile',
         title: 'Profile · EyeLecture',
+        loadComponent: () =>
+          import('./features/profile/profile.component').then(
+            (m) => m.ProfileComponent,
+          ),
+      },
+      {
+        // The confirmation link for a personal address. Same component as the
+        // profile, which reads the token off the query string — a separate screen
+        // would only flash and redirect straight back here.
+        path: 'profile/confirm-personal-email',
+        title: 'Confirm your personal email · EyeLecture',
         loadComponent: () =>
           import('./features/profile/profile.component').then(
             (m) => m.ProfileComponent,

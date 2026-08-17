@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import {
   Observable,
   catchError,
@@ -25,6 +30,31 @@ import { RegisterResponse } from '../../core/models/api.model';
 import { environment } from '../../../environments/environment';
 
 type SignupRole = 'student' | 'program_director';
+
+/**
+ * Validators.email fails on an empty string, which would leave an untouched optional
+ * field marked invalid and block the whole form. This treats blank as "not provided".
+ */
+const optionalEmail: ValidatorFn = (control) =>
+  String(control.value ?? '').trim() === '' ? null : Validators.email(control);
+
+/**
+ * The personal address has to differ from the main one. Checked here as well as on the
+ * server so the person finds out while typing rather than after submitting.
+ *
+ * Reaches up to the parent group, so it only has an opinion once the control is
+ * attached to the form.
+ */
+const differentFromPrimary: ValidatorFn = (control) => {
+  const secondary = String(control.value ?? '').trim().toLowerCase();
+  if (!secondary) return null;
+
+  const primary = String(control.parent?.get('email')?.value ?? '')
+    .trim()
+    .toLowerCase();
+
+  return primary && primary === secondary ? { sameAsPrimary: true } : null;
+};
 
 @Component({
   selector: 'el-register',
@@ -61,6 +91,9 @@ export class RegisterComponent {
     firstName: ['', [Validators.required, Validators.maxLength(100)]],
     lastName: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email]],
+    // Optional, so no Validators.required — but Validators.email rejects '', which
+    // would make an untouched form invalid. Hence the wrapper that lets blank pass.
+    secondaryEmail: ['', [optionalEmail, differentFromPrimary]],
     password: [
       '',
       [
@@ -125,6 +158,17 @@ export class RegisterComponent {
       // The picker is a convenience; signup still works without it.
       error: () => this.institutions.set([]),
     });
+
+    // differentFromPrimary reads the email control, but Angular only re-runs a
+    // validator when its own control changes. Without this, typing the same address
+    // into the main field second leaves a stale "looks fine" on the personal one.
+    this.form.controls.email.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.form.controls.secondaryEmail.updateValueAndValidity({
+          emitEvent: false,
+        });
+      });
   }
 
   setRole(role: SignupRole): void {
@@ -146,6 +190,8 @@ export class RegisterComponent {
         ? raw.requestedInstitutionId
         : undefined;
 
+    const secondaryEmail = raw.secondaryEmail.trim().toLowerCase();
+
     this.auth
       .register({
         email: raw.email,
@@ -153,6 +199,9 @@ export class RegisterComponent {
         firstName: raw.firstName,
         lastName: raw.lastName,
         role: this.role(),
+        // Omitted rather than sent as '' — the API treats a blank string as absent
+        // too, but not sending it at all keeps the intent unambiguous.
+        ...(secondaryEmail ? { secondaryEmail } : {}),
         ...(requestedInstitutionId ? { requestedInstitutionId } : {}),
       })
       .subscribe({

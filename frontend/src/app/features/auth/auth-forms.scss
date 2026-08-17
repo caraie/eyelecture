@@ -151,6 +151,13 @@ form {
   }
 }
 
+/* The personal-address explainer. Tighter than a standalone alert because it sits
+   between two fields rather than at the top of the form. */
+.signin-note {
+  margin-bottom: var(--sp-3);
+  font-size: 13px;
+}
+
 .password-rules {
   display: flex;
   flex-wrap: wrap;

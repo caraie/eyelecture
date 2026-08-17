@@ -151,6 +151,37 @@
       </mat-form-field>
     }
 
+    <!-- The note is the point of this field. Without it people either skip it or
+         assume it is a second institutional address, which is the one thing it
+         cannot be. -->
+    <div class="el-alert el-alert-info signin-note">
+      <mat-icon>info</mat-icon>
+      <div>
+        <strong>You can add a personal address too</strong>
+        Sign in with <span class="el-hl-em">either one</span>. Add a private mailbox
+        and you keep your account even after your institution closes the address
+        above. It has to be personal — a second institutional address is not accepted.
+      </div>
+    </div>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Personal email (optional)</mat-label>
+      <input
+        matInput
+        type="email"
+        formControlName="secondaryEmail"
+        autocomplete="email"
+        placeholder="you@gmail.com"
+      />
+      <mat-icon matPrefix>alternate_email</mat-icon>
+      <mat-hint>Leave blank if you would rather not.</mat-hint>
+      @if (form.controls.secondaryEmail.hasError('email')) {
+        <mat-error>That does not look like an email address</mat-error>
+      } @else if (form.controls.secondaryEmail.hasError('sameAsPrimary')) {
+        <mat-error>This has to be different from your main address</mat-error>
+      }
+    </mat-form-field>
+
     <mat-form-field appearance="outline">
       <mat-label>Password</mat-label>
       <input

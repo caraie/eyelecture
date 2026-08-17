@@ -13,6 +13,8 @@ import { environment } from '../../../environments/environment';
 const makeUser = (overrides: Partial<User> = {}): User => ({
   id: 'u1',
   email: 'ana@stanford.edu',
+  secondaryEmail: null,
+  secondaryEmailVerified: false,
   firstName: 'Ana',
   lastName: 'Perez',
   fullName: 'Ana Perez',
@@ -25,6 +27,7 @@ const makeUser = (overrides: Partial<User> = {}): User => ({
   institution: { id: 'i1', name: 'Stanford', slug: 'stanford' },
   requestedInstitution: null,
   emailVerified: true,
+  mustChangePassword: false,
   createdAt: '2026-01-01T00:00:00.000Z',
   ...overrides,
 });

@@ -16,6 +16,11 @@ const PUBLIC_PATHS = [
   '/auth/register',
   '/auth/refresh',
   '/auth/verify-email',
+  // Listed before the shorter '/auth/verify-email' would be enough on its own, but
+  // spelling it out keeps the intent readable: confirming a personal address is also
+  // token-authenticated, so a 401 from a stale link must surface rather than kick off
+  // a pointless refresh and rotate the refresh token on the way.
+  '/auth/verify-secondary-email',
   '/auth/resend-verification',
   '/institutions/public',
 ];

@@ -1,0 +1,331 @@
+<header class="page-head">
+  <div>
+    <p class="el-overline">Administration</p>
+    <h1 class="el-headline">Administrators</h1>
+    <p class="el-lede">
+      Platform staff. They manage institutions, validate anyone, and can
+      <span class="el-hl-em">create more administrators</span> — including you.
+    </p>
+  </div>
+
+  <button mat-flat-button color="primary" type="button" (click)="toggleCreate()">
+    <mat-icon>{{ showCreate() ? 'close' : 'person_add' }}</mat-icon>
+    {{ showCreate() ? 'Cancel' : 'New administrator' }}
+  </button>
+</header>
+
+<!-- Shown once, right after creating an admin or resetting a password. There is no
+     mail server, and the password is not stored in readable form, so this panel is
+     the only chance to hand it over. -->
+@if (issuedCredentials(); as issued) {
+  <section class="el-card credentials">
+    <div class="ch">
+      <mat-icon>vpn_key</mat-icon>
+      <div>
+        <h2 class="el-title">Pass these on now</h2>
+        <p class="el-lede small">
+          This password is not stored anywhere you can read it back. Once you close
+          this panel it is gone, and you would have to reset it again.
+        </p>
+      </div>
+    </div>
+
+    <dl class="creds">
+      <dt>Email</dt>
+      <dd>{{ issued.email }}</dd>
+      <dt>Temporary password</dt>
+      <dd class="mono">{{ issued.password }}</dd>
+    </dl>
+
+    <div class="el-alert el-alert-info">
+      <mat-icon>info</mat-icon>
+      <div>
+        <strong>They will be asked to replace it</strong>
+        Until they do, their account can only reach the change-password screen.
+      </div>
+    </div>
+
+    <div class="actions">
+      <button mat-flat-button color="primary" type="button" (click)="copyCredentials()">
+        <mat-icon>content_copy</mat-icon>
+        Copy
+      </button>
+      <button mat-stroked-button type="button" (click)="dismissCredentials()">
+        Done
+      </button>
+    </div>
+  </section>
+}
+
+@if (showCreate()) {
+  <section class="el-card create">
+    <h2 class="el-title">New administrator</h2>
+    <p class="el-lede small">
+      The account is created ready to use — no email confirmation, no review queue.
+      You are the approval.
+    </p>
+
+    <form [formGroup]="createForm" (ngSubmit)="create()" novalidate>
+      <div class="row">
+        <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput formControlName="firstName" />
+          @if (createForm.controls.firstName.hasError('required')) {
+            <mat-error>Required</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput formControlName="lastName" />
+          @if (createForm.controls.lastName.hasError('required')) {
+            <mat-error>Required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" />
+        <mat-icon matPrefix>alternate_email</mat-icon>
+        @if (createForm.controls.email.hasError('required')) {
+          <mat-error>Required</mat-error>
+        } @else if (createForm.controls.email.hasError('email')) {
+          <mat-error>That does not look like an email address</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Personal email (optional)</mat-label>
+        <input matInput type="email" formControlName="secondaryEmail" />
+        <mat-icon matPrefix>alternate_email</mat-icon>
+        <mat-hint>Signs them in as well. Must not be an institution domain.</mat-hint>
+        @if (createForm.controls.secondaryEmail.hasError('email')) {
+          <mat-error>That does not look like an email address</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Temporary password</mat-label>
+        <input matInput formControlName="temporaryPassword" class="mono" />
+        <mat-icon matPrefix>vpn_key</mat-icon>
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          aria-label="Suggest another password"
+          matTooltip="Suggest another"
+          (click)="regeneratePassword()"
+        >
+          <mat-icon>refresh</mat-icon>
+        </button>
+        <mat-hint>
+          Suggested at random. They will have to replace it at first sign-in.
+        </mat-hint>
+        @if (createForm.controls.temporaryPassword.hasError('required')) {
+          <mat-error>Required</mat-error>
+        } @else if (createForm.controls.temporaryPassword.hasError('minlength')) {
+          <mat-error>At least 8 characters</mat-error>
+        } @else if (createForm.controls.temporaryPassword.hasError('pattern')) {
+          <mat-error>Needs at least one number or symbol</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+          @if (saving()) {
+            <mat-spinner diameter="20" />
+          } @else {
+            Create administrator
+          }
+        </button>
+        <button mat-stroked-button type="button" (click)="toggleCreate()">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </section>
+}
+
+@if (loading()) {
+  <div class="loading">
+    <mat-spinner diameter="32" />
+  </div>
+} @else if (admins().length === 0) {
+  <section class="el-card empty">
+    <mat-icon>group_off</mat-icon>
+    <p>No administrators yet.</p>
+  </section>
+} @else {
+  <div class="el-stack list">
+    @for (admin of admins(); track admin.id) {
+      <section class="el-card person" [class.is-self]="isSelf(admin)">
+        <div class="prow">
+          <span class="el-avatar">{{ initials(admin) }}</span>
+
+          <div class="who">
+            <div class="nm">
+              {{ admin.fullName }}
+              @if (isSelf(admin)) {
+                <span class="el-badge el-badge-info">You</span>
+              }
+              @if (admin.mustChangePassword) {
+                <span
+                  class="el-badge el-badge-warning"
+                  matTooltip="Still on a temporary password — they can only reach the change-password screen"
+                >
+                  Password pending
+                </span>
+              }
+            </div>
+            <div class="em">{{ admin.email }}</div>
+            @if (admin.secondaryEmail) {
+              <div class="em secondary">
+                <mat-icon>{{
+                  admin.secondaryEmailVerified ? 'verified' : 'mark_email_unread'
+                }}</mat-icon>
+                {{ admin.secondaryEmail }}
+                <span class="el-muted">
+                  ({{ admin.secondaryEmailVerified ? 'confirmed' : 'not confirmed' }})
+                </span>
+              </div>
+            }
+            <div class="meta">
+              Administrator since {{ admin.createdAt | date: 'mediumDate' }}
+            </div>
+          </div>
+
+          <div class="pactions">
+            @if (busyId() === admin.id) {
+              <mat-spinner diameter="24" />
+            } @else if (confirmingDeleteId() === admin.id) {
+              <!-- Confirmation replaces the buttons in place, so the name stays on
+                   screen next to the question. -->
+              <span class="confirm-q">Delete {{ admin.fullName }}?</span>
+              <button
+                mat-flat-button
+                type="button"
+                class="danger-filled"
+                (click)="confirmDelete(admin)"
+              >
+                Delete
+              </button>
+              <button mat-stroked-button type="button" (click)="cancelDelete()">
+                Keep
+              </button>
+            } @else {
+              <button mat-stroked-button type="button" (click)="startEditing(admin)">
+                <mat-icon>edit</mat-icon>
+                Edit
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                [matMenuTriggerFor]="rowMenu"
+                aria-label="More actions"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #rowMenu="matMenu">
+                <!-- Your own password goes through the change-password screen, which
+                     asks for the current one. The API refuses this on yourself. -->
+                <button
+                  mat-menu-item
+                  type="button"
+                  [disabled]="isSelf(admin)"
+                  (click)="resetPassword(admin)"
+                >
+                  <mat-icon>lock_reset</mat-icon>
+                  <span>
+                    {{ isSelf(admin) ? 'Use the profile to change yours' : 'Reset password' }}
+                  </span>
+                </button>
+                <!-- Deleting yourself is refused by the API too. Shown disabled, with
+                     the reason in the label — a tooltip would not fire on a disabled
+                     item, so the explanation has to be the text itself. -->
+                <button
+                  mat-menu-item
+                  type="button"
+                  [disabled]="isSelf(admin)"
+                  (click)="askToDelete(admin)"
+                >
+                  <mat-icon>delete</mat-icon>
+                  <span>
+                    {{ isSelf(admin) ? 'Cannot delete your own account' : 'Delete account' }}
+                  </span>
+                </button>
+              </mat-menu>
+            }
+          </div>
+        </div>
+
+        @if (editingId() === admin.id) {
+          <form
+            class="edit"
+            [formGroup]="editForm"
+            (ngSubmit)="saveEdit(admin)"
+            novalidate
+          >
+            <div class="row">
+              <mat-form-field appearance="outline">
+                <mat-label>First name</mat-label>
+                <input matInput formControlName="firstName" />
+                @if (editForm.controls.firstName.hasError('required')) {
+                  <mat-error>Required</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Last name</mat-label>
+                <input matInput formControlName="lastName" />
+                @if (editForm.controls.lastName.hasError('required')) {
+                  <mat-error>Required</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" />
+              <mat-icon matPrefix>alternate_email</mat-icon>
+              @if (!isSelf(admin)) {
+                <mat-hint>
+                  Changing this marks their address unconfirmed again.
+                </mat-hint>
+              }
+              @if (editForm.controls.email.hasError('required')) {
+                <mat-error>Required</mat-error>
+              } @else if (editForm.controls.email.hasError('email')) {
+                <mat-error>That does not look like an email address</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Personal email</mat-label>
+              <input matInput type="email" formControlName="secondaryEmail" />
+              <mat-icon matPrefix>alternate_email</mat-icon>
+              <mat-hint>Clear the field to remove it.</mat-hint>
+              @if (editForm.controls.secondaryEmail.hasError('email')) {
+                <mat-error>That does not look like an email address</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="actions">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="busyId() === admin.id"
+              >
+                Save changes
+              </button>
+              <button mat-stroked-button type="button" (click)="cancelEditing()">
+                Cancel
+              </button>
+            </div>
+          </form>
+        }
+      </section>
+    }
+  </div>
+}

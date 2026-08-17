@@ -51,6 +51,146 @@
       </form>
     </section>
 
+    <section class="el-card">
+      <h2 class="el-title">Personal email</h2>
+      <p class="el-lede small">
+        A private address, outside your institution. You can sign in with
+        <span class="el-hl-em">either address</span>, so this one keeps your account
+        reachable once your institution closes the one above.
+      </p>
+
+      @if (currentUser.secondaryEmail) {
+        <div class="secondary-current">
+          <div class="addr">
+            <mat-icon>{{
+              currentUser.secondaryEmailVerified ? 'verified' : 'mark_email_unread'
+            }}</mat-icon>
+            <div>
+              <strong>{{ currentUser.secondaryEmail }}</strong>
+              <span
+                class="el-badge"
+                [class.el-badge-success]="currentUser.secondaryEmailVerified"
+                [class.el-badge-warning]="!currentUser.secondaryEmailVerified"
+              >
+                {{ currentUser.secondaryEmailVerified ? 'Confirmed' : 'Not confirmed' }}
+              </span>
+            </div>
+          </div>
+
+          @if (!currentUser.secondaryEmailVerified) {
+            <!-- Deliberately not framed as a problem. The address already works for
+                 signing in; confirming it is what lets us actually write to it. -->
+            <div class="el-alert el-alert-info">
+              <mat-icon>info</mat-icon>
+              <div>
+                <strong>This address already signs you in</strong>
+                Confirming it just proves you can read that mailbox, which is what
+                lets us use it to reach you. You can do it whenever you like.
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button
+                mat-flat-button
+                color="primary"
+                type="button"
+                [disabled]="busy()"
+                (click)="resendConfirmation()"
+              >
+                @if (busy()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <ng-container>
+                    <mat-icon>send</mat-icon>
+                    Send a confirmation link
+                  </ng-container>
+                }
+              </button>
+            </div>
+
+            @if (devConfirmLink(); as link) {
+              <div class="dev-token">
+                <div class="lbl">Development only — no mail server configured</div>
+                <a [href]="link">Open the confirmation link</a>
+              </div>
+            }
+          }
+
+          <div class="form-actions">
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="busy()"
+              (click)="startEditingSecondary()"
+            >
+              <mat-icon>edit</mat-icon>
+              Change
+            </button>
+            <button
+              mat-stroked-button
+              type="button"
+              class="danger"
+              [disabled]="busy()"
+              (click)="removeSecondary()"
+            >
+              <mat-icon>delete</mat-icon>
+              Remove
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (!currentUser.secondaryEmail || editingSecondary()) {
+        <form [formGroup]="secondaryForm" (ngSubmit)="saveSecondary()" novalidate>
+          <mat-form-field appearance="outline">
+            <mat-label>Personal email</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="secondaryEmail"
+              autocomplete="email"
+              placeholder="you@gmail.com"
+            />
+            <mat-icon matPrefix>alternate_email</mat-icon>
+            <mat-hint>
+              Has to be personal — an address on a known institution domain is not
+              accepted here.
+            </mat-hint>
+            @if (secondaryForm.controls.secondaryEmail.hasError('required')) {
+              <mat-error>Enter an address</mat-error>
+            } @else if (secondaryForm.controls.secondaryEmail.hasError('email')) {
+              <mat-error>That does not look like an email address</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="form-actions">
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="busy()"
+            >
+              @if (busy()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                Save and send a link
+              }
+            </button>
+            @if (editingSecondary()) {
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="busy()"
+                (click)="cancelEditingSecondary()"
+              >
+                Cancel
+              </button>
+            }
+          </div>
+        </form>
+      }
+    </section>
+
     <aside class="el-stack">
       <section class="el-card identity">
         <span class="el-avatar el-avatar-lg big">{{ initials() }}</span>
@@ -96,9 +236,30 @@
             {{ currentUser.emailVerified ? 'Verified' : 'Not verified yet' }}
           </dd>
 
+          <dt>Signs you in</dt>
+          <dd>
+            @if (currentUser.secondaryEmail) {
+              Either address — {{ currentUser.email }} or
+              {{ currentUser.secondaryEmail }}
+            } @else {
+              {{ currentUser.email }} only
+            }
+          </dd>
+
           <dt>Member since</dt>
           <dd>{{ currentUser.createdAt | date: 'mediumDate' }}</dd>
         </dl>
+      </section>
+
+      <section class="el-card">
+        <h3 class="el-title">Password</h3>
+        <p class="el-lede small">
+          Changing it signs you out everywhere else.
+        </p>
+        <button mat-stroked-button type="button" (click)="goToPasswordChange()">
+          <mat-icon>key</mat-icon>
+          Change password
+        </button>
       </section>
 
       <section class="el-card">

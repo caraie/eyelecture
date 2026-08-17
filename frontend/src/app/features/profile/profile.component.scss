@@ -48,6 +48,66 @@ form {
 
 .form-actions {
   margin-top: var(--sp-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+/* --- Personal address ----------------------------------------------------- */
+
+.secondary-current {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+
+  .addr {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border: 1px solid var(--md-sys-color-outline-variant);
+    border-radius: var(--md-sys-shape-corner-md);
+    background: var(--md-sys-color-surface-container-low);
+
+    .mat-icon {
+      flex: none;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      /* Long addresses must wrap rather than widen the card and force the whole
+         two-column layout to scroll sideways. */
+      overflow-wrap: anywhere;
+      margin-bottom: 6px;
+    }
+  }
+
+  /* The Remove button is destructive but not the primary action, so it is tinted
+     rather than filled — loud enough to read as different, quiet enough not to
+     compete with Change. */
+  .danger {
+    --mdc-outlined-button-label-text-color: var(--md-sys-color-error);
+    color: var(--md-sys-color-error);
+  }
+}
+
+.dev-token {
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px dashed var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-md);
+  font-size: 13px;
+
+  .lbl {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--md-sys-color-on-surface-muted);
+    margin-bottom: 4px;
+  }
 }
 
 .identity {

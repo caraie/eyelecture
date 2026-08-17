@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { configuration } from './config/configuration';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { PasswordChangeGuard } from './common/guards/password-change.guard';
 import { UsersModule } from './modules/users/users.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -39,8 +40,14 @@ import { HealthController } from './health.controller';
   ],
   controllers: [HealthController],
   providers: [
+    // Order matters: global guards run in registration order, and the second one
+    // reads the user that the first attaches to the request.
+    //
     // Authentication is on by default; routes opt out with @Public().
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    // An account on an admin-issued temporary password can only reach the endpoints
+    // marked @AllowPendingPasswordChange().
+    { provide: APP_GUARD, useClass: PasswordChangeGuard },
   ],
 })
 export class AppModule {}

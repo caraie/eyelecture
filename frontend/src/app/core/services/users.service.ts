@@ -2,7 +2,11 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { PaginatedResult } from '../models/api.model';
+import {
+  AdminUpdateUserPayload,
+  CreateAdminPayload,
+  PaginatedResult,
+} from '../models/api.model';
 import {
   User,
   UserRole,
@@ -85,5 +89,31 @@ export class UsersService {
     lastName?: string;
   }): Observable<User> {
     return this.http.patch<User>(`${this.base}/me`, payload);
+  }
+
+  // --- Administrator management -----------------------------------------------
+
+  listAdmins(query: UserQuery = {}): Observable<PaginatedResult<User>> {
+    return this.http.get<PaginatedResult<User>>(`${this.base}/admins`, {
+      params: toParams(query),
+    });
+  }
+
+  createAdmin(payload: CreateAdminPayload): Observable<User> {
+    return this.http.post<User>(`${this.base}/admins`, payload);
+  }
+
+  adminUpdate(id: string, payload: AdminUpdateUserPayload): Observable<User> {
+    return this.http.patch<User>(`${this.base}/${id}`, payload);
+  }
+
+  resetPassword(id: string, temporaryPassword: string): Observable<User> {
+    return this.http.post<User>(`${this.base}/${id}/reset-password`, {
+      temporaryPassword,
+    });
+  }
+
+  remove(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}`);
   }
 }

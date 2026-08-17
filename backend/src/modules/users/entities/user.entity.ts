@@ -31,9 +31,46 @@ export class User {
   @Column({ length: 253 })
   emailDomain!: string;
 
+  /**
+   * Optional personal address, deliberately outside any institution — a place to
+   * reach someone after they graduate and their university mailbox is switched off.
+   * Either address signs them in.
+   *
+   * Unique like `email`, and checked against `email` too, so one person's personal
+   * address can never collide with another's institutional one. In Postgres a unique
+   * index still permits many NULLs, which is what makes the column optional.
+   *
+   * Institution membership is decided by `email` alone. This address never grants it.
+   */
+  // Partial, matching the migration exactly. A plain `@Index({ unique: true })` would
+  // read as equivalent — Postgres permits repeated NULLs either way — but the next
+  // `migration:generate` would then want to add a second, non-partial index.
+  @Index('UQ_users_secondaryEmail', {
+    unique: true,
+    where: '"secondaryEmail" IS NOT NULL',
+  })
+  @Column({ type: 'varchar', length: 320, nullable: true })
+  secondaryEmail!: string | null;
+
+  /**
+   * Unverified is a normal, usable state, not a blocked one: the address works for
+   * sign-in right away and the person can confirm it later from their profile. It
+   * only gates things we would rather not send to an address nobody has proven.
+   */
+  @Column({ type: 'timestamptz', nullable: true })
+  secondaryEmailVerifiedAt!: Date | null;
+
   /** bcrypt hash. Never selected unless explicitly asked for. */
   @Column({ select: false })
   passwordHash!: string;
+
+  /**
+   * Set when an admin creates the account with a temporary password. Until it is
+   * cleared the app funnels the user to the change-password screen, so a password
+   * that travelled over chat or email does not become the permanent one.
+   */
+  @Column({ type: 'boolean', default: false })
+  mustChangePassword!: boolean;
 
   @Column({ length: 100 })
   firstName!: string;
@@ -116,5 +153,12 @@ export class User {
 
   get isValidated(): boolean {
     return this.validationStatus === ValidationStatus.VALIDATED;
+  }
+
+  /** Every address that signs this person in. */
+  get loginEmails(): string[] {
+    return this.secondaryEmail
+      ? [this.email, this.secondaryEmail]
+      : [this.email];
   }
 }

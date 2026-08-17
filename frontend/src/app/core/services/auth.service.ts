@@ -6,9 +6,13 @@ import { environment } from '../../../environments/environment';
 import {
   AuthResponse,
   AuthTokens,
+  ChangePasswordPayload,
   LoginPayload,
   RegisterPayload,
   RegisterResponse,
+  ResendSecondaryEmailResponse,
+  SecondaryEmailResponse,
+  VerifySecondaryEmailResponse,
 } from '../models/api.model';
 import { User, UserRole } from '../models/user.model';
 
@@ -36,6 +40,14 @@ export class AuthService {
   readonly canReview = computed(() => this.isAdmin() || this.isProgramDirector());
   readonly isValidated = computed(
     () => this.currentUser()?.validationStatus === 'validated',
+  );
+  /**
+   * The account is on a temporary password an admin handed out. The API refuses
+   * everything but /me, change-password and logout until it is replaced, so the
+   * router has to send them straight to that screen.
+   */
+  readonly mustChangePassword = computed(
+    () => this.currentUser()?.mustChangePassword === true,
   );
 
   get accessToken(): string | null {
@@ -89,6 +101,65 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.base}/resend-verification`, {
       email,
     });
+  }
+
+  // --- Personal (secondary) address -------------------------------------------
+
+  /** Adds or replaces the personal address and triggers a confirmation link. */
+  setSecondaryEmail(secondaryEmail: string): Observable<SecondaryEmailResponse> {
+    return this.http
+      .post<SecondaryEmailResponse>(`${this.base}/secondary-email`, {
+        secondaryEmail,
+      })
+      .pipe(tap((response) => this.currentUser.set(response.user)));
+  }
+
+  resendSecondaryEmailVerification(): Observable<ResendSecondaryEmailResponse> {
+    return this.http.post<ResendSecondaryEmailResponse>(
+      `${this.base}/secondary-email/resend`,
+      {},
+    );
+  }
+
+  removeSecondaryEmail(): Observable<User> {
+    return this.http
+      .delete<User>(`${this.base}/secondary-email`)
+      .pipe(tap((user) => this.currentUser.set(user)));
+  }
+
+  /**
+   * Confirms the personal address.
+   *
+   * Returns only the confirmed address — no session and no account details, because
+   * the endpoint is public and the token is its only credential. The signed-in user is
+   * then re-read from /me, which also covers the case where the link was opened in a
+   * browser signed in as somebody else: that person's own record comes back unchanged.
+   */
+  verifySecondaryEmail(
+    token: string,
+  ): Observable<VerifySecondaryEmailResponse> {
+    return this.http
+      .post<VerifySecondaryEmailResponse>(
+        `${this.base}/verify-secondary-email`,
+        { token },
+      )
+      .pipe(
+        tap(() => {
+          if (this.isAuthenticated()) this.reloadUser().subscribe();
+        }),
+      );
+  }
+
+  // --- Password ---------------------------------------------------------------
+
+  /**
+   * Also the way out of an admin-issued temporary password. The server revokes every
+   * session and issues a fresh pair, so the tokens have to be swapped in here.
+   */
+  changePassword(payload: ChangePasswordPayload): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.base}/change-password`, payload)
+      .pipe(tap((response) => this.applySession(response)));
   }
 
   /** Used by the HTTP interceptor when an access token expires mid-session. */
