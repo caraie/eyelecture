@@ -64,12 +64,11 @@ form {
 
 /* --- One-time credentials ------------------------------------------------- */
 
-/* Emphasised on purpose. This panel holds something unrecoverable, so it should not
-   look like the rest of the page. */
+/* Emphasis comes from .el-card-highlight in the template, not from a local override —
+   this panel holds something unrecoverable and should not look like the rest of the
+   page, but "how a card shouts" is a design-system decision, not a per-screen one. */
 .credentials {
   margin-bottom: var(--sp-6);
-  border-color: var(--md-sys-color-primary);
-  border-width: 1.5px;
 
   .ch {
     display: flex;
@@ -96,7 +95,9 @@ form {
   margin: 0;
   padding: var(--sp-4);
   border-radius: var(--md-sys-shape-corner-md);
-  background: var(--md-sys-color-surface-container);
+  /* Plain surface, not surface-container: the card behind this is now tinted, and
+     surface-container sits too close to that tint to read as a separate panel. */
+  background: var(--md-sys-color-surface);
 
   dt {
     font-size: 11px;
@@ -149,11 +150,9 @@ form {
   gap: var(--sp-4);
 }
 
-.person {
-  &.is-self {
-    border-left: 3px solid var(--md-sys-color-primary);
-  }
-}
+/* Your own row is marked with the "You" badge, which is what actually says it. The
+   card itself carries no extra emphasis: in a list of peers, one tinted row implies a
+   hierarchy that does not exist — every entry here is an administrator. */
 
 .prow {
   display: flex;

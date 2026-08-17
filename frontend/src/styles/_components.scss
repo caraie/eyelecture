@@ -127,6 +127,32 @@
   transition-duration: var(--motion-fast);
 }
 
+/* Highlighted card — the WHOLE border carries the emphasis, never one edge.
+   A single-side rail reads as a leftover from a list divider and breaks the shape
+   scale. Ported from the design system's .card-highlight; the app had no equivalent,
+   which is how a one-off border-left ended up getting invented instead. */
+.el-card-highlight {
+  border: 1.5px solid var(--md-sys-color-primary);
+  background: var(--acc-blue-surface);
+}
+.el-card-highlight .el-title {
+  color: var(--md-sys-color-on-primary-container);
+}
+.el-card-highlight.el-tone-emerald {
+  border-color: var(--md-sys-color-secondary);
+  background: var(--acc-emerald-surface);
+}
+.el-card-highlight.el-tone-emerald .el-title {
+  color: var(--acc-emerald-on);
+}
+
+/* Same 1.5px emphasis, but no fill. For a card that has to stand out inside a list
+   whose siblings are already tinted surfaces, where a second background would fight
+   with them rather than read as emphasis. */
+.el-card-accent {
+  border: 1.5px solid var(--md-sys-color-primary);
+}
+
 /* ---- Stat tile ---- */
 .el-stat {
   background: var(--md-sys-color-surface);

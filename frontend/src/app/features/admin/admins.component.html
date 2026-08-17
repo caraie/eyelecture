@@ -18,7 +18,7 @@
      mail server, and the password is not stored in readable form, so this panel is
      the only chance to hand it over. -->
 @if (issuedCredentials(); as issued) {
-  <section class="el-card credentials">
+  <section class="el-card el-card-highlight credentials">
     <div class="ch">
       <mat-icon>vpn_key</mat-icon>
       <div>
@@ -159,7 +159,7 @@
 } @else {
   <div class="el-stack list">
     @for (admin of admins(); track admin.id) {
-      <section class="el-card person" [class.is-self]="isSelf(admin)">
+      <section class="el-card person">
         <div class="prow">
           <span class="el-avatar">{{ initials(admin) }}</span>
 
