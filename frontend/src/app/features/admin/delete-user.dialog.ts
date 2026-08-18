@@ -52,12 +52,10 @@ import { User } from '../../core/models/user.model';
 
     <mat-dialog-actions align="end">
       <button mat-button type="button" (click)="dialogRef.close()">Keep account</button>
-      <button
-        mat-flat-button
-        type="button"
-        class="danger-filled"
-        (click)="dialogRef.close(true)"
-      >
+      <!-- color="warn" rather than a custom class: the theme already carries the
+           error palette, and the one place that hand-rolled this with
+           --mdc-filled-button-* tokens silently rendered blue. -->
+      <button mat-flat-button type="button" color="warn" (click)="dialogRef.close(true)">
         Delete permanently
       </button>
     </mat-dialog-actions>
@@ -101,11 +99,6 @@ import { User } from '../../core/models/user.model';
         font-size: 13px;
         line-height: 1.55;
         margin: 0;
-      }
-
-      .danger-filled {
-        --mdc-filled-button-container-color: var(--md-sys-color-error);
-        --mdc-filled-button-label-text-color: var(--md-sys-color-on-error);
       }
     `,
   ],
