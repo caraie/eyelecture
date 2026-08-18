@@ -24,10 +24,35 @@ export interface AppConfig {
     frontendUrl: string;
     emailVerificationTtlHours: number;
   };
+  mail: {
+    /**
+     * Off by default. With this false the app keeps its old behaviour — the link
+     * goes to the log — so a misconfigured deploy degrades to "no mail" rather
+     * than to "mail to the wrong people".
+     */
+    enabled: boolean;
+    /** What recipients see in the From header, e.g. "EyeLecture <no-reply@…>". */
+    from: string;
+    /**
+     * The Workspace mailbox the service account acts as. Gmail sends *as a user*,
+     * not as an application, so there has to be a real one — and it must be the
+     * same address the domain-wide delegation was granted for.
+     */
+    impersonate: string;
+    /**
+     * Domains mail is allowed to reach. Empty means no restriction, which is the
+     * current setting. Fill it in and everything else is dropped before it is sent
+     * and written to the log instead — the way to guarantee a test build cannot
+     * reach a real institution's inbox.
+     */
+    allowedDomains: string[];
+  };
 }
 
 const toBool = (value: string | undefined, fallback = false): boolean =>
-  value === undefined ? fallback : ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
+  value === undefined
+    ? fallback
+    : ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
 
 const toInt = (value: string | undefined, fallback: number): number => {
   const parsed = Number.parseInt(value ?? '', 10);
@@ -52,13 +77,27 @@ export const configuration = (): AppConfig => ({
     logging: toBool(process.env.DB_LOGGING, false),
   },
   jwt: {
-    accessSecret: process.env.JWT_ACCESS_SECRET ?? 'dev-access-secret-change-me',
+    accessSecret:
+      process.env.JWT_ACCESS_SECRET ?? 'dev-access-secret-change-me',
     accessTtl: process.env.JWT_ACCESS_TTL ?? '15m',
-    refreshSecret: process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-secret-change-me',
+    refreshSecret:
+      process.env.JWT_REFRESH_SECRET ?? 'dev-refresh-secret-change-me',
     refreshTtl: process.env.JWT_REFRESH_TTL ?? '30d',
   },
   app: {
     frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:4200',
-    emailVerificationTtlHours: toInt(process.env.EMAIL_VERIFICATION_TTL_HOURS, 48),
+    emailVerificationTtlHours: toInt(
+      process.env.EMAIL_VERIFICATION_TTL_HOURS,
+      48,
+    ),
+  },
+  mail: {
+    enabled: toBool(process.env.MAIL_ENABLED, false),
+    from: process.env.MAIL_FROM ?? 'EyeLecture <no-reply@example.com>',
+    impersonate: process.env.MAIL_IMPERSONATE ?? '',
+    allowedDomains: (process.env.MAIL_ALLOWED_DOMAINS ?? '')
+      .split(',')
+      .map((domain) => domain.trim().toLowerCase().replace(/^@/, ''))
+      .filter(Boolean),
   },
 });

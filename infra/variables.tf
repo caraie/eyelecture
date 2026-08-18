@@ -59,3 +59,43 @@ variable "deletion_protection" {
   description = "Guards the Cloud SQL instance against `terraform destroy`. Turn off deliberately."
   default     = true
 }
+
+# ==============================================================================
+# Mail
+#
+# Sending goes through Gmail as a Workspace user, using domain-wide delegation.
+# Two things have to be true before any of this works, and neither can be done from
+# Terraform:
+#
+#   1. the Gmail API and the IAM Service Account Credentials API enabled on the project
+#   2. the API service account's numeric client ID authorised in the Workspace admin
+#      console (Security -> Access and data control -> API controls -> Domain-wide
+#      delegation) for exactly this scope:
+#          https://www.googleapis.com/auth/gmail.send
+#
+# Until then, leave mail_enabled false. The app degrades to logging the link.
+# ==============================================================================
+
+variable "mail_enabled" {
+  type        = bool
+  description = "Actually send mail. False keeps the old behaviour: links go to the log."
+  default     = false
+}
+
+variable "mail_from" {
+  type        = string
+  description = "From header. The address should belong to the impersonated mailbox."
+  default     = "EyeLecture <no-reply@example.com>"
+}
+
+variable "mail_impersonate" {
+  type        = string
+  description = "Workspace mailbox the service account sends as. Gmail has no application identity — mail always comes from a person."
+  default     = ""
+}
+
+variable "mail_allowed_domains" {
+  type        = list(string)
+  description = "Domains mail may reach. Empty means no restriction. Set it to keep a test build from reaching a real institution's inbox."
+  default     = []
+}

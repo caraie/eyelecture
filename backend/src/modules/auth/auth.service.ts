@@ -32,6 +32,8 @@ import {
   RegisterResponseDto,
 } from './dto/token.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
+import { MailerService } from '../mail/mailer.service';
+import { verifyPrimaryEmail, verifySecondaryEmail } from '../mail/templates';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -57,6 +59,7 @@ export class AuthService {
     private readonly refreshTokens: Repository<RefreshToken>,
     @InjectRepository(EmailVerificationToken)
     private readonly verificationTokens: Repository<EmailVerificationToken>,
+    private readonly mailer: MailerService,
   ) {}
 
   // --- Registration -----------------------------------------------------------
@@ -174,9 +177,21 @@ export class AuthService {
       ? '/app/profile/confirm-personal-email'
       : '/auth/verify-email';
     const link = `${this.config.getOrThrow<string>('app.frontendUrl')}${path}?token=${token}`;
-    // No mail transport wired up yet — the link goes to the log so the flow is
-    // testable end to end. Swap this for your provider when you add one.
+
+    // Still logged, always. When mail is off this is the whole flow; when it is on
+    // it is how you find the link again for a message that bounced or was dropped.
     this.logger.log(`Email verification link for ${targetEmail}: ${link}`);
+
+    const rendered = isSecondary
+      ? verifySecondaryEmail(user.firstName, link)
+      : verifyPrimaryEmail(user.firstName, link);
+
+    // Awaited but never throws — see MailerService.send. A signup must not fail
+    // because a mail provider is having a bad afternoon.
+    await this.mailer.send(
+      { to: targetEmail, ...rendered },
+      isSecondary ? 'personal address confirmation' : 'email verification',
+    );
 
     return token;
   }

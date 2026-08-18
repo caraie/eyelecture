@@ -8,6 +8,7 @@ import { PasswordChangeGuard } from './common/guards/password-change.guard';
 import { UsersModule } from './modules/users/users.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { MailModule } from './modules/mail/mail.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -34,6 +35,7 @@ import { HealthController } from './health.controller';
         logging: config.get<boolean>('database.logging') ?? false,
       }),
     }),
+    MailModule,
     UsersModule,
     InstitutionsModule,
     AuthModule,

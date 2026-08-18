@@ -91,6 +91,30 @@ resource "google_cloud_run_v2_service" "api" {
         value = local.web_url
       }
 
+      # Mail. Off unless var.mail_enabled says otherwise, so a deploy that forgets
+      # the rest of these sends nothing rather than sending badly.
+      env {
+        name  = "MAIL_ENABLED"
+        value = var.mail_enabled ? "true" : "false"
+      }
+      env {
+        name  = "MAIL_FROM"
+        value = var.mail_from
+      }
+      # Gmail sends as a person, not as an application, so this is the mailbox the
+      # service account acts as. It has to match the address the domain-wide
+      # delegation was granted for.
+      env {
+        name  = "MAIL_IMPERSONATE"
+        value = var.mail_impersonate
+      }
+      # Empty means no restriction. Fill it in and nothing outside these domains can
+      # be reached — the switch that makes a test build safe to point at real signups.
+      env {
+        name  = "MAIL_ALLOWED_DOMAINS"
+        value = join(",", var.mail_allowed_domains)
+      }
+
       dynamic "env" {
         for_each = {
           DB_PASSWORD        = "db-password"
