@@ -106,23 +106,6 @@
                 @if (person.id !== currentUserId) {
                   @if (deletingId() === person.id) {
                     <mat-spinner diameter="24" />
-                  } @else if (confirmingDeleteId() === person.id) {
-                    <!-- The confirmation replaces the menu button in place, so the
-                         name and email being deleted stay visible beside the ask. -->
-                    <div class="confirm-delete">
-                      <span class="confirm-q">Delete permanently?</span>
-                      <button
-                        mat-flat-button
-                        type="button"
-                        class="danger-filled"
-                        (click)="confirmDelete(person)"
-                      >
-                        Delete
-                      </button>
-                      <button mat-stroked-button type="button" (click)="cancelDelete()">
-                        Keep
-                      </button>
-                    </div>
                   } @else {
                   <button
                     mat-icon-button

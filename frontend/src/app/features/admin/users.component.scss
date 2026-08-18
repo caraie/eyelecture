@@ -103,23 +103,3 @@
   --mat-menu-item-icon-color: var(--md-sys-color-error);
 }
 
-.confirm-delete {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.confirm-q {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--md-sys-color-error);
-}
-
-/* Filled rather than tinted: it only appears after an explicit ask, so at this
-   point the emphasis is the point. */
-.danger-filled {
-  --mdc-filled-button-container-color: var(--md-sys-color-error);
-  --mdc-filled-button-label-text-color: var(--md-sys-color-on-error);
-}

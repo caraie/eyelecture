@@ -9,6 +9,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { DeleteUserDialog } from './delete-user.dialog';
 import { UsersService, UserQuery } from '../../core/services/users.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -45,6 +47,7 @@ export class UsersComponent {
   private readonly api = inject(UsersService);
   private readonly auth = inject(AuthService);
   private readonly notify = inject(NotificationService);
+  private readonly dialog = inject(MatDialog);
 
   readonly loading = signal(true);
   readonly people = signal<User[]>([]);
@@ -68,8 +71,6 @@ export class UsersComponent {
   /** Guards the UI against actions the API would reject anyway. */
   readonly currentUserId = this.auth.user()?.id ?? '';
 
-  /** Row waiting on a second click before it is actually deleted. */
-  readonly confirmingDeleteId = signal<string | null>(null);
   /** Row with a delete in flight. Only deletes need this — they cannot be undone. */
   readonly deletingId = signal<string | null>(null);
 
@@ -158,27 +159,22 @@ export class UsersComponent {
 
   // --- Delete -------------------------------------------------------------------
 
-  /**
-   * Two-step rather than a modal, matching the administrators screen: the row turns
-   * into its own confirmation, so the name stays on screen next to the question.
-   * A dialog would cover the table and ask about somebody you can no longer see.
-   */
   askToDelete(user: User): void {
-    this.confirmingDeleteId.set(user.id);
+    this.dialog
+      .open(DeleteUserDialog, { data: user, width: '460px' })
+      .afterClosed()
+      .subscribe((confirmed?: true) => {
+        if (confirmed) this.remove(user);
+      });
   }
 
-  cancelDelete(): void {
-    this.confirmingDeleteId.set(null);
-  }
-
-  confirmDelete(user: User): void {
+  private remove(user: User): void {
     if (this.deletingId()) return;
 
     this.deletingId.set(user.id);
     this.api.remove(user.id).subscribe({
       next: () => {
         this.deletingId.set(null);
-        this.confirmingDeleteId.set(null);
         // Dropped locally rather than refetched. A reload would pull a row up from
         // the next page and shift everything under the cursor, right after a
         // destructive click — the last moment to move the ground under someone.
@@ -188,7 +184,6 @@ export class UsersComponent {
       },
       error: (error: unknown) => {
         this.deletingId.set(null);
-        this.confirmingDeleteId.set(null);
         this.notify.showHttpError(error, 'Could not delete that account');
       },
     });
