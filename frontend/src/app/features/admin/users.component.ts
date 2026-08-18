@@ -68,6 +68,11 @@ export class UsersComponent {
   /** Guards the UI against actions the API would reject anyway. */
   readonly currentUserId = this.auth.user()?.id ?? '';
 
+  /** Row waiting on a second click before it is actually deleted. */
+  readonly confirmingDeleteId = signal<string | null>(null);
+  /** Row with a delete in flight. Only deletes need this — they cannot be undone. */
+  readonly deletingId = signal<string | null>(null);
+
   constructor() {
     this.load();
   }
@@ -148,6 +153,44 @@ export class UsersComponent {
       },
       error: (error: unknown) =>
         this.notify.showHttpError(error, 'Could not activate that account'),
+    });
+  }
+
+  // --- Delete -------------------------------------------------------------------
+
+  /**
+   * Two-step rather than a modal, matching the administrators screen: the row turns
+   * into its own confirmation, so the name stays on screen next to the question.
+   * A dialog would cover the table and ask about somebody you can no longer see.
+   */
+  askToDelete(user: User): void {
+    this.confirmingDeleteId.set(user.id);
+  }
+
+  cancelDelete(): void {
+    this.confirmingDeleteId.set(null);
+  }
+
+  confirmDelete(user: User): void {
+    if (this.deletingId()) return;
+
+    this.deletingId.set(user.id);
+    this.api.remove(user.id).subscribe({
+      next: () => {
+        this.deletingId.set(null);
+        this.confirmingDeleteId.set(null);
+        // Dropped locally rather than refetched. A reload would pull a row up from
+        // the next page and shift everything under the cursor, right after a
+        // destructive click — the last moment to move the ground under someone.
+        this.people.update((list) => list.filter((item) => item.id !== user.id));
+        this.total.update((value) => Math.max(0, value - 1));
+        this.notify.success(`${user.fullName} no longer has an account`);
+      },
+      error: (error: unknown) => {
+        this.deletingId.set(null);
+        this.confirmingDeleteId.set(null);
+        this.notify.showHttpError(error, 'Could not delete that account');
+      },
     });
   }
 

@@ -104,6 +104,26 @@
               <td class="nowrap el-muted">{{ person.createdAt | date: 'mediumDate' }}</td>
               <td class="right">
                 @if (person.id !== currentUserId) {
+                  @if (deletingId() === person.id) {
+                    <mat-spinner diameter="24" />
+                  } @else if (confirmingDeleteId() === person.id) {
+                    <!-- The confirmation replaces the menu button in place, so the
+                         name and email being deleted stay visible beside the ask. -->
+                    <div class="confirm-delete">
+                      <span class="confirm-q">Delete permanently?</span>
+                      <button
+                        mat-flat-button
+                        type="button"
+                        class="danger-filled"
+                        (click)="confirmDelete(person)"
+                      >
+                        Delete
+                      </button>
+                      <button mat-stroked-button type="button" (click)="cancelDelete()">
+                        Keep
+                      </button>
+                    </div>
+                  } @else {
                   <button
                     mat-icon-button
                     type="button"
@@ -147,7 +167,15 @@
                         <span>Suspend</span>
                       </button>
                     }
+                    <!-- Last, and separated: suspending is the reversible answer to
+                         almost every reason you would reach for this menu. Deleting
+                         is for accounts that should never have existed. -->
+                    <button mat-menu-item type="button" class="danger-item" (click)="askToDelete(person)">
+                      <mat-icon>delete</mat-icon>
+                      <span>Delete account</span>
+                    </button>
                   </mat-menu>
+                  }
                 } @else {
                   <span class="el-muted you">You</span>
                 }
