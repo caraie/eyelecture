@@ -43,6 +43,17 @@ export class ShellComponent {
   readonly pendingCount = signal(0);
   readonly navOpen = signal(false);
 
+  /**
+   * On a temporary password, so the only reachable screen is change-password.
+   *
+   * The navigation is hidden rather than disabled. Every link here is refused by
+   * `authGuard` and the API refuses the requests behind them too, so showing them
+   * offers a way in that does not exist — and the resulting nothing-happens reads as
+   * a broken app rather than as a locked one. Goes back on its own the moment the
+   * password is replaced, because this is derived from the session.
+   */
+  readonly locked = this.auth.mustChangePassword;
+
   readonly roleLabel = computed(() => {
     const role = this.user()?.role;
     return role ? ROLE_LABELS[role] : '';
@@ -103,7 +114,9 @@ export class ShellComponent {
   });
 
   constructor() {
-    if (this.auth.canReview()) this.refreshPendingCount();
+    // Not while locked: the API refuses everything but /me, change-password and
+    // logout, so this would only produce a failed request behind a hidden badge.
+    if (this.auth.canReview() && !this.locked()) this.refreshPendingCount();
   }
 
   refreshPendingCount(): void {

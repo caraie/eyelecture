@@ -1,14 +1,16 @@
 <div class="shell">
   <header class="appbar">
-    <button
-      mat-icon-button
-      class="nav-toggle"
-      type="button"
-      aria-label="Toggle navigation"
-      (click)="toggleNav()"
-    >
-      <mat-icon>menu</mat-icon>
-    </button>
+    @if (!locked()) {
+      <button
+        mat-icon-button
+        class="nav-toggle"
+        type="button"
+        aria-label="Toggle navigation"
+        (click)="toggleNav()"
+      >
+        <mat-icon>menu</mat-icon>
+      </button>
+    }
 
     <a class="brandmark" routerLink="/app/dashboard">
       <el-eye-logo [size]="30" />
@@ -53,10 +55,14 @@
           }
         </div>
         <mat-divider />
-        <a mat-menu-item routerLink="/app/profile">
-          <mat-icon>person</mat-icon>
-          <span>Profile</span>
-        </a>
+        <!-- Profile is refused too while locked, and signing out is the one thing
+             somebody who cannot change the password still needs to be able to do. -->
+        @if (!locked()) {
+          <a mat-menu-item routerLink="/app/profile">
+            <mat-icon>person</mat-icon>
+            <span>Profile</span>
+          </a>
+        }
         <button mat-menu-item type="button" (click)="logout()">
           <mat-icon>logout</mat-icon>
           <span>Sign out</span>
@@ -65,30 +71,32 @@
     }
   </header>
 
-  <div class="body">
-    <!-- Backdrop only exists on narrow screens, where the nav is a drawer. -->
-    @if (navOpen()) {
-      <div class="scrim" (click)="closeNav()"></div>
-    }
-
-    <nav class="el-sidenav sidenav" [class.open]="navOpen()">
-      @for (group of navGroups(); track group.title) {
-        <div class="navgrp">{{ group.title }}</div>
-        @for (item of group.items; track item.route) {
-          <a
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            (click)="closeNav()"
-          >
-            <mat-icon>{{ item.icon }}</mat-icon>
-            <span>{{ item.label }}</span>
-            @if (item.badge && pendingCount() > 0) {
-              <span class="count">{{ pendingCount() }}</span>
-            }
-          </a>
-        }
+  <div class="body" [class.no-nav]="locked()">
+    @if (!locked()) {
+      <!-- Backdrop only exists on narrow screens, where the nav is a drawer. -->
+      @if (navOpen()) {
+        <div class="scrim" (click)="closeNav()"></div>
       }
-    </nav>
+
+      <nav class="el-sidenav sidenav" [class.open]="navOpen()">
+        @for (group of navGroups(); track group.title) {
+          <div class="navgrp">{{ group.title }}</div>
+          @for (item of group.items; track item.route) {
+            <a
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              (click)="closeNav()"
+            >
+              <mat-icon>{{ item.icon }}</mat-icon>
+              <span>{{ item.label }}</span>
+              @if (item.badge && pendingCount() > 0) {
+                <span class="count">{{ pendingCount() }}</span>
+              }
+            </a>
+          }
+        }
+      </nav>
+    }
 
     <main class="content">
       <router-outlet />

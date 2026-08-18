@@ -130,6 +130,12 @@
   padding: var(--sp-6) var(--sp-6) var(--sp-16);
 }
 
+/* Without this the first column stays reserved once the navigation is hidden,
+   leaving a 248px gutter that pushes the one available page off-centre. */
+.body.no-nav {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .sidenav {
   position: sticky;
   top: 84px;
