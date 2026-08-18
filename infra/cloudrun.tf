@@ -13,6 +13,15 @@ locals {
   # its CORS allowlist — referencing web.uri there would be a dependency cycle, so
   # that one direction uses the predictable form instead.
   web_url = "https://eyelecture-web-${data.google_project.this.number}.${var.region}.run.app"
+
+  # The address people are meant to see. Falls back to the run.app URL so the
+  # stack still stands up before a domain exists.
+  public_web_url = var.web_domain == "" ? local.web_url : "https://${var.web_domain}"
+
+  # Both stay allowed. Dropping the run.app origin the moment a domain appears
+  # would break the service for anyone holding an old link, and the run.app URL
+  # keeps working as a way in when DNS is the thing that is broken.
+  cors_origins = distinct([local.web_url, local.public_web_url])
 }
 
 # ==============================================================================
@@ -84,11 +93,13 @@ resource "google_cloud_run_v2_service" "api" {
       }
       env {
         name  = "CORS_ORIGINS"
-        value = local.web_url
+        value = join(",", local.cors_origins)
       }
+      # Goes into every link the app emails out, so it has to be the address
+      # people should see rather than whichever one happens to work.
       env {
         name  = "FRONTEND_URL"
-        value = local.web_url
+        value = local.public_web_url
       }
 
       # Mail. Off unless var.mail_enabled says otherwise, so a deploy that forgets

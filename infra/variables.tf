@@ -76,6 +76,21 @@ variable "deletion_protection" {
 # Until then, leave mail_enabled false. The app degrades to logging the link.
 # ==============================================================================
 
+# ==============================================================================
+# Custom domain
+# ==============================================================================
+
+variable "web_domain" {
+  type        = string
+  description = <<-EOT
+    Custom domain for the web frontend, e.g. "eyelecture-d.next2.ai". Empty
+    disables the mapping and leaves everything on run.app. The domain must be
+    verified in Search Console by whoever runs Terraform before an apply will
+    succeed. See domain.tf.
+  EOT
+  default     = ""
+}
+
 variable "mail_enabled" {
   type        = bool
   description = "Actually send mail. False keeps the old behaviour: links go to the log."
