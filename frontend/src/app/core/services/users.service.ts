@@ -78,6 +78,14 @@ export class UsersService {
     return this.http.patch<User>(`${this.base}/${id}/status`, { status });
   }
 
+  /**
+   * Activates an account without the confirmation email: sets it active and records
+   * the address as confirmed, which is both halves of what the emailed link does.
+   */
+  activate(id: string): Observable<User> {
+    return this.http.post<User>(`${this.base}/${id}/activate`, {});
+  }
+
   assignInstitution(id: string, institutionId: string | null): Observable<User> {
     return this.http.patch<User>(`${this.base}/${id}/institution`, {
       institutionId,

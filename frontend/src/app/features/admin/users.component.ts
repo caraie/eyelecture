@@ -135,6 +135,22 @@ export class UsersComponent {
     });
   }
 
+  /**
+   * Stands in for the confirmation email while no mail provider is wired up. Also
+   * marks the address confirmed, so the person is not left with a banner asking them
+   * to click a link that was never sent.
+   */
+  activate(user: User): void {
+    this.api.activate(user.id).subscribe({
+      next: (updated) => {
+        this.replace(updated);
+        this.notify.success(`${updated.fullName} can now sign in`);
+      },
+      error: (error: unknown) =>
+        this.notify.showHttpError(error, 'Could not activate that account'),
+    });
+  }
+
   private replace(updated: User): void {
     this.people.update((list) =>
       list.map((item) => (item.id === updated.id ? updated : item)),

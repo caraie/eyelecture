@@ -127,6 +127,15 @@
                       </button>
                     }
                     <div class="menu-label">Account</div>
+                    <!-- Only for accounts still waiting on a confirmation email that
+                         is never going to arrive. Once active it disappears, so it
+                         cannot be mistaken for a way to re-approve somebody. -->
+                    @if (person.status === 'pending_email_verification') {
+                      <button mat-menu-item type="button" (click)="activate(person)">
+                        <mat-icon>mark_email_read</mat-icon>
+                        <span>Activate account</span>
+                      </button>
+                    }
                     @if (person.status === 'suspended') {
                       <button mat-menu-item type="button" (click)="setStatus(person, 'active')">
                         <mat-icon>lock_open</mat-icon>

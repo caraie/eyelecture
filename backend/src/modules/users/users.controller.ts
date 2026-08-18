@@ -248,6 +248,23 @@ export class UsersController {
     );
   }
 
+  @Post(':id/activate')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({
+    summary: 'Activate an account without waiting for the confirmation email',
+    description:
+      'Does both halves of what clicking the emailed link would do: sets the account ' +
+      'to active and records the address as confirmed. Intended for while no mail ' +
+      'provider is wired up, and for the case where somebody genuinely cannot receive ' +
+      'the message. It does not validate institution membership — that is the ' +
+      'validation queue, and it stays separate.',
+  })
+  async activate(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserResponseDto> {
+    return UserResponseDto.from(await this.users.activate(id));
+  }
+
   @Patch(':id/institution')
   @Roles(UserRole.ADMIN)
   async assignInstitution(

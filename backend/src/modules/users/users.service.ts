@@ -500,6 +500,49 @@ export class UsersService {
     return this.findByIdOrFail(id);
   }
 
+  /**
+   * Make an account usable, on an administrator's say-so.
+   *
+   * This is the manual stand-in for the confirmation email, and it does both halves
+   * of what clicking that link would have done: flips the status to ACTIVE *and*
+   * records the address as confirmed. Setting the status alone was the tempting
+   * shortcut and the wrong one — login only checks the status, so the account would
+   * work while `emailVerifiedAt` stayed null, and the person would be nagged to
+   * confirm an address forever with no way to do it.
+   *
+   * The admin is asserting the address is good. That is a weaker claim than the
+   * person clicking a link from that mailbox, which is why it is an explicit,
+   * attributable action rather than something that happens quietly.
+   *
+   * Any link still in flight is deleted: the account is already confirmed, so
+   * redeeming one would be a no-op that hands back a session.
+   */
+  async activate(id: string): Promise<User> {
+    const user = await this.findByIdOrFail(id);
+
+    if (user.status === UserStatus.ACTIVE && user.emailVerifiedAt) {
+      throw new BadRequestException('That account is already active');
+    }
+
+    await this.users.update(
+      { id },
+      {
+        status: UserStatus.ACTIVE,
+        // Left alone when already set, so a suspended-but-confirmed account keeps
+        // the date it was really confirmed on.
+        ...(user.emailVerifiedAt ? {} : { emailVerifiedAt: new Date() }),
+      },
+    );
+
+    await this.verificationTokens.delete({
+      userId: id,
+      purpose: VerificationPurpose.PRIMARY_EMAIL,
+      consumedAt: IsNull(),
+    });
+
+    return this.findByIdOrFail(id);
+  }
+
   async assignInstitution(
     id: string,
     institutionId: string | null,
