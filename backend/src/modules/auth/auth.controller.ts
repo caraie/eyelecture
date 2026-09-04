@@ -12,6 +12,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AuthService, SessionContext } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { SetSecondaryEmailDto } from '../users/dto/update-user.dto';
@@ -19,11 +20,12 @@ import {
   AuthResponseDto,
   AuthTokensDto,
   RefreshTokenDto,
-  RegisterResponseDto,
+  CompleteProfileResponseDto,
   VerifyEmailDto,
 } from './dto/token.dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { AllowPendingPasswordChange } from '../../common/decorators/allow-password-change.decorator';
+import { AllowPendingProfile } from '../../common/decorators/allow-pending-profile.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { UserResponseDto } from '../users/dto/user-response.dto';
@@ -41,13 +43,32 @@ export class AuthController {
   @Public()
   @Post('register')
   @ApiOperation({
-    summary: 'Create an account',
+    summary: 'Create an account — step one of two',
     description:
-      'If the email domain belongs to a known institution the user is validated ' +
-      'automatically; otherwise the account lands in a review queue.',
+      'Takes a name, a username and a password. Returns a session, because the next ' +
+      'screen is the other half of the same form: POST /auth/complete-profile.',
   })
-  register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
-    return this.auth.register(dto);
+  register(
+    @Body() dto: RegisterDto,
+    @Req() req: Request,
+  ): Promise<AuthResponseDto> {
+    return this.auth.register(dto, sessionContextFrom(req));
+  }
+
+  @Post('complete-profile')
+  @ApiBearerAuth()
+  @AllowPendingProfile()
+  @ApiOperation({
+    summary: 'Finish signing up — step two of two',
+    description:
+      'Rank and addresses. Decides membership from the email domain and sends the ' +
+      'verification message, which is only possible once there is an address.',
+  })
+  completeProfile(
+    @CurrentUser() user: User,
+    @Body() dto: CompleteProfileDto,
+  ): Promise<CompleteProfileResponseDto> {
+    return this.auth.completeProfile(user.id, dto);
   }
 
   @Public()
@@ -138,6 +159,7 @@ export class AuthController {
   @Post('change-password')
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
+  @AllowPendingProfile()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Change your own password',
@@ -162,6 +184,7 @@ export class AuthController {
   @Post('logout')
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
+  @AllowPendingProfile()
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Body() dto: RefreshTokenDto): Promise<void> {
     await this.auth.logout(dto.refreshToken);
@@ -170,6 +193,7 @@ export class AuthController {
   @Post('logout-all')
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
+  @AllowPendingProfile()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Revoke every session for the current user' })
   async logoutAll(@CurrentUser() user: User): Promise<void> {
@@ -181,6 +205,7 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
+  @AllowPendingProfile()
   @ApiOperation({ summary: 'The authenticated user' })
   me(@CurrentUser() user: User): UserResponseDto {
     return UserResponseDto.from(user);

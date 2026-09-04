@@ -30,6 +30,7 @@ async function seed(): Promise<void> {
   if (!admin) {
     admin = await users.save(
       users.create({
+        username: process.env.SEED_ADMIN_USERNAME ?? 'admin',
         email: adminEmail,
         emailDomain: adminEmail.split('@')[1],
         passwordHash: await bcrypt.hash(adminPassword, 12),

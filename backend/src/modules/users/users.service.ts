@@ -6,9 +6,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, FindOptionsWhere, IsNull, Repository } from 'typeorm';
+import { Brackets, FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { UserRole } from './enums/user-role.enum';
+import { TRAINEE_ROLES, UserRole } from './enums/user-role.enum';
 import { UserStatus } from './enums/user-status.enum';
 import {
   ValidationMethod,
@@ -80,30 +80,37 @@ export class UsersService {
   }
 
   /**
-   * Sign-in lookup: either address finds the account.
+   * Sign-in lookup. Case-insensitive, matching the `LOWER("username")` index —
+   * otherwise the account somebody created as "Ana.Perez" refuses the "ana.perez"
+   * they will type tomorrow.
    *
    * Includes the password hash, which is `select: false` on the entity.
    */
-  findByAnyEmailWithPassword(email: string): Promise<User | null> {
-    return (
-      this.users
-        .createQueryBuilder('user')
-        .addSelect('user.passwordHash')
-        .leftJoinAndSelect('user.institution', 'institution')
-        .leftJoinAndSelect('user.requestedInstitution', 'requestedInstitution')
-        .where('user.email = :email OR user.secondaryEmail = :email', {
-          email: normalizeEmail(email),
-        })
-        // Cross-column uniqueness is enforced in application code (see emailInUse), and
-        // that check is not atomic — two concurrent writes can leave one person's
-        // personal address equal to another's institutional one. `getOne()` would then
-        // return whichever row the planner happened to produce first, and the owner of
-        // the institutional address could find themselves compared against a stranger's
-        // password hash. Ordering primary matches first makes the tie-break explicit and
-        // always resolves in favour of the address that decides membership.
-        .orderBy('CASE WHEN user.email = :email THEN 0 ELSE 1 END', 'ASC')
-        .getOne()
-    );
+  findByUsernameWithPassword(username: string): Promise<User | null> {
+    return this.users
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .leftJoinAndSelect('user.institution', 'institution')
+      .leftJoinAndSelect('user.requestedInstitution', 'requestedInstitution')
+      .where('LOWER(user.username) = LOWER(:username)', {
+        username: username.trim(),
+      })
+      .getOne();
+  }
+
+  /** Case-insensitive, for the same reason the lookup above is. */
+  async usernameInUse(username: string, exceptUserId?: string): Promise<boolean> {
+    const query = this.users
+      .createQueryBuilder('user')
+      .where('LOWER(user.username) = LOWER(:username)', {
+        username: username.trim(),
+      });
+
+    if (exceptUserId) {
+      query.andWhere('user.id <> :exceptUserId', { exceptUserId });
+    }
+
+    return (await query.getCount()) > 0;
   }
 
   /** For verifying a password the caller supplied, e.g. before changing it. */
@@ -201,13 +208,15 @@ export class UsersService {
       .skip(query.skip)
       .take(query.limit);
 
-    if (reviewer.role === UserRole.PROGRAM_DIRECTOR) {
+    if (reviewer.role === UserRole.RESIDENCY_ADMINISTRATOR) {
       if (!reviewer.institutionId) {
-        // A director with no institution has nobody to vouch for.
+        // An administrator with no institution has nobody to vouch for.
         return paginate([], 0, query);
       }
-      qb.andWhere('user.role = :studentRole', {
-        studentRole: UserRole.STUDENT,
+      // Trainees only. An attending physician or another residency administrator
+      // is reviewed by platform staff, never by a peer at the same institution.
+      qb.andWhere('user.role IN (:...traineeRoles)', {
+        traineeRoles: [...TRAINEE_ROLES],
       });
       qb.andWhere(
         new Brackets((w) => {
@@ -242,18 +251,18 @@ export class UsersService {
     if (reviewer.role === UserRole.ADMIN) {
       where.push({ validationStatus: ValidationStatus.PENDING });
     } else if (
-      reviewer.role === UserRole.PROGRAM_DIRECTOR &&
+      reviewer.role === UserRole.RESIDENCY_ADMINISTRATOR &&
       reviewer.institutionId
     ) {
       where.push(
         {
           validationStatus: ValidationStatus.PENDING,
-          role: UserRole.STUDENT,
+          role: In([...TRAINEE_ROLES]),
           institutionId: reviewer.institutionId,
         },
         {
           validationStatus: ValidationStatus.PENDING,
-          role: UserRole.STUDENT,
+          role: In([...TRAINEE_ROLES]),
           requestedInstitutionId: reviewer.institutionId,
         },
       );
@@ -304,12 +313,13 @@ export class UsersService {
    */
   async assertSecondaryEmailAllowed(
     secondaryEmail: string,
-    primaryEmail: string,
+    /** Null while the profile is still being completed and there is no main one yet. */
+    primaryEmail: string | null,
     exceptUserId?: string,
   ): Promise<string> {
     const normalized = normalizeEmail(secondaryEmail);
 
-    if (normalized === normalizeEmail(primaryEmail)) {
+    if (primaryEmail !== null && normalized === normalizeEmail(primaryEmail)) {
       throw new BadRequestException(
         'The personal address has to be different from the main one',
       );
@@ -331,6 +341,48 @@ export class UsersService {
     }
 
     return normalized;
+  }
+
+  /**
+   * Fills in everything registration deliberately skipped: rank, institutional
+   * address, recovery address, and the membership decision that follows from them.
+   *
+   * The account moves to PENDING_EMAIL_VERIFICATION here rather than at signup,
+   * because this is the first moment there is an address to verify.
+   */
+  async completeProfile(
+    id: string,
+    patch: {
+      role: UserRole;
+      email: string;
+      secondaryEmail: string;
+      institutionId: string | null;
+      requestedInstitutionId: string | null;
+      autoValidated: boolean;
+    },
+  ): Promise<User> {
+    await this.users.update(
+      { id },
+      {
+        role: patch.role,
+        email: patch.email,
+        emailDomain: emailDomainOf(patch.email),
+        secondaryEmail: patch.secondaryEmail,
+        // Unverified on purpose: confirming the recovery address is a separate,
+        // optional act, and blocking on it here would defeat the point of having it.
+        secondaryEmailVerifiedAt: null,
+        status: UserStatus.PENDING_EMAIL_VERIFICATION,
+        institutionId: patch.institutionId,
+        requestedInstitutionId: patch.requestedInstitutionId,
+        validationStatus: patch.autoValidated
+          ? ValidationStatus.VALIDATED
+          : ValidationStatus.PENDING,
+        validationMethod: patch.autoValidated ? ValidationMethod.EMAIL_DOMAIN : null,
+        validatedAt: patch.autoValidated ? new Date() : null,
+      },
+    );
+
+    return this.findByIdOrFail(id);
   }
 
   /**
@@ -411,10 +463,10 @@ export class UsersService {
     }
 
     let institutionId: string | null;
-    if (reviewer.role === UserRole.PROGRAM_DIRECTOR) {
+    if (reviewer.role === UserRole.RESIDENCY_ADMINISTRATOR) {
       if (dto.institutionId && dto.institutionId !== reviewer.institutionId) {
         throw new ForbiddenException(
-          'A program director can only validate people into their own institution',
+          'A residency administrator can only validate people into their own institution',
         );
       }
       institutionId = reviewer.institutionId;
@@ -763,17 +815,20 @@ export class UsersService {
   private assertCanReview(target: User, reviewer: User): void {
     if (reviewer.role === UserRole.ADMIN) return;
 
-    if (reviewer.role !== UserRole.PROGRAM_DIRECTOR) {
+    if (reviewer.role !== UserRole.RESIDENCY_ADMINISTRATOR) {
       throw new ForbiddenException('You are not allowed to validate users');
     }
-    if (target.role !== UserRole.STUDENT) {
+    // Attending physicians and other residency administrators are reviewed by
+    // platform staff. Letting a peer approve them would make the role
+    // self-propagating: whoever gets in first can admit everybody after.
+    if (!TRAINEE_ROLES.includes(target.role)) {
       throw new ForbiddenException(
-        'A program director can only validate students',
+        'A residency administrator can only validate medical students, residents and fellows',
       );
     }
     if (!reviewer.institutionId) {
       throw new ForbiddenException(
-        'You must belong to an institution before validating students',
+        'You must belong to an institution before validating anyone',
       );
     }
 

@@ -9,7 +9,8 @@ import { UserStatus } from '../../users/enums/user-status.enum';
 export interface JwtPayload {
   /** User id. */
   sub: string;
-  email: string;
+  /** Not the email: an account has a username before it has an address. */
+  username: string;
   role: string;
 }
 

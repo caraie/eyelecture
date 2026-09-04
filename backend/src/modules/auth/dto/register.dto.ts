@@ -1,43 +1,56 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import {
-  IsEmail,
-  IsEnum,
-  IsIn,
-  IsOptional,
-  IsString,
-  IsUUID,
-  Matches,
-  MaxLength,
-  MinLength,
-} from 'class-validator';
-import { UserRole } from '../../users/enums/user-role.enum';
+import { IsString, Matches, MaxLength, MinLength } from 'class-validator';
 
+/**
+ * Letters, digits, dot, underscore and hyphen; must start and end with a letter or
+ * digit. The edge characters are the point: a username ending in "." is impossible
+ * to read aloud, and one starting with "-" gets mistaken for a flag by every
+ * command-line tool it ever passes through.
+ */
+export const USERNAME_PATTERN = /^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$/;
+
+/** Trimmed, but not lowercased — people keep the capitals they typed. */
+export const normalizeUsername = (value: string): string => value.trim();
+
+/**
+ * Step one, and deliberately the whole of it: a name, a username and a password.
+ *
+ * No email here. Asking for one up front is what makes signing up feel like
+ * paperwork, and everything the address is needed for — verification, membership,
+ * reaching someone — happens after the account exists.
+ */
 export class RegisterDto {
-  @ApiProperty({ example: 'ana.perez@stanford.edu' })
-  @IsEmail({}, { message: 'A valid email address is required' })
-  @MaxLength(320)
-  @Transform(({ value }) => String(value).trim().toLowerCase())
-  email!: string;
+  @ApiProperty({ example: 'Ana' })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(100)
+  @Transform(({ value }) => String(value).trim())
+  firstName!: string;
 
-  @ApiPropertyOptional({
-    example: 'ana.perez@gmail.com',
-    description:
-      'Optional personal address. Signs the user in just like the main one, so the ' +
-      'account survives losing the institutional mailbox. Must not be on a domain ' +
-      'that belongs to a known institution — that is what the main address is for.',
+  @ApiProperty({ example: 'Pérez' })
+  @IsString()
+  @MinLength(1)
+  @MaxLength(100)
+  @Transform(({ value }) => String(value).trim())
+  lastName!: string;
+
+  @ApiProperty({
+    example: 'ana.perez',
+    minLength: 3,
+    maxLength: 30,
+    description: 'What they will sign in with. Case-insensitively unique.',
   })
-  @IsOptional()
-  // Empty string means "left blank", not "invalid". Browsers submit '' for an
-  // untouched optional input, and rejecting that would fail a form nobody filled in.
-  @Transform(({ value }) =>
-    value === null || value === undefined || String(value).trim() === ''
-      ? undefined
-      : String(value).trim().toLowerCase(),
-  )
-  @IsEmail({}, { message: 'The personal email address is not valid' })
-  @MaxLength(320)
-  secondaryEmail?: string;
+  @IsString()
+  @Transform(({ value }) => normalizeUsername(String(value ?? '')))
+  @MinLength(3, { message: 'Username must be at least 3 characters long' })
+  @MaxLength(30)
+  @Matches(USERNAME_PATTERN, {
+    message:
+      'Username can use letters, numbers, dots, underscores and hyphens, and must ' +
+      'start and end with a letter or number',
+  })
+  username!: string;
 
   @ApiProperty({
     minLength: 8,
@@ -56,40 +69,4 @@ export class RegisterDto {
     message: 'Password must contain at least one number or symbol',
   })
   password!: string;
-
-  @ApiProperty({ example: 'Ana' })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(100)
-  @Transform(({ value }) => String(value).trim())
-  firstName!: string;
-
-  @ApiProperty({ example: 'Pérez' })
-  @IsString()
-  @MinLength(1)
-  @MaxLength(100)
-  @Transform(({ value }) => String(value).trim())
-  lastName!: string;
-
-  @ApiPropertyOptional({
-    enum: [UserRole.STUDENT, UserRole.PROGRAM_DIRECTOR],
-    default: UserRole.STUDENT,
-    description: 'Admins are never created through this endpoint.',
-  })
-  @IsOptional()
-  @IsEnum(UserRole)
-  @IsIn([UserRole.STUDENT, UserRole.PROGRAM_DIRECTOR], {
-    message: 'You can only sign up as a student or a program director',
-  })
-  role?: UserRole;
-
-  @ApiPropertyOptional({
-    description:
-      'The institution the person says they belong to. Only used when their email ' +
-      'domain does not already resolve to one — it puts them in that institution’s ' +
-      'review queue instead of the global one.',
-  })
-  @IsOptional()
-  @IsUUID()
-  requestedInstitutionId?: string;
 }

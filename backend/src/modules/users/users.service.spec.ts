@@ -1,9 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { ForbiddenException, BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { In } from 'typeorm';
 import { UsersService, emailDomainOf, normalizeEmail } from './users.service';
 import { User } from './entities/user.entity';
-import { UserRole } from './enums/user-role.enum';
+import { TRAINEE_ROLES, UserRole } from './enums/user-role.enum';
 import { UserStatus } from './enums/user-status.enum';
 import { ValidationMethod, ValidationStatus } from './enums/validation-status.enum';
 
@@ -13,11 +14,12 @@ const HARVARD = 'inst-harvard';
 const makeUser = (overrides: Partial<User> = {}): User =>
   ({
     id: 'user-1',
+    username: 'someone',
     email: 'someone@example.edu',
     emailDomain: 'example.edu',
     firstName: 'Some',
     lastName: 'One',
-    role: UserRole.STUDENT,
+    role: UserRole.MEDICAL_STUDENT,
     status: UserStatus.ACTIVE,
     emailVerifiedAt: new Date(),
     institutionId: null,
@@ -88,10 +90,10 @@ describe('UsersService', () => {
     });
   });
 
-  describe('validate — program director scoping', () => {
+  describe('validate — residency administrator scoping', () => {
     const director = makeUser({
       id: 'dir-1',
-      role: UserRole.PROGRAM_DIRECTOR,
+      role: UserRole.RESIDENCY_ADMINISTRATOR,
       institutionId: STANFORD,
       validationStatus: ValidationStatus.VALIDATED,
     });
@@ -141,10 +143,10 @@ describe('UsersService', () => {
       );
     });
 
-    it('refuses to validate another program director', async () => {
+    it('refuses to validate another residency administrator', async () => {
       target = makeUser({
         id: 'dir-2',
-        role: UserRole.PROGRAM_DIRECTOR,
+        role: UserRole.RESIDENCY_ADMINISTRATOR,
         institutionId: STANFORD,
       });
 
@@ -164,7 +166,7 @@ describe('UsersService', () => {
     it('refuses when the director belongs nowhere', async () => {
       const homeless = makeUser({
         id: 'dir-3',
-        role: UserRole.PROGRAM_DIRECTOR,
+        role: UserRole.RESIDENCY_ADMINISTRATOR,
         institutionId: null,
       });
       target = makeUser({ id: 'stu-6', institutionId: STANFORD });
@@ -178,10 +180,10 @@ describe('UsersService', () => {
   describe('validate — admin', () => {
     const admin = makeUser({ id: 'admin-1', role: UserRole.ADMIN });
 
-    it('can validate a program director', async () => {
+    it('can validate a residency administrator', async () => {
       target = makeUser({
         id: 'dir-9',
-        role: UserRole.PROGRAM_DIRECTOR,
+        role: UserRole.RESIDENCY_ADMINISTRATOR,
         institutionId: STANFORD,
       });
 
@@ -228,7 +230,7 @@ describe('UsersService', () => {
   describe('reject', () => {
     const director = makeUser({
       id: 'dir-1',
-      role: UserRole.PROGRAM_DIRECTOR,
+      role: UserRole.RESIDENCY_ADMINISTRATOR,
       institutionId: STANFORD,
     });
 
@@ -255,7 +257,7 @@ describe('UsersService', () => {
   describe('admin self-protection', () => {
     it('refuses to let an admin change their own role', async () => {
       await expect(
-        service.setRole('admin-1', UserRole.STUDENT, 'admin-1'),
+        service.setRole('admin-1', UserRole.MEDICAL_STUDENT, 'admin-1'),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -267,10 +269,10 @@ describe('UsersService', () => {
 
     it('allows acting on somebody else', async () => {
       target = makeUser({ id: 'other' });
-      await service.setRole('other', UserRole.PROGRAM_DIRECTOR, 'admin-1');
+      await service.setRole('other', UserRole.RESIDENCY_ADMINISTRATOR, 'admin-1');
       expect(repo.update).toHaveBeenCalledWith(
         { id: 'other' },
-        { role: UserRole.PROGRAM_DIRECTOR },
+        { role: UserRole.RESIDENCY_ADMINISTRATOR },
       );
     });
   });
@@ -288,7 +290,7 @@ describe('UsersService', () => {
     it('counts only their own institution for a director', async () => {
       const director = makeUser({
         id: 'd',
-        role: UserRole.PROGRAM_DIRECTOR,
+        role: UserRole.RESIDENCY_ADMINISTRATOR,
         institutionId: STANFORD,
       });
       await service.countPendingValidation(director);
@@ -296,23 +298,36 @@ describe('UsersService', () => {
       const [{ where }] = repo.count.mock.calls[0] as [{ where: unknown[] }];
       expect(where).toHaveLength(2);
       expect(where).toEqual([
-        expect.objectContaining({ institutionId: STANFORD, role: UserRole.STUDENT }),
+        expect.objectContaining({
+          institutionId: STANFORD,
+          role: In([...TRAINEE_ROLES]),
+        }),
         expect.objectContaining({
           requestedInstitutionId: STANFORD,
-          role: UserRole.STUDENT,
+          role: In([...TRAINEE_ROLES]),
         }),
       ]);
     });
 
+    it('does not count attendings or other administrators', () => {
+      // The scoped query asks for trainee ranks only. Anyone senior to that is
+      // reviewed by platform staff, so they must not appear in this count.
+      expect([...TRAINEE_ROLES]).toEqual([
+        UserRole.MEDICAL_STUDENT,
+        UserRole.RESIDENT,
+        UserRole.FELLOW,
+      ]);
+    });
+
     it('returns zero for a student without hitting the database', async () => {
-      const student = makeUser({ role: UserRole.STUDENT });
+      const student = makeUser({ role: UserRole.MEDICAL_STUDENT });
       await expect(service.countPendingValidation(student)).resolves.toBe(0);
       expect(repo.count).not.toHaveBeenCalled();
     });
 
     it('returns zero for a director with no institution', async () => {
       const director = makeUser({
-        role: UserRole.PROGRAM_DIRECTOR,
+        role: UserRole.RESIDENCY_ADMINISTRATOR,
         institutionId: null,
       });
       await expect(service.countPendingValidation(director)).resolves.toBe(0);

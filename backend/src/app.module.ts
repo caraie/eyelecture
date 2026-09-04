@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { configuration } from './config/configuration';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PasswordChangeGuard } from './common/guards/password-change.guard';
+import { ProfileCompletionGuard } from './common/guards/profile-completion.guard';
 import { UsersModule } from './modules/users/users.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { CatalogsModule } from './modules/catalogs/catalogs.module';
@@ -52,6 +53,9 @@ import { HealthController } from './health.controller';
     // An account on an admin-issued temporary password can only reach the endpoints
     // marked @AllowPendingPasswordChange().
     { provide: APP_GUARD, useClass: PasswordChangeGuard },
+    // An account that has not finished signing up can only reach the endpoints
+    // marked @AllowPendingProfile().
+    { provide: APP_GUARD, useClass: ProfileCompletionGuard },
   ],
 })
 export class AppModule {}

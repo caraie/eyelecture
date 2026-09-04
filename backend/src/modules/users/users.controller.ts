@@ -71,7 +71,7 @@ export class UsersController {
   }
 
   @Get('pending-validation')
-  @Roles(UserRole.ADMIN, UserRole.PROGRAM_DIRECTOR)
+  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
   @ApiOperation({
     summary: 'People waiting to be vouched for',
     description:
@@ -86,7 +86,7 @@ export class UsersController {
   }
 
   @Get('pending-validation/count')
-  @Roles(UserRole.ADMIN, UserRole.PROGRAM_DIRECTOR)
+  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
   async pendingCount(
     @CurrentUser() reviewer: User,
   ): Promise<{ count: number }> {
@@ -195,7 +195,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.PROGRAM_DIRECTOR)
+  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserResponseDto> {
@@ -203,7 +203,7 @@ export class UsersController {
   }
 
   @Post(':id/validate')
-  @Roles(UserRole.ADMIN, UserRole.PROGRAM_DIRECTOR)
+  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
   @ApiOperation({ summary: 'Approve a membership request' })
   async validate(
     @Param('id', ParseUUIDPipe) id: string,
@@ -214,7 +214,7 @@ export class UsersController {
   }
 
   @Post(':id/reject')
-  @Roles(UserRole.ADMIN, UserRole.PROGRAM_DIRECTOR)
+  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
   @ApiOperation({ summary: 'Turn down a membership request' })
   async reject(
     @Param('id', ParseUUIDPipe) id: string,

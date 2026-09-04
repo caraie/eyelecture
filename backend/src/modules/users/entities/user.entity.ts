@@ -21,15 +21,30 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  /** Always stored lowercased and trimmed — see UsersService.normalizeEmail. */
+  /**
+   * What people sign in with. Case-insensitively unique, matching the
+   * `LOWER("username")` index in the migration — otherwise "Carlos" and "carlos"
+   * are two accounts that nobody can tell apart on a screen.
+   */
+  @Index('UQ_users_username', { unique: true })
+  @Column({ length: 30 })
+  username!: string;
+
+  /**
+   * Institutional address. Null until the profile is completed: registration asks
+   * for a username and a password and nothing else, so there is a real window in
+   * which an account exists with no address attached.
+   *
+   * Always stored lowercased and trimmed — see UsersService.normalizeEmail.
+   */
   @Index({ unique: true })
-  @Column({ length: 320 })
-  email!: string;
+  @Column({ type: 'varchar', length: 320, nullable: true })
+  email!: string | null;
 
   /** Cached lowercase domain part of the email. Lets us match institutions cheaply. */
   @Index()
-  @Column({ length: 253 })
-  emailDomain!: string;
+  @Column({ type: 'varchar', length: 253, nullable: true })
+  emailDomain!: string | null;
 
   /**
    * Optional personal address, deliberately outside any institution — a place to
@@ -78,13 +93,13 @@ export class User {
   @Column({ length: 100 })
   lastName!: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.STUDENT })
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.MEDICAL_STUDENT })
   role!: UserRole;
 
   @Column({
     type: 'enum',
     enum: UserStatus,
-    default: UserStatus.PENDING_EMAIL_VERIFICATION,
+    default: UserStatus.PENDING_PROFILE,
   })
   status!: UserStatus;
 
@@ -155,10 +170,19 @@ export class User {
     return this.validationStatus === ValidationStatus.VALIDATED;
   }
 
-  /** Every address that signs this person in. */
-  get loginEmails(): string[] {
-    return this.secondaryEmail
-      ? [this.email, this.secondaryEmail]
-      : [this.email];
+  /** True once there is a rank and an address on file. */
+  get hasCompleteProfile(): boolean {
+    return this.status !== UserStatus.PENDING_PROFILE;
+  }
+
+  /**
+   * Every address we can write to. Sign-in goes through the username now, so this
+   * is about reaching someone — a password reset, a verification link — not about
+   * authenticating them.
+   */
+  get contactEmails(): string[] {
+    return [this.email, this.secondaryEmail].filter(
+      (value): value is string => value !== null,
+    );
   }
 }

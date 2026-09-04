@@ -29,13 +29,14 @@ export class AuthResponseDto extends AuthTokensDto {
   @ApiProperty({ type: UserResponseDto }) user!: UserResponseDto;
 }
 
-export class RegisterResponseDto {
+/** The answer to step two of signing up, once there is an address to judge. */
+export class CompleteProfileResponseDto {
   @ApiProperty({ type: UserResponseDto }) user!: UserResponseDto;
 
   @ApiProperty({
     description:
-      'True when the signup email matched a known institution domain, so no human ' +
-      'review is needed.',
+      'True when the address matched a known institution domain and the rank is one ' +
+      'that a domain match can vouch for, so no human review is needed.',
   })
   autoValidated!: boolean;
 

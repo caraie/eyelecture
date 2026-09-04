@@ -14,7 +14,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { UsersService, emailDomainOf } from '../users/users.service';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { User } from '../users/entities/user.entity';
-import { UserRole } from '../users/enums/user-role.enum';
+import { TRAINEE_ROLES, UserRole } from '../users/enums/user-role.enum';
 import { UserStatus } from '../users/enums/user-status.enum';
 import {
   ValidationMethod,
@@ -25,11 +25,12 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { EmailVerificationToken } from './entities/email-verification-token.entity';
 import { VerificationPurpose } from './enums/verification-purpose.enum';
 import { RegisterDto } from './dto/register.dto';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import {
   AuthResponseDto,
   AuthTokensDto,
-  RegisterResponseDto,
+  CompleteProfileResponseDto,
 } from './dto/token.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
 import { MailerService } from '../mail/mailer.service';
@@ -65,54 +66,77 @@ export class AuthService {
   // --- Registration -----------------------------------------------------------
 
   /**
-   * Creates the account and decides, in one place, whether it needs human review.
+   * Step one: a name, a username and a password, and nothing else.
    *
-   * The rule:
-   *   - the email domain resolves to an active institution  -> auto-validated
-   *   - it does not, and the role is STUDENT                -> pending, a program
-   *     director of the requested institution reviews it
-   *   - the role is PROGRAM_DIRECTOR                        -> always pending, an
-   *     admin reviews it (a director validates others, so nobody self-appoints)
+   * The account exists from here on, but in a state where the only thing it can do
+   * is finish the job — there is no rank, no address, and so no membership question
+   * to answer yet. All of that is `completeProfile`.
    */
-  async register(dto: RegisterDto): Promise<RegisterResponseDto> {
-    if (await this.users.emailInUse(dto.email)) {
-      throw new ConflictException('An account with this email already exists');
+  async register(
+    dto: RegisterDto,
+    context: SessionContext = {},
+  ): Promise<AuthResponseDto> {
+    if (await this.users.usernameInUse(dto.username)) {
+      throw new ConflictException('That username is already taken');
     }
 
-    const secondaryEmail = dto.secondaryEmail
-      ? await this.users.assertSecondaryEmailAllowed(
-          dto.secondaryEmail,
-          dto.email,
-        )
-      : null;
-
-    const role = dto.role ?? UserRole.STUDENT;
-    const domain = emailDomainOf(dto.email);
-    const matched = await this.institutions.findByEmailDomain(domain);
-
-    const autoValidated = matched !== null && role === UserRole.STUDENT;
-
     const user = await this.users.create({
-      email: dto.email,
-      emailDomain: domain,
-      secondaryEmail,
-      // Deliberately null. The address is usable for sign-in unverified; confirming
-      // it is something the person can do later from their profile.
-      secondaryEmailVerifiedAt: null,
+      username: dto.username,
+      // No address yet, and no placeholder either — a NULL is what every "has this
+      // person finished signing up?" check is going to look for.
+      email: null,
+      emailDomain: null,
       passwordHash: await bcrypt.hash(dto.password, BCRYPT_ROUNDS),
       firstName: dto.firstName,
       lastName: dto.lastName,
-      role,
-      status: UserStatus.PENDING_EMAIL_VERIFICATION,
+      status: UserStatus.PENDING_PROFILE,
+    });
+
+    // Signed in straight away. The next screen is the other half of the same form,
+    // and a login page in the middle of one flow is where people fall out of it.
+    return this.buildAuthResponse(user, context);
+  }
+
+  /**
+   * Step two. Decides membership from the address, then sends the verification mail
+   * — which is only possible now, because this is the first point at which we have
+   * somewhere to send it.
+   */
+  async completeProfile(
+    userId: string,
+    dto: CompleteProfileDto,
+  ): Promise<CompleteProfileResponseDto> {
+    const current = await this.users.findByIdOrFail(userId);
+    if (current.status !== UserStatus.PENDING_PROFILE) {
+      throw new BadRequestException('This profile has already been completed');
+    }
+
+    if (await this.users.emailInUse(dto.email, userId)) {
+      throw new ConflictException('An account with this email already exists');
+    }
+
+    const secondaryEmail = await this.users.assertSecondaryEmailAllowed(
+      dto.secondaryEmail,
+      dto.email,
+      userId,
+    );
+
+    const matched = await this.institutions.findByEmailDomain(
+      emailDomainOf(dto.email),
+    );
+
+    // Only trainees are let in by their address alone. An attending physician is
+    // expected to use a personal one, and a residency administrator vouches for
+    // other people — neither is something a domain match can establish.
+    const autoValidated = matched !== null && TRAINEE_ROLES.includes(dto.role);
+
+    const user = await this.users.completeProfile(userId, {
+      role: dto.role,
+      email: dto.email,
+      secondaryEmail,
       institutionId: matched?.id ?? null,
-      requestedInstitutionId: matched
-        ? null
-        : (dto.requestedInstitutionId ?? null),
-      validationStatus: autoValidated
-        ? ValidationStatus.VALIDATED
-        : ValidationStatus.PENDING,
-      validationMethod: autoValidated ? ValidationMethod.EMAIL_DOMAIN : null,
-      validatedAt: autoValidated ? new Date() : null,
+      requestedInstitutionId: matched ? null : (dto.requestedInstitutionId ?? null),
+      autoValidated,
     });
 
     const verificationToken = await this.issueEmailVerificationToken(user);
@@ -120,29 +144,28 @@ export class AuthService {
     return {
       user: UserResponseDto.from(user),
       autoValidated,
-      message: this.registrationMessage(
-        user,
-        matched?.name ?? null,
-        autoValidated,
-      ),
+      message: this.profileMessage(user, matched?.name ?? null, autoValidated),
       ...(this.isProduction()
         ? {}
         : { devEmailVerificationToken: verificationToken }),
     };
   }
 
-  private registrationMessage(
+  private profileMessage(
     user: User,
     institutionName: string | null,
     autoValidated: boolean,
   ): string {
     if (autoValidated && institutionName) {
-      return `Your address is registered to ${institutionName}, so your membership is already confirmed. Verify your email to finish signing up.`;
+      return `Your address belongs to ${institutionName}, so your membership is already confirmed. Check your email to activate your account.`;
     }
-    if (user.role === UserRole.PROGRAM_DIRECTOR) {
-      return 'Verify your email to finish signing up. An administrator will review your program director request.';
+    if (user.role === UserRole.RESIDENCY_ADMINISTRATOR) {
+      return 'Check your email to activate your account. An administrator will review your residency administrator request.';
     }
-    return 'Verify your email to finish signing up. Because your address is not on a known institution domain, a program director needs to confirm your membership.';
+    if (user.role === UserRole.ATTENDING_PHYSICIAN) {
+      return 'Check your email to activate your account. An administrator will confirm your membership.';
+    }
+    return 'Check your email to activate your account. Because your address is not on a known institution domain, someone needs to confirm your membership.';
   }
 
   // --- Email verification -----------------------------------------------------
@@ -436,10 +459,9 @@ export class AuthService {
     dto: LoginDto,
     context: SessionContext = {},
   ): Promise<AuthResponseDto> {
-    // Either address signs the user in — institutional or personal, verified or not.
-    const user = await this.users.findByAnyEmailWithPassword(dto.email);
+    const user = await this.users.findByUsernameWithPassword(dto.username);
 
-    // Compare against a dummy hash when the user is missing so that a wrong email
+    // Compare against a dummy hash when the user is missing so that a wrong username
     // and a wrong password take the same amount of time.
     const hash =
       user?.passwordHash ??
@@ -447,12 +469,15 @@ export class AuthService {
     const passwordMatches = await bcrypt.compare(dto.password, hash);
 
     if (!user || !passwordMatches) {
-      throw new UnauthorizedException('Incorrect email or password');
+      throw new UnauthorizedException('Incorrect username or password');
     }
 
     if (user.status === UserStatus.SUSPENDED) {
       throw new UnauthorizedException('This account has been suspended');
     }
+    // PENDING_PROFILE is deliberately allowed through: the whole point of that state
+    // is that they can come back and finish. Everything but the profile screen is
+    // closed to them by the guard, not by this check.
     if (user.status === UserStatus.PENDING_EMAIL_VERIFICATION) {
       throw new UnauthorizedException(
         'Please verify your email address before signing in',
@@ -526,7 +551,7 @@ export class AuthService {
   ): Promise<AuthTokensDto> {
     const payload: JwtPayload = {
       sub: user.id,
-      email: user.email,
+      username: user.username,
       role: user.role,
     };
 

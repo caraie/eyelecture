@@ -15,16 +15,21 @@ export class UserInstitutionDto {
 
 export class UserResponseDto {
   @ApiProperty() id!: string;
-  @ApiProperty() email!: string;
+  @ApiProperty({ description: 'What this person signs in with.' })
+  username!: string;
+  @ApiProperty({
+    nullable: true,
+    description: 'Institutional address. Null until the profile is completed.',
+  })
+  email!: string | null;
   @ApiPropertyOptional({
     nullable: true,
-    description: 'Optional personal address. Also signs the user in.',
+    description: 'Optional personal address, used to reach them, not to sign in.',
   })
   secondaryEmail!: string | null;
   @ApiProperty({
     description:
-      'False is a normal state — the address works for sign-in either way, and can ' +
-      'be confirmed later from the profile.',
+      'False is a normal state. Confirming it only proves the mailbox is readable.',
   })
   secondaryEmailVerified!: boolean;
   @ApiProperty() firstName!: string;
@@ -65,6 +70,7 @@ export class UserResponseDto {
 
     return {
       id: user.id,
+      username: user.username,
       email: user.email,
       secondaryEmail: user.secondaryEmail,
       secondaryEmailVerified: user.secondaryEmailVerifiedAt !== null,
