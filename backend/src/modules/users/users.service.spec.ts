@@ -4,6 +4,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { In } from 'typeorm';
 import { UsersService, emailDomainOf, normalizeEmail } from './users.service';
 import { User } from './entities/user.entity';
+import { EmailVerificationToken } from '../auth/entities/email-verification-token.entity';
+import { InstitutionsService } from '../institutions/institutions.service';
 import { TRAINEE_ROLES, UserRole } from './enums/user-role.enum';
 import { UserStatus } from './enums/user-status.enum';
 import { ValidationMethod, ValidationStatus } from './enums/validation-status.enum';
@@ -48,9 +50,14 @@ describe('UsersService', () => {
 
   /** The next user findByIdOrFail should return. */
   let target: User;
+  let tokenRepo: { delete: jest.Mock };
+  let institutions: { findByEmailDomain: jest.Mock };
 
   beforeEach(async () => {
     target = makeUser();
+
+    tokenRepo = { delete: jest.fn().mockResolvedValue({ affected: 0 }) };
+    institutions = { findByEmailDomain: jest.fn().mockResolvedValue(null) };
 
     repo = {
       findOne: jest.fn().mockImplementation(() => Promise.resolve(target)),
@@ -66,6 +73,11 @@ describe('UsersService', () => {
       providers: [
         UsersService,
         { provide: getRepositoryToken(User), useValue: repo },
+        // Not used by anything under test here, but the service asks for them:
+        // it invalidates pending verification links when an address changes, and
+        // resolves institutions when checking a recovery address.
+        { provide: getRepositoryToken(EmailVerificationToken), useValue: tokenRepo },
+        { provide: InstitutionsService, useValue: institutions },
       ],
     }).compile();
 
@@ -153,6 +165,35 @@ describe('UsersService', () => {
       await expect(service.validate('dir-2', director, {})).rejects.toThrow(
         ForbiddenException,
       );
+    });
+
+    it('refuses to validate an attending physician', async () => {
+      // Same institution, so scope is not what stops this — rank is. Attendings are
+      // reviewed by platform staff, or the role becomes self-propagating.
+      target = makeUser({
+        id: 'att-1',
+        role: UserRole.ATTENDING_PHYSICIAN,
+        institutionId: STANFORD,
+      });
+
+      await expect(service.validate('att-1', director, {})).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(repo.update).not.toHaveBeenCalled();
+    });
+
+    it('validates a resident and a fellow, not just a medical student', async () => {
+      for (const role of [UserRole.RESIDENT, UserRole.FELLOW]) {
+        repo.update.mockClear();
+        target = makeUser({ id: `t-${role}`, role, institutionId: STANFORD });
+
+        await service.validate(`t-${role}`, director, {});
+
+        expect(repo.update).toHaveBeenCalledWith(
+          { id: `t-${role}` },
+          expect.objectContaining({ institutionId: STANFORD }),
+        );
+      }
     });
 
     it('refuses to redirect a student into a different institution', async () => {
