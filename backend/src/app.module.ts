@@ -7,6 +7,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { PasswordChangeGuard } from './common/guards/password-change.guard';
 import { UsersModule } from './modules/users/users.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
+import { CatalogsModule } from './modules/catalogs/catalogs.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { HealthController } from './health.controller';
@@ -38,6 +39,7 @@ import { HealthController } from './health.controller';
     MailModule,
     UsersModule,
     InstitutionsModule,
+    CatalogsModule,
     AuthModule,
   ],
   controllers: [HealthController],

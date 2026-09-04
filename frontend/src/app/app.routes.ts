@@ -93,6 +93,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'catalogs',
+        canActivate: [roleGuard('admin')],
+        title: 'Reference lists · EyeLecture',
+        loadComponent: () =>
+          import('./features/admin/catalogs.component').then(
+            (m) => m.CatalogsComponent,
+          ),
+      },
+      {
         path: 'change-password',
         canActivate: [passwordChangeGuard],
         title: 'Change your password · EyeLecture',

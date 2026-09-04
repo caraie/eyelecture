@@ -96,6 +96,7 @@ export class ShellComponent {
         title: 'Administration',
         items: [
           { label: 'Institutions', icon: 'school', route: '/app/institutions' },
+          { label: 'Reference lists', icon: 'list_alt', route: '/app/catalogs' },
           {
             label: 'Administrators',
             icon: 'admin_panel_settings',

@@ -1,0 +1,154 @@
+.page-head {
+  margin-bottom: var(--sp-6);
+
+  .el-overline {
+    margin-bottom: var(--sp-1);
+  }
+
+  .el-headline {
+    margin-bottom: var(--sp-2);
+  }
+}
+
+.state {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-12);
+}
+
+/* Three columns while they fit, then one. Nothing in between: at two columns the
+   odd list out stretches to full width and stops reading as a peer of the others. */
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+@media (max-width: 1100px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.col-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+
+  .ico {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    flex: none;
+    border-radius: var(--md-sys-shape-corner-md);
+    background: var(--acc-blue-surface);
+    color: var(--md-sys-color-primary);
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .el-title {
+    margin-bottom: 2px;
+  }
+
+  .blurb {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--md-sys-color-on-surface-muted);
+  }
+
+  .count {
+    margin-left: auto;
+    flex: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--md-sys-color-on-surface-muted);
+    background: var(--md-sys-color-surface-container);
+    border-radius: 999px;
+    padding: 2px 10px;
+  }
+}
+
+.add {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+
+  mat-form-field {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.none {
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-muted);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: 44px;
+  padding: 2px 0;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+
+  &:first-child {
+    border-top: none;
+  }
+
+  /* Retired entries stay legible — they are still shown on existing profiles —
+     but read as switched off rather than as an option. */
+  &.retired .nm {
+    color: var(--md-sys-color-on-surface-muted);
+    text-decoration: line-through;
+  }
+
+  .nm {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+  }
+
+  .live {
+    flex: none;
+    margin-right: var(--sp-1);
+  }
+
+  .rename {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .danger {
+    --mdc-icon-button-icon-color: var(--md-sys-color-error);
+  }
+}
+
+.confirm-q {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-sys-color-error);
+}

@@ -1,0 +1,141 @@
+<header class="page-head">
+  <div>
+    <p class="el-overline">Administration</p>
+    <h1 class="el-headline">Reference lists</h1>
+    <p class="el-lede">
+      The lists people choose from when they complete their profile. Editing one
+      changes <span class="el-hl-em">every signup form at once</span>, so retiring an
+      entry is usually the right move — deleting is for things that should never
+      have been added.
+    </p>
+  </div>
+</header>
+
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else {
+  <div class="columns">
+    @for (kind of kinds; track kind) {
+      <section class="el-card column">
+        <header class="col-head">
+          <div class="ico"><mat-icon>{{ meta[kind].icon }}</mat-icon></div>
+          <div>
+            <h3 class="el-title">{{ meta[kind].title }}</h3>
+            <p class="blurb">{{ meta[kind].blurb }}</p>
+          </div>
+          <span class="count" [matTooltip]="'Selectable entries'">
+            {{ activeCount(kind) }}
+          </span>
+        </header>
+
+        <div class="add">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-label>Add {{ meta[kind].singular }}</mat-label>
+            <input
+              matInput
+              [placeholder]="meta[kind].placeholder"
+              [value]="draftFor(kind)"
+              (input)="setDraft(kind, $any($event.target).value)"
+              (keyup.enter)="add(kind)"
+            />
+          </mat-form-field>
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="!draftFor(kind).trim() || busyId() === kind"
+            (click)="add(kind)"
+          >
+            Add
+          </button>
+        </div>
+
+        @if (listFor(kind).length === 0) {
+          <p class="none">Nothing on this list yet.</p>
+        } @else {
+          <ul class="rows">
+            @for (item of listFor(kind); track item.id) {
+              <li class="row" [class.retired]="!item.isActive">
+                @if (busyId() === item.id) {
+                  <mat-spinner diameter="20" />
+                } @else if (editingId() === item.id) {
+                  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="rename">
+                    <input
+                      matInput
+                      [value]="editValue()"
+                      (input)="editValue.set($any($event.target).value)"
+                      (keyup.enter)="saveName(kind, item)"
+                      (keyup.escape)="cancelEditing()"
+                    />
+                  </mat-form-field>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Save"
+                    (click)="saveName(kind, item)"
+                  >
+                    <mat-icon>check</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Cancel"
+                    (click)="cancelEditing()"
+                  >
+                    <mat-icon>close</mat-icon>
+                  </button>
+                } @else if (confirmingDeleteId() === item.id) {
+                  <span class="confirm-q">Delete permanently?</span>
+                  <button
+                    mat-flat-button
+                    type="button"
+                    color="warn"
+                    (click)="confirmDelete(kind, item)"
+                  >
+                    Delete
+                  </button>
+                  <button mat-stroked-button type="button" (click)="cancelDelete()">
+                    Keep
+                  </button>
+                } @else {
+                  <span class="nm">{{ item.name }}</span>
+
+                  <mat-slide-toggle
+                    class="live"
+                    [checked]="item.isActive"
+                    (change)="toggleActive(kind, item, $event.checked)"
+                    [matTooltip]="
+                      item.isActive
+                        ? 'Retire it — stays on profiles that already use it'
+                        : 'Make it selectable again'
+                    "
+                  />
+
+                  <button
+                    mat-icon-button
+                    type="button"
+                    aria-label="Rename"
+                    matTooltip="Rename"
+                    (click)="startEditing(item)"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </button>
+
+                  <button
+                    mat-icon-button
+                    type="button"
+                    class="danger"
+                    aria-label="Delete"
+                    matTooltip="Delete permanently"
+                    (click)="askToDelete(item)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </div>
+}
