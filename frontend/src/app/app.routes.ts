@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import {
   authGuard,
+  completeProfileGuard,
   guestGuard,
   passwordChangeGuard,
   roleGuard,
@@ -62,7 +63,7 @@ export const routes: Routes = [
       },
       {
         path: 'validation',
-        canActivate: [roleGuard('admin', 'program_director')],
+        canActivate: [roleGuard('admin', 'residency_administrator')],
         title: 'Validation queue · EyeLecture',
         loadComponent: () =>
           import('./features/directory/validation-queue.component').then(
@@ -99,6 +100,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/catalogs.component').then(
             (m) => m.CatalogsComponent,
+          ),
+      },
+      {
+        path: 'complete-profile',
+        canActivate: [completeProfileGuard],
+        title: 'Complete your profile · EyeLecture',
+        loadComponent: () =>
+          import('./features/auth/complete-profile.component').then(
+            (m) => m.CompleteProfileComponent,
           ),
       },
       {

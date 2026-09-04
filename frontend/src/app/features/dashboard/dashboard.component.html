@@ -24,11 +24,13 @@
         <div>
           <strong>Your membership is being reviewed</strong>
           @if (currentUser.requestedInstitution) {
-            A program director at {{ currentUser.requestedInstitution.name }} needs to
-            confirm you belong there. You will get access to your cohort's material
-            as soon as they do.
-          } @else if (currentUser.role === 'program_director') {
-            An administrator needs to approve your program director account.
+            A residency administrator at
+            {{ currentUser.requestedInstitution.name }} needs to confirm you belong
+            there. You will get access to your cohort's material as soon as they do.
+          } @else if (currentUser.role === 'residency_administrator') {
+            An administrator needs to approve your residency administrator account.
+          } @else if (currentUser.role === 'attending_physician') {
+            An administrator needs to confirm your account.
           } @else {
             We could not match {{ currentUser.email }} to an institution
             automatically, so someone needs to confirm your membership by hand.

@@ -38,7 +38,7 @@ export class LoginComponent {
   readonly needsVerification = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
+    username: ['', [Validators.required]],
     password: ['', [Validators.required]],
   });
 
@@ -68,10 +68,10 @@ export class LoginComponent {
   }
 
   resendVerification(): void {
-    const email = this.form.controls.email.value;
-    if (!email) return;
+    const username = this.form.controls.username.value.trim();
+    if (!username) return;
 
-    this.auth.resendVerification(email).subscribe({
+    this.auth.resendVerification(username).subscribe({
       next: ({ message }) => this.notify.info(message),
       error: (error: unknown) => this.notify.showHttpError(error),
     });

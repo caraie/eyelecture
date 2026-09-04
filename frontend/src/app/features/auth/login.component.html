@@ -23,19 +23,16 @@
 
 <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
   <mat-form-field appearance="outline">
-    <mat-label>Email</mat-label>
+    <mat-label>Username</mat-label>
     <input
       matInput
-      type="email"
-      formControlName="email"
-      autocomplete="email"
-      placeholder="you@stanford.edu"
+      formControlName="username"
+      autocomplete="username"
+      placeholder="ana.perez"
     />
-    <mat-icon matPrefix>alternate_email</mat-icon>
-    @if (form.controls.email.hasError('required')) {
-      <mat-error>Your email is required</mat-error>
-    } @else if (form.controls.email.hasError('email')) {
-      <mat-error>That does not look like an email address</mat-error>
+    <mat-icon matPrefix>person</mat-icon>
+    @if (form.controls.username.hasError('required')) {
+      <mat-error>Your username is required</mat-error>
     }
   </mat-form-field>
 

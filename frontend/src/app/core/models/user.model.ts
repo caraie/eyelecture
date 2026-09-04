@@ -1,8 +1,30 @@
 /** Mirrors the backend enums in backend/src/modules/users/enums. */
 
-export type UserRole = 'admin' | 'program_director' | 'student';
+export type UserRole =
+  | 'medical_student'
+  | 'resident'
+  | 'fellow'
+  | 'attending_physician'
+  | 'residency_administrator'
+  | 'admin';
 
-export type UserStatus = 'pending_email_verification' | 'active' | 'suspended';
+/** The ranks somebody may choose for themselves, in the order the form shows them. */
+export const SELF_SIGNUP_ROLES: UserRole[] = [
+  'medical_student',
+  'resident',
+  'fellow',
+  'attending_physician',
+  'residency_administrator',
+];
+
+/** Still in training, and so vouched for by a matching email domain alone. */
+export const TRAINEE_ROLES: UserRole[] = ['medical_student', 'resident', 'fellow'];
+
+export type UserStatus =
+  | 'pending_profile'
+  | 'pending_email_verification'
+  | 'active'
+  | 'suspended';
 
 export type ValidationStatus = 'pending' | 'validated' | 'rejected';
 
@@ -16,12 +38,15 @@ export interface UserInstitution {
 
 export interface User {
   id: string;
-  email: string;
-  /** Optional personal address. Signs the user in just like `email` does. */
+  /** What they sign in with. */
+  username: string;
+  /** Institutional address. Null until the profile is completed. */
+  email: string | null;
+  /** Recovery address. Reaches them; does not sign them in. */
   secondaryEmail: string | null;
   /**
-   * Unverified is a normal, usable state — sign-in works either way. It only means
-   * nobody has proven they can read that mailbox yet.
+   * Unverified is a normal state. Confirming it only proves somebody can read that
+   * mailbox, which is what lets us write to it later.
    */
   secondaryEmailVerified: boolean;
   firstName: string;
@@ -42,9 +67,23 @@ export interface User {
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
+  medical_student: 'Medical student',
+  resident: 'Resident',
+  fellow: 'Fellow',
+  attending_physician: 'Attending physician',
+  residency_administrator: 'Residency administrator',
   admin: 'Administrator',
-  program_director: 'Program director',
-  student: 'Student',
+};
+
+/** One line each, for the rank picker. */
+export const ROLE_BLURBS: Record<UserRole, string> = {
+  medical_student: 'In medical school. Sign up with your school address.',
+  resident: 'In a residency programme. Sign up with your institution address.',
+  fellow: 'In a fellowship. Sign up with your institution address.',
+  attending_physician: 'Practising. A personal address is fine.',
+  residency_administrator:
+    'Runs a programme and vouches for its trainees. Needs approval.',
+  admin: 'Platform staff.',
 };
 
 export const VALIDATION_LABELS: Record<ValidationStatus, string> = {
@@ -54,6 +93,7 @@ export const VALIDATION_LABELS: Record<ValidationStatus, string> = {
 };
 
 export const STATUS_LABELS: Record<UserStatus, string> = {
+  pending_profile: 'Profile unfinished',
   pending_email_verification: 'Email not verified',
   active: 'Active',
   suspended: 'Suspended',

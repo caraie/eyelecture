@@ -421,12 +421,17 @@ export class AuthService {
     return this.buildAuthResponse(user, context);
   }
 
-  async resendVerification(email: string): Promise<{ message: string }> {
-    const user = await this.users.findByEmail(email);
+  /**
+   * Keyed on the username, not the address: after a refused sign-in that is the only
+   * thing the person has typed, and asking them for an address to receive a link
+   * they cannot see is how this feature goes unused.
+   */
+  async resendVerification(username: string): Promise<{ message: string }> {
+    const user = await this.users.findByUsernameWithPassword(username);
 
-    // Always answer the same way so this cannot be used to probe for addresses.
+    // Always answer the same way so this cannot be used to probe for accounts.
     const message =
-      'If that address belongs to an unverified account, a new link is on its way.';
+      'If that account exists and is still unverified, a new link is on its way.';
 
     if (!user || user.emailVerifiedAt) return { message };
 

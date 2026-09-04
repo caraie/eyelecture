@@ -100,7 +100,7 @@ export class AdminsComponent {
    * until the panel is closed — there is no mail transport, so this is the one chance
    * to copy it, and it must not be recoverable afterwards.
    */
-  readonly issuedCredentials = signal<{ email: string; password: string } | null>(
+  readonly issuedCredentials = signal<{ username: string; password: string } | null>(
     null,
   );
 
@@ -197,8 +197,11 @@ export class AdminsComponent {
               a.fullName.localeCompare(b.fullName),
             ),
           );
+          // The username, not the address: that is what the sign-in form asks for,
+          // and handing over the other one sends people to a field that will not
+          // accept it.
           this.issuedCredentials.set({
-            email: created.email,
+            username: created.username,
             password: raw.temporaryPassword,
           });
           this.createForm.reset();
@@ -218,7 +221,7 @@ export class AdminsComponent {
 
     try {
       await navigator.clipboard.writeText(
-        `EyeLecture administrator access\nEmail: ${issued.email}\nTemporary password: ${issued.password}\n\nYou will be asked to choose your own password when you sign in.`,
+        `EyeLecture administrator access\nUsername: ${issued.username}\nTemporary password: ${issued.password}\n\nYou will be asked to choose your own password when you sign in.`,
       );
       this.notify.success('Copied. Send it over a channel you trust.');
     } catch {
@@ -240,7 +243,7 @@ export class AdminsComponent {
     this.editForm.reset({
       firstName: user.firstName,
       lastName: user.lastName,
-      email: user.email,
+      email: user.email ?? '',
       secondaryEmail: user.secondaryEmail ?? '',
     });
   }
@@ -298,7 +301,7 @@ export class AdminsComponent {
       next: (updated) => {
         this.busyId.set(null);
         this.replace(updated);
-        this.issuedCredentials.set({ email: updated.email, password });
+        this.issuedCredentials.set({ username: updated.username, password });
         this.notify.info(
           `${updated.fullName} will have to set a new password at their next sign-in.`,
         );

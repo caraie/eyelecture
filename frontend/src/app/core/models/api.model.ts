@@ -19,15 +19,27 @@ export interface AuthResponse extends AuthTokens {
   user: User;
 }
 
+/** Step one. No address here on purpose — see CompleteProfilePayload. */
 export interface RegisterPayload {
-  email: string;
-  password: string;
   firstName: string;
   lastName: string;
-  /** Optional personal address, outside the institution. */
-  secondaryEmail?: string;
-  role?: Exclude<UserRole, 'admin'>;
+  username: string;
+  password: string;
+}
+
+/** Step two: who they are and where to reach them. */
+export interface CompleteProfilePayload {
+  role: Exclude<UserRole, 'admin'>;
+  email: string;
+  secondaryEmail: string;
   requestedInstitutionId?: string;
+}
+
+export interface CompleteProfileResponse {
+  user: User;
+  /** True when no human review is needed. */
+  autoValidated: boolean;
+  message: string;
 }
 
 export interface ChangePasswordPayload {
@@ -87,6 +99,6 @@ export interface RegisterResponse {
 }
 
 export interface LoginPayload {
-  email: string;
+  username: string;
   password: string;
 }

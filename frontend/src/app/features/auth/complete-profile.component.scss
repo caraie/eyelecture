@@ -1,0 +1,46 @@
+@use './auth-forms.scss';
+
+/* The confirmation that replaces the form. Centred and short on purpose — the next
+   thing to do is in an inbox, so there is nothing to read carefully here. */
+.confirm {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-8) var(--sp-6);
+
+  .ico {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--acc-blue-surface);
+    color: var(--md-sys-color-primary);
+
+    mat-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  .fine {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--md-sys-color-on-surface-muted);
+  }
+}
+
+/* A button that has to read as a link: signing out is a real action, not navigation,
+   so it cannot be an anchor. */
+.linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--md-sys-color-primary);
+  cursor: pointer;
+  text-decoration: underline;
+}

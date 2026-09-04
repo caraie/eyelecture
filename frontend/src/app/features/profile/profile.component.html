@@ -238,12 +238,9 @@
 
           <dt>Signs you in</dt>
           <dd>
-            @if (currentUser.secondaryEmail) {
-              Either address — {{ currentUser.email }} or
-              {{ currentUser.secondaryEmail }}
-            } @else {
-              {{ currentUser.email }} only
-            }
+            <span class="el-mono">{{ currentUser.username }}</span> — your username.
+            Neither address signs you in; the recovery one exists for when the other
+            is gone.
           </dd>
 
           <dt>Member since</dt>

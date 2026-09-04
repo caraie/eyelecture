@@ -17,6 +17,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
 import {
   ROLE_LABELS,
+  SELF_SIGNUP_ROLES,
   STATUS_LABELS,
   User,
   UserRole,
@@ -61,9 +62,10 @@ export class UsersComponent {
 
   readonly roleLabels = ROLE_LABELS;
   readonly statusLabels = STATUS_LABELS;
-  readonly roles: UserRole[] = ['admin', 'program_director', 'student'];
+  readonly roles: UserRole[] = [...SELF_SIGNUP_ROLES, 'admin'];
   readonly statuses: UserStatus[] = [
     'active',
+    'pending_profile',
     'pending_email_verification',
     'suspended',
   ];

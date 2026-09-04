@@ -8,13 +8,14 @@ import {
   AuthTokens,
   ChangePasswordPayload,
   LoginPayload,
+  CompleteProfilePayload,
+  CompleteProfileResponse,
   RegisterPayload,
-  RegisterResponse,
   ResendSecondaryEmailResponse,
   SecondaryEmailResponse,
   VerifySecondaryEmailResponse,
 } from '../models/api.model';
-import { User, UserRole } from '../models/user.model';
+import { TRAINEE_ROLES, User, UserRole } from '../models/user.model';
 
 const ACCESS_TOKEN_KEY = 'eyelecture.accessToken';
 const REFRESH_TOKEN_KEY = 'eyelecture.refreshToken';
@@ -34,10 +35,17 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
   readonly role = computed<UserRole | null>(() => this.currentUser()?.role ?? null);
   readonly isAdmin = computed(() => this.role() === 'admin');
-  readonly isProgramDirector = computed(() => this.role() === 'program_director');
-  readonly isStudent = computed(() => this.role() === 'student');
+  readonly isResidencyAdministrator = computed(
+    () => this.role() === 'residency_administrator',
+  );
+  readonly isTrainee = computed(() => {
+    const role = this.role();
+    return role !== null && TRAINEE_ROLES.includes(role);
+  });
   /** Can open the validation queue. */
-  readonly canReview = computed(() => this.isAdmin() || this.isProgramDirector());
+  readonly canReview = computed(
+    () => this.isAdmin() || this.isResidencyAdministrator(),
+  );
   readonly isValidated = computed(
     () => this.currentUser()?.validationStatus === 'validated',
   );
@@ -48,6 +56,15 @@ export class AuthService {
    */
   readonly mustChangePassword = computed(
     () => this.currentUser()?.mustChangePassword === true,
+  );
+
+  /**
+   * Registered, but stopped after the username. The API refuses everything but /me,
+   * complete-profile and logout until this clears, so the router has to pin them to
+   * that screen rather than let them wander into pages that will only fail.
+   */
+  readonly mustCompleteProfile = computed(
+    () => this.currentUser()?.status === 'pending_profile',
   );
 
   get accessToken(): string | null {
@@ -81,8 +98,23 @@ export class AuthService {
     );
   }
 
-  register(payload: RegisterPayload): Observable<RegisterResponse> {
-    return this.http.post<RegisterResponse>(`${this.base}/register`, payload);
+  /**
+   * Step one. Returns a session: the next screen is the other half of the same
+   * form, so the person is signed in from here on.
+   */
+  register(payload: RegisterPayload): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.base}/register`, payload)
+      .pipe(tap((response) => this.applySession(response)));
+  }
+
+  /** Step two. Refreshes the stored user, which is what releases the router. */
+  completeProfile(
+    payload: CompleteProfilePayload,
+  ): Observable<CompleteProfileResponse> {
+    return this.http
+      .post<CompleteProfileResponse>(`${this.base}/complete-profile`, payload)
+      .pipe(tap((response) => this.currentUser.set(response.user)));
   }
 
   login(payload: LoginPayload): Observable<AuthResponse> {
@@ -97,9 +129,9 @@ export class AuthService {
       .pipe(tap((response) => this.applySession(response)));
   }
 
-  resendVerification(email: string): Observable<{ message: string }> {
+  resendVerification(username: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.base}/resend-verification`, {
-      email,
+      username,
     });
   }
 

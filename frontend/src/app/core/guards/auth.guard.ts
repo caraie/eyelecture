@@ -21,14 +21,34 @@ export const authGuard: CanActivateFn = (_route, state): boolean | UrlTree => {
     });
   }
 
+  // Order matters: a temporary password is checked first, because somebody who has
+  // both problems has to solve that one before anything else is worth asking for.
   if (auth.mustChangePassword() && !state.url.startsWith(FORCED_PASSWORD_ROUTE)) {
     return router.createUrlTree([FORCED_PASSWORD_ROUTE]);
+  }
+
+  if (auth.mustCompleteProfile() && !state.url.startsWith(COMPLETE_PROFILE_ROUTE)) {
+    return router.createUrlTree([COMPLETE_PROFILE_ROUTE]);
   }
 
   return true;
 };
 
 const FORCED_PASSWORD_ROUTE = '/app/change-password';
+const COMPLETE_PROFILE_ROUTE = '/app/complete-profile';
+
+/**
+ * The inverse, for the complete-profile screen. Somebody who already finished has
+ * nothing to do there, and landing on a form full of answers they cannot change
+ * reads as a bug.
+ */
+export const completeProfileGuard: CanActivateFn = (): boolean | UrlTree => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (!auth.isAuthenticated()) return router.createUrlTree(['/auth/login']);
+  return auth.mustCompleteProfile() ? true : router.createUrlTree(['/app/dashboard']);
+};
 
 /**
  * The inverse, for the change-password screen itself. Somebody who has already

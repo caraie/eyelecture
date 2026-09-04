@@ -103,10 +103,11 @@ export class AuthController {
   @Public()
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send the verification link again' })
   resendVerification(
-    @Body() dto: { email: string },
+    @Body() dto: { username: string },
   ): Promise<{ message: string }> {
-    return this.auth.resendVerification(dto.email);
+    return this.auth.resendVerification(dto.username);
   }
 
   @Public()

@@ -82,7 +82,9 @@
                   <span class="el-avatar">{{ initials(person) }}</span>
                   <span class="who">
                     <span class="nm">{{ person.fullName }}</span>
-                    <span class="sub">{{ person.email }}</span>
+                    <!-- Half-finished accounts have no address yet; the username is the
+                         only identifier they have. -->
+                    <span class="sub">{{ person.email ?? '@' + person.username }}</span>
                   </span>
                 </div>
               </td>
