@@ -30,11 +30,11 @@ import { EyeLogoComponent } from '../../shared/components/eye-logo.component';
         <ul class="points">
           <li>
             <span class="dot"></span>
-            Institution email domains validate students automatically
+            Institution email domains validate trainees automatically
           </li>
           <li>
             <span class="dot"></span>
-            Program directors vouch for everyone else
+            Residency administrators vouch for everyone else
           </li>
           <li>
             <span class="dot"></span>

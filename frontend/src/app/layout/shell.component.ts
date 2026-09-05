@@ -52,9 +52,15 @@ export class ShellComponent {
    * a broken app rather than as a locked one. Goes back on its own the moment the
    * password is replaced, because this is derived from the session.
    */
-  readonly locked = this.auth.mustChangePassword;
+  readonly locked = computed(
+    () => this.auth.mustChangePassword() || this.auth.mustCompleteProfile(),
+  );
 
   readonly roleLabel = computed(() => {
+    // Blank until the profile is finished. The column has a default, so an account
+    // that has not picked a rank still carries one — showing it would tell somebody
+    // they are a medical student when nobody, including them, has said so.
+    if (this.auth.mustCompleteProfile()) return '';
     const role = this.user()?.role;
     return role ? ROLE_LABELS[role] : '';
   });
