@@ -5,7 +5,11 @@ import { CatalogItem } from './entities/catalog-item.entity';
 import { Specialty } from './entities/specialty.entity';
 import { ResidencyProgram } from './entities/residency-program.entity';
 import { FellowshipProgram } from './entities/fellowship-program.entity';
-import { CATALOG_LABELS, CatalogKind } from './catalog-kind.enum';
+import {
+  CATALOG_LABELS,
+  CATALOG_LABELS_PLURAL,
+  CatalogKind,
+} from './catalog-kind.enum';
 import {
   CreateCatalogItemDto,
   UpdateCatalogItemDto,
@@ -104,7 +108,7 @@ export class CatalogsService {
     const existing = await query.getOne();
     if (existing) {
       throw new ConflictException(
-        `"${existing.name}" is already on the list of ${CATALOG_LABELS[kind]}s`,
+        `"${existing.name}" is already on the list of ${CATALOG_LABELS_PLURAL[kind]}`,
       );
     }
   }
