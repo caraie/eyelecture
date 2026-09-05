@@ -88,6 +88,14 @@
 .el-variant {
   color: var(--md-sys-color-on-surface-variant);
 }
+/* Separates two identifiers on one line — username and email — without inventing a
+   punctuation mark that reads as part of either. Spaced, muted, and skipped by
+   screen readers, which would otherwise announce it as "middle dot". */
+.dot {
+  color: var(--md-sys-color-on-surface-muted);
+  padding: 0 6px;
+}
+
 .el-mono {
   font-family: var(--font-mono);
   font-size: 0.86em;

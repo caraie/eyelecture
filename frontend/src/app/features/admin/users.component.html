@@ -13,7 +13,7 @@
       <input
         matInput
         type="search"
-        placeholder="Name or email"
+        placeholder="Name, username or email"
         [ngModel]="search()"
         (ngModelChange)="search.set($event)"
         (keyup.enter)="applyFilters()"
@@ -82,9 +82,15 @@
                   <span class="el-avatar">{{ initials(person) }}</span>
                   <span class="who">
                     <span class="nm">{{ person.fullName }}</span>
-                    <!-- Half-finished accounts have no address yet; the username is the
-                         only identifier they have. -->
-                    <span class="sub">{{ person.email ?? '@' + person.username }}</span>
+                    <!-- Username first: it is what signs them in, and what an
+                         administrator is asked for when somebody cannot get in. The
+                         address follows, and is absent on half-finished accounts. -->
+                    <span class="sub">
+                      <span class="el-mono">{{ person.username }}</span>
+                      @if (person.email) {
+                        <span class="dot" aria-hidden="true">·</span>{{ person.email }}
+                      }
+                    </span>
                   </span>
                 </div>
               </td>

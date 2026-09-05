@@ -173,7 +173,8 @@ export class UsersService {
       const term = `%${query.search.trim().toLowerCase()}%`;
       qb.andWhere(
         new Brackets((w) => {
-          w.where('LOWER(user.email) LIKE :term', { term })
+          w.where('LOWER(user.username) LIKE :term', { term })
+            .orWhere('LOWER(user.email) LIKE :term', { term })
             .orWhere('LOWER(user.secondaryEmail) LIKE :term', { term })
             .orWhere('LOWER(user.firstName) LIKE :term', { term })
             .orWhere('LOWER(user.lastName) LIKE :term', { term });
@@ -188,9 +189,9 @@ export class UsersService {
   /**
    * The validation queue, scoped to what the caller is allowed to act on.
    *
-   * A program director sees people who either already resolved to their institution
-   * or explicitly asked to join it. An admin sees everything still pending,
-   * including signups with no institution at all.
+   * A residency administrator sees trainees who either already resolved to their
+   * institution or explicitly asked to join it. An admin sees everything still
+   * pending, including signups with no institution at all.
    */
   async findPendingValidation(
     reviewer: User,
@@ -233,7 +234,8 @@ export class UsersService {
       const term = `%${query.search.trim().toLowerCase()}%`;
       qb.andWhere(
         new Brackets((w) => {
-          w.where('LOWER(user.email) LIKE :term', { term })
+          w.where('LOWER(user.username) LIKE :term', { term })
+            .orWhere('LOWER(user.email) LIKE :term', { term })
             .orWhere('LOWER(user.secondaryEmail) LIKE :term', { term })
             .orWhere('LOWER(user.firstName) LIKE :term', { term })
             .orWhere('LOWER(user.lastName) LIKE :term', { term });

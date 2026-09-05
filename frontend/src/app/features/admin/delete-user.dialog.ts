@@ -33,9 +33,15 @@ import { User } from '../../core/models/user.model';
 
       <div class="who">
         <div class="row">
-          <span class="k">Email</span>
-          <span class="v">{{ data.email }}</span>
+          <span class="k">Username</span>
+          <span class="v">{{ data.username }}</span>
         </div>
+        @if (data.email) {
+          <div class="row">
+            <span class="k">Email</span>
+            <span class="v">{{ data.email }}</span>
+          </div>
+        }
         @if (data.institution) {
           <div class="row">
             <span class="k">Institution</span>

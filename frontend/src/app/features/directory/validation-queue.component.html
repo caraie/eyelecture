@@ -58,7 +58,12 @@
             <span class="el-avatar el-avatar-lg">{{ initials(person) }}</span>
             <span class="who">
               <span class="nm">{{ person.fullName }}</span>
-              <span class="sub">{{ person.email }}</span>
+              <span class="sub">
+                <span class="el-mono">{{ person.username }}</span>
+                @if (person.email) {
+                  <span class="dot" aria-hidden="true">·</span>{{ person.email }}
+                }
+              </span>
             </span>
           </div>
 

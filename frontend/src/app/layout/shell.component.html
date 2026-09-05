@@ -49,7 +49,10 @@
       <mat-menu #accountMenu="matMenu">
         <div class="menu-head">
           <div class="nm">{{ currentUser.fullName }}</div>
-          <div class="sub">{{ currentUser.email ?? '@' + currentUser.username }}</div>
+          <div class="sub el-mono">{{ currentUser.username }}</div>
+          @if (currentUser.email) {
+            <div class="sub">{{ currentUser.email }}</div>
+          }
           @if (currentUser.institution) {
             <div class="sub">{{ currentUser.institution.name }}</div>
           }
