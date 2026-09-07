@@ -31,7 +31,8 @@ export interface RegisterPayload {
 export interface CompleteProfilePayload {
   role: Exclude<UserRole, 'admin'>;
   email: string;
-  secondaryEmail: string;
+  /** Optional here; it can be added later from the profile. */
+  secondaryEmail?: string;
   requestedInstitutionId?: string;
 }
 

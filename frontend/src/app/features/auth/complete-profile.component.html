@@ -89,7 +89,7 @@
     }
 
     <mat-form-field appearance="outline">
-      <mat-label>Recovery email</mat-label>
+      <mat-label>Recovery email (optional)</mat-label>
       <input
         matInput
         type="email"
@@ -101,11 +101,9 @@
       <mat-hint>
         A private mailbox, so you keep the account after your institution closes the
         address above. It has to be personal — a second institutional address is not
-        accepted.
+        accepted. You can add it later from your profile.
       </mat-hint>
-      @if (form.controls.secondaryEmail.hasError('required')) {
-        <mat-error>A recovery address is required</mat-error>
-      } @else if (form.controls.secondaryEmail.hasError('email')) {
+      @if (form.controls.secondaryEmail.hasError('email')) {
         <mat-error>That does not look like an email address</mat-error>
       }
     </mat-form-field>

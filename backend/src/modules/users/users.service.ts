@@ -357,7 +357,8 @@ export class UsersService {
     patch: {
       role: UserRole;
       email: string;
-      secondaryEmail: string;
+      /** Null when they chose to skip it. They can add one later from the profile. */
+      secondaryEmail: string | null;
       institutionId: string | null;
       requestedInstitutionId: string | null;
       autoValidated: boolean;

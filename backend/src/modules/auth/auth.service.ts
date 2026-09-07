@@ -115,11 +115,13 @@ export class AuthService {
       throw new ConflictException('An account with this email already exists');
     }
 
-    const secondaryEmail = await this.users.assertSecondaryEmailAllowed(
-      dto.secondaryEmail,
-      dto.email,
-      userId,
-    );
+    const secondaryEmail = dto.secondaryEmail
+      ? await this.users.assertSecondaryEmailAllowed(
+          dto.secondaryEmail,
+          dto.email,
+          userId,
+        )
+      : null;
 
     const matched = await this.institutions.findByEmailDomain(
       emailDomainOf(dto.email),

@@ -73,7 +73,9 @@ export class CompleteProfileComponent {
   readonly form = this.fb.nonNullable.group({
     role: ['' as SignupRole | '', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
-    secondaryEmail: ['', [Validators.required, Validators.email]],
+    // Optional: requiring it would block signing up on something the profile
+    // screen can collect any time afterwards.
+    secondaryEmail: ['', [Validators.email]],
     requestedInstitutionId: [''],
   });
 
@@ -139,7 +141,9 @@ export class CompleteProfileComponent {
       .completeProfile({
         role: raw.role,
         email: raw.email.trim().toLowerCase(),
-        secondaryEmail: raw.secondaryEmail.trim().toLowerCase(),
+        ...(raw.secondaryEmail.trim()
+          ? { secondaryEmail: raw.secondaryEmail.trim().toLowerCase() }
+          : {}),
         ...(this.needsInstitutionPicker() && raw.requestedInstitutionId
           ? { requestedInstitutionId: raw.requestedInstitutionId }
           : {}),

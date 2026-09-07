@@ -6,9 +6,10 @@ import { SELF_SIGNUP_ROLES, UserRole } from '../../users/enums/user-role.enum';
 /**
  * Step two: who they are and where to reach them.
  *
- * Both addresses are required here. The institutional one decides membership; the
- * recovery one is what keeps the account reachable once that mailbox is closed,
- * which for a medical student is a date they already know.
+ * Only the institutional address is required — it decides membership, so nothing can
+ * be resolved without it. The recovery one is offered here because this is the
+ * moment somebody is thinking about it, but requiring it would block signing up on a
+ * detail that can be filled in from the profile any time afterwards.
  */
 export class CompleteProfileDto {
   @ApiProperty({
@@ -30,16 +31,24 @@ export class CompleteProfileDto {
   @Transform(({ value }) => String(value).trim().toLowerCase())
   email!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'ana.perez@gmail.com',
     description:
-      'Recovery address. Must not be on a domain that belongs to an institution — ' +
-      'a second institutional address disappears at the same time as the first.',
+      'Optional recovery address. Must not be on a domain that belongs to an ' +
+      'institution — a second institutional address disappears at the same time as ' +
+      'the first. It can be added later from the profile.',
   })
-  @IsEmail({}, { message: 'A valid recovery email address is required' })
+  @IsOptional()
+  // An untouched optional input submits '', which means "left blank", not
+  // "invalid". Rejecting it would fail a form nobody filled in.
+  @Transform(({ value }) =>
+    value === null || value === undefined || String(value).trim() === ''
+      ? undefined
+      : String(value).trim().toLowerCase(),
+  )
+  @IsEmail({}, { message: 'The recovery email address is not valid' })
   @MaxLength(320)
-  @Transform(({ value }) => String(value).trim().toLowerCase())
-  secondaryEmail!: string;
+  secondaryEmail?: string;
 
   @ApiPropertyOptional({
     description:
