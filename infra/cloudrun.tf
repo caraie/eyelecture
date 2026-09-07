@@ -154,11 +154,16 @@ resource "google_cloud_run_v2_service" "api" {
         startup_cpu_boost = true
       }
 
+      # Checked early and often rather than late and rarely. The delay before the
+      # first probe is dead time on every cold start: at 5s, an instance that was
+      # ready in 1.5s still sat there for 3.5 seconds before Cloud Run would send it
+      # traffic. Probing costs nothing, so the budget goes into attempts (30 × 2s =
+      # a minute) instead of into waiting.
       startup_probe {
-        initial_delay_seconds = 5
-        period_seconds        = 5
-        timeout_seconds       = 3
-        failure_threshold     = 10
+        initial_delay_seconds = 0
+        period_seconds        = 2
+        timeout_seconds       = 2
+        failure_threshold     = 30
         http_get {
           path = "/api/v1/health"
         }
@@ -238,11 +243,13 @@ resource "google_cloud_run_v2_service" "web" {
         startup_cpu_boost = true
       }
 
+      # nginx is serving within a few hundred milliseconds; waiting three seconds to
+      # ask was most of this container's cold start.
       startup_probe {
-        initial_delay_seconds = 3
-        period_seconds        = 3
-        timeout_seconds       = 3
-        failure_threshold     = 10
+        initial_delay_seconds = 0
+        period_seconds        = 1
+        timeout_seconds       = 1
+        failure_threshold     = 20
         http_get {
           path = "/healthz"
         }
