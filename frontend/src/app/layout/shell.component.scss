@@ -29,6 +29,12 @@
   color: var(--md-sys-color-on-surface);
   text-decoration: none;
 
+  /* The global a:hover underlines links, and matches this rule's specificity, so
+     it wins on source order alone. A wordmark is not prose. */
+  &:hover {
+    text-decoration: none;
+  }
+
   &:hover {
     text-decoration: none;
   }

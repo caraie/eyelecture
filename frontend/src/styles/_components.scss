@@ -409,6 +409,9 @@
 .el-sidenav a:hover {
   background: var(--md-sys-color-surface-container-high);
   color: var(--md-sys-color-on-surface);
+  /* The global a:hover underlines links. These are pills, not prose — and it has
+     the same specificity as the rule above, so it has to be repeated here. */
+  text-decoration: none;
 }
 .el-sidenav a.active {
   background: var(--md-sys-color-primary-container);
@@ -417,6 +420,9 @@
 .el-sidenav a .count {
   margin-left: auto;
   font-size: 12px;
+  /* Without this the badge inherits the link's line-height, the text box ends up
+     taller than the 20px circle, and the number sits off-centre. */
+  line-height: 1;
   font-variant-numeric: tabular-nums;
   background: var(--md-sys-color-error);
   color: var(--md-sys-color-on-error);
