@@ -146,6 +146,20 @@
   font-weight: 500;
 }
 
+/* The design system sizes icons inside a labelled button at 18px (`.btn .ms`), not
+   mat-icon's 24px default. At 24 the icon's box is taller than the label's line, so
+   the glyph reads as floating above the text. Icon-only buttons are deliberately not
+   matched — there the icon is the content, and 24px is right. */
+.mat-mdc-button .mat-icon,
+.mat-mdc-unelevated-button .mat-icon,
+.mat-mdc-outlined-button .mat-icon,
+.mat-mdc-raised-button .mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+}
+
 /* Buttons lift by 1px on hover and compress on press — from the motion section. */
 .mat-mdc-unelevated-button:not(:disabled):hover,
 .mat-mdc-raised-button:not(:disabled):hover {

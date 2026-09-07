@@ -90,8 +90,12 @@
 }
 /* Separates two identifiers on one line — username and email — without inventing a
    punctuation mark that reads as part of either. Spaced, muted, and skipped by
-   screen readers, which would otherwise announce it as "middle dot". */
-.dot {
+   screen readers, which would otherwise announce it as "middle dot".
+
+   Prefixed because `.dot` was already taken: the sign-in page uses it for the small
+   round bullets beside its selling points, and an unprefixed rule here reshaped
+   those circles into ovals. */
+.el-sep {
   color: var(--md-sys-color-on-surface-muted);
   padding: 0 6px;
 }
