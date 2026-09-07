@@ -44,3 +44,16 @@
   cursor: pointer;
   text-decoration: underline;
 }
+
+/* The attending-only block. Set apart with a rule and an overline so the jump from
+   "who are you" to "what do you practise" reads as a new question, not more of the
+   same form. */
+.clinical {
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  padding-top: var(--sp-4);
+  margin-bottom: var(--sp-2);
+
+  .el-overline {
+    margin-bottom: var(--sp-3);
+  }
+}

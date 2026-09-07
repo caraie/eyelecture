@@ -243,6 +243,19 @@
             is gone.
           </dd>
 
+          @if (currentUser.specialty) {
+            <dt>Clinical focus</dt>
+            <dd>{{ currentUser.specialty.name }}</dd>
+          }
+          @if (currentUser.residencyProgram) {
+            <dt>Residency</dt>
+            <dd>{{ currentUser.residencyProgram.name }}</dd>
+          }
+          @if (currentUser.fellowshipProgram) {
+            <dt>Fellowship</dt>
+            <dd>{{ currentUser.fellowshipProgram.name }}</dd>
+          }
+
           <dt>Member since</dt>
           <dd>{{ currentUser.createdAt | date: 'mediumDate' }}</dd>
         </dl>

@@ -36,6 +36,12 @@ export interface UserInstitution {
   slug: string;
 }
 
+/** An entry from one of the reference lists, as it appears on a profile. */
+export interface CatalogRef {
+  id: string;
+  name: string;
+}
+
 export interface User {
   id: string;
   /** What they sign in with. */
@@ -60,6 +66,10 @@ export interface User {
   validationNote: string | null;
   institution: UserInstitution | null;
   requestedInstitution: UserInstitution | null;
+  /** Attending physicians only, for now. Null for everybody else. */
+  specialty: CatalogRef | null;
+  residencyProgram: CatalogRef | null;
+  fellowshipProgram: CatalogRef | null;
   emailVerified: boolean;
   /** True while an admin-issued temporary password is still in place. */
   mustChangePassword: boolean;

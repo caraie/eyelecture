@@ -123,6 +123,8 @@ export class AuthService {
         )
       : null;
 
+    const clinical = this.clinicalProfileFor(dto);
+
     const matched = await this.institutions.findByEmailDomain(
       emailDomainOf(dto.email),
     );
@@ -139,6 +141,7 @@ export class AuthService {
       institutionId: matched?.id ?? null,
       requestedInstitutionId: matched ? null : (dto.requestedInstitutionId ?? null),
       autoValidated,
+      ...clinical,
     });
 
     const verificationToken = await this.issueEmailVerificationToken(user);
@@ -150,6 +153,47 @@ export class AuthService {
       ...(this.isProduction()
         ? {}
         : { devEmailVerificationToken: verificationToken }),
+    };
+  }
+
+  /**
+   * The clinical half of the profile, and who is allowed to have one.
+   *
+   * Refusing the fields for other ranks rather than ignoring them is deliberate: a
+   * silently dropped value is how a form ends up looking like it saved something it
+   * did not. The specialty is required of an attending because it is the answer that
+   * makes their account useful; the two programmes are not, because the reference
+   * lists are still placeholders and nobody should be stuck behind an entry that has
+   * not been added yet.
+   */
+  private clinicalProfileFor(dto: CompleteProfileDto): {
+    specialtyId: string | null;
+    residencyProgramId: string | null;
+    fellowshipProgramId: string | null;
+  } {
+    const isAttending = dto.role === UserRole.ATTENDING_PHYSICIAN;
+
+    if (!isAttending) {
+      if (dto.specialtyId || dto.residencyProgramId || dto.fellowshipProgramId) {
+        throw new BadRequestException(
+          'Only an attending physician records a specialty and training',
+        );
+      }
+      return {
+        specialtyId: null,
+        residencyProgramId: null,
+        fellowshipProgramId: null,
+      };
+    }
+
+    if (!dto.specialtyId) {
+      throw new BadRequestException('Pick your clinical focus');
+    }
+
+    return {
+      specialtyId: dto.specialtyId,
+      residencyProgramId: dto.residencyProgramId ?? null,
+      fellowshipProgramId: dto.fellowshipProgramId ?? null,
     };
   }
 

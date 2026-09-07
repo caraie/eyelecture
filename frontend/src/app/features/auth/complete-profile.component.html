@@ -88,6 +88,51 @@
       </mat-form-field>
     }
 
+    @if (isAttending()) {
+      <div class="clinical">
+        <p class="el-overline">Your practice</p>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Clinical focus</mat-label>
+          <mat-select formControlName="specialtyId">
+            @for (item of specialties(); track item.id) {
+              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+            }
+          </mat-select>
+          @if (
+            form.controls.specialtyId.hasError('required') &&
+            form.controls.specialtyId.touched
+          ) {
+            <mat-error>Pick your clinical focus</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Residency (optional)</mat-label>
+          <mat-select formControlName="residencyProgramId">
+            <mat-option [value]="''">Not listed</mat-option>
+            @for (item of residencies(); track item.id) {
+              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Fellowship (optional)</mat-label>
+          <mat-select formControlName="fellowshipProgramId">
+            <mat-option [value]="''">None or not listed</mat-option>
+            @for (item of fellowships(); track item.id) {
+              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+            }
+          </mat-select>
+          <mat-hint>
+            These lists are still short. If yours is missing, leave it blank and tell
+            us — an administrator can add it.
+          </mat-hint>
+        </mat-form-field>
+      </div>
+    }
+
     <mat-form-field appearance="outline">
       <mat-label>Recovery email (optional)</mat-label>
       <input

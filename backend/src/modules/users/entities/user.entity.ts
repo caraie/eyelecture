@@ -9,6 +9,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Institution } from '../../institutions/entities/institution.entity';
+import { Specialty } from '../../catalogs/entities/specialty.entity';
+import { ResidencyProgram } from '../../catalogs/entities/residency-program.entity';
+import { FellowshipProgram } from '../../catalogs/entities/fellowship-program.entity';
 import { UserRole } from '../enums/user-role.enum';
 import { UserStatus } from '../enums/user-status.enum';
 import {
@@ -153,6 +156,36 @@ export class User {
   @ManyToOne(() => Institution, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'requestedInstitutionId' })
   requestedInstitution!: Institution | null;
+
+  // --- Clinical profile ---------------------------------------------------------
+  //
+  // Attending physicians only, for now. A trainee is still in a programme rather
+  // than looking back on one, and what to record for them is an open question — so
+  // the columns exist for everybody and the rule that fills them does not.
+
+  /** Their clinical focus, e.g. Glaucoma. */
+  @Column({ type: 'uuid', nullable: true })
+  specialtyId!: string | null;
+
+  @ManyToOne(() => Specialty, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'specialtyId' })
+  specialty!: Specialty | null;
+
+  /** Where they did their residency. */
+  @Column({ type: 'uuid', nullable: true })
+  residencyProgramId!: string | null;
+
+  @ManyToOne(() => ResidencyProgram, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'residencyProgramId' })
+  residencyProgram!: ResidencyProgram | null;
+
+  /** Where they did their fellowship, if they did one. */
+  @Column({ type: 'uuid', nullable: true })
+  fellowshipProgramId!: string | null;
+
+  @ManyToOne(() => FellowshipProgram, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'fellowshipProgramId' })
+  fellowshipProgram!: FellowshipProgram | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

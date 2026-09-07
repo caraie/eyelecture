@@ -34,6 +34,10 @@ export interface CompleteProfilePayload {
   /** Optional here; it can be added later from the profile. */
   secondaryEmail?: string;
   requestedInstitutionId?: string;
+  /** Attending physicians only. The specialty is required of them. */
+  specialtyId?: string;
+  residencyProgramId?: string;
+  fellowshipProgramId?: string;
 }
 
 export interface CompleteProfileResponse {

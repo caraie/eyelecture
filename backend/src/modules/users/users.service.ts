@@ -45,6 +45,9 @@ export const isSameUser = (a: string, b: string): boolean =>
 const RELATIONS = {
   institution: true,
   requestedInstitution: true,
+  specialty: true,
+  residencyProgram: true,
+  fellowshipProgram: true,
 } as const;
 
 @Injectable()
@@ -362,6 +365,9 @@ export class UsersService {
       institutionId: string | null;
       requestedInstitutionId: string | null;
       autoValidated: boolean;
+      specialtyId: string | null;
+      residencyProgramId: string | null;
+      fellowshipProgramId: string | null;
     },
   ): Promise<User> {
     await this.users.update(
@@ -382,6 +388,9 @@ export class UsersService {
           : ValidationStatus.PENDING,
         validationMethod: patch.autoValidated ? ValidationMethod.EMAIL_DOMAIN : null,
         validatedAt: patch.autoValidated ? new Date() : null,
+        specialtyId: patch.specialtyId,
+        residencyProgramId: patch.residencyProgramId,
+        fellowshipProgramId: patch.fellowshipProgramId,
       },
     );
 

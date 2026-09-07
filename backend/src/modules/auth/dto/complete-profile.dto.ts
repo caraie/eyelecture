@@ -59,4 +59,28 @@ export class CompleteProfileDto {
   @IsOptional()
   @IsUUID()
   requestedInstitutionId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Clinical focus. Required for an attending physician, refused for anyone else.',
+  })
+  @IsOptional()
+  @IsUUID()
+  specialtyId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Where they did their residency. Attending physicians only.',
+  })
+  @IsOptional()
+  @IsUUID()
+  residencyProgramId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Where they did their fellowship. Attending physicians only, and genuinely ' +
+      'optional — not everybody did one.',
+  })
+  @IsOptional()
+  @IsUUID()
+  fellowshipProgramId?: string;
 }

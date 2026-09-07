@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -15,9 +16,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService } from '../../core/services/auth.service';
+import { CatalogsService } from '../../core/services/catalogs.service';
 import { InstitutionsService } from '../../core/services/institutions.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PublicInstitution } from '../../core/models/institution.model';
+import { PublicCatalogItem } from '../../core/models/catalog.model';
 import {
   ROLE_BLURBS,
   ROLE_LABELS,
@@ -54,6 +57,7 @@ export class CompleteProfileComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly institutionsApi = inject(InstitutionsService);
+  private readonly catalogsApi = inject(CatalogsService);
   private readonly notify = inject(NotificationService);
 
   readonly roles = SELF_SIGNUP_ROLES as SignupRole[];
@@ -77,6 +81,12 @@ export class CompleteProfileComponent {
     // screen can collect any time afterwards.
     secondaryEmail: ['', [Validators.email]],
     requestedInstitutionId: [''],
+    // Attending physicians only. The specialty becomes required when that rank is
+    // picked; the two programmes stay optional, because the reference lists are
+    // still placeholders and nobody should be stuck behind a missing entry.
+    specialtyId: [''],
+    residencyProgramId: [''],
+    fellowshipProgramId: [''],
   });
 
   /** Whichever rank is selected, or null while none is. */
@@ -94,6 +104,14 @@ export class CompleteProfileComponent {
     const role = this.role();
     return role !== '' && TRAINEE_ROLES.includes(role);
   });
+
+  /** Attending physicians describe their practice; nobody else does, for now. */
+  readonly isAttending = computed(() => this.role() === 'attending_physician');
+
+  readonly specialties = signal<PublicCatalogItem[]>([]);
+  readonly residencies = signal<PublicCatalogItem[]>([]);
+  readonly fellowships = signal<PublicCatalogItem[]>([]);
+  private catalogsRequested = false;
 
   /** What the typed address resolves to, looked up while they type. */
   private readonly lookup = toSignal(
@@ -125,6 +143,41 @@ export class CompleteProfileComponent {
       next: (list) => this.institutions.set(list),
       error: () => this.institutions.set([]),
     });
+
+    // Fetched the first time somebody picks the rank that needs them, rather than on
+    // load: four of the five ranks never see these lists.
+    effect(() => {
+      if (!this.isAttending() || this.catalogsRequested) return;
+      this.catalogsRequested = true;
+
+      this.catalogsApi.listPublic('specialties').subscribe({
+        next: (list) => this.specialties.set(list),
+        error: () => this.specialties.set([]),
+      });
+      this.catalogsApi.listPublic('residencies').subscribe({
+        next: (list) => this.residencies.set(list),
+        error: () => this.residencies.set([]),
+      });
+      this.catalogsApi.listPublic('fellowships').subscribe({
+        next: (list) => this.fellowships.set(list),
+        error: () => this.fellowships.set([]),
+      });
+    });
+
+    // The specialty is only meaningful for an attending, so the requirement follows
+    // the rank rather than sitting on the control for everybody.
+    effect(() => {
+      const control = this.form.controls.specialtyId;
+      if (this.isAttending()) {
+        control.addValidators(Validators.required);
+      } else {
+        control.removeValidators(Validators.required);
+        control.setValue('', { emitEvent: false });
+        this.form.controls.residencyProgramId.setValue('', { emitEvent: false });
+        this.form.controls.fellowshipProgramId.setValue('', { emitEvent: false });
+      }
+      control.updateValueAndValidity({ emitEvent: false });
+    });
   }
 
   submit(): void {
@@ -146,6 +199,17 @@ export class CompleteProfileComponent {
           : {}),
         ...(this.needsInstitutionPicker() && raw.requestedInstitutionId
           ? { requestedInstitutionId: raw.requestedInstitutionId }
+          : {}),
+        ...(this.isAttending()
+          ? {
+              specialtyId: raw.specialtyId,
+              ...(raw.residencyProgramId
+                ? { residencyProgramId: raw.residencyProgramId }
+                : {}),
+              ...(raw.fellowshipProgramId
+                ? { fellowshipProgramId: raw.fellowshipProgramId }
+                : {}),
+            }
           : {}),
       })
       .subscribe({

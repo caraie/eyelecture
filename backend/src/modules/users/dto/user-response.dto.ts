@@ -7,6 +7,12 @@ import {
   ValidationStatus,
 } from '../enums/validation-status.enum';
 
+/** Enough of a reference-list entry to show it, without its timestamps. */
+export class CatalogRefDto {
+  @ApiProperty() id!: string;
+  @ApiProperty() name!: string;
+}
+
 export class UserInstitutionDto {
   @ApiProperty() id!: string;
   @ApiProperty() name!: string;
@@ -46,6 +52,12 @@ export class UserResponseDto {
   institution!: UserInstitutionDto | null;
   @ApiProperty({ type: UserInstitutionDto, nullable: true })
   requestedInstitution!: UserInstitutionDto | null;
+  @ApiProperty({ type: CatalogRefDto, nullable: true })
+  specialty!: CatalogRefDto | null;
+  @ApiProperty({ type: CatalogRefDto, nullable: true })
+  residencyProgram!: CatalogRefDto | null;
+  @ApiProperty({ type: CatalogRefDto, nullable: true })
+  fellowshipProgram!: CatalogRefDto | null;
   @ApiProperty() emailVerified!: boolean;
   @ApiProperty({
     description:
@@ -68,6 +80,10 @@ export class UserResponseDto {
     ): UserInstitutionDto | null =>
       value ? { id: value.id, name: value.name, slug: value.slug } : null;
 
+    const catalogRef = (
+      value: { id: string; name: string } | null | undefined,
+    ): CatalogRefDto | null => (value ? { id: value.id, name: value.name } : null);
+
     return {
       id: user.id,
       username: user.username,
@@ -85,6 +101,9 @@ export class UserResponseDto {
       validationNote: user.validationNote,
       institution: toInstitution(user.institution),
       requestedInstitution: toInstitution(user.requestedInstitution),
+      specialty: catalogRef(user.specialty),
+      residencyProgram: catalogRef(user.residencyProgram),
+      fellowshipProgram: catalogRef(user.fellowshipProgram),
       emailVerified: user.emailVerifiedAt !== null,
       mustChangePassword: user.mustChangePassword,
       createdAt: user.createdAt,
