@@ -68,16 +68,14 @@
     </button>
   </mat-form-field>
 
-  <ul class="rules">
-    <li [class.met]="passwordHasLength()">
-      <mat-icon>{{ passwordHasLength() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-      8+ characters
-    </li>
-    <li [class.met]="passwordHasSymbol()">
-      <mat-icon>{{ passwordHasSymbol() ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-      a number or symbol
-    </li>
-  </ul>
+  <div class="password-rules">
+    @for (check of passwordChecks(); track check.label) {
+      <span [class.met]="check.met">
+        <mat-icon>{{ check.met ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+        {{ check.label }}
+      </span>
+    }
+  </div>
 
   <mat-form-field appearance="outline">
     <mat-label>Confirm password</mat-label>

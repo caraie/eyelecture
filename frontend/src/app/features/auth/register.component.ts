@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { startWith } from 'rxjs';
 import {
   AbstractControl,
   FormBuilder,
@@ -77,14 +85,19 @@ export class RegisterComponent {
     { validators: passwordsMatch },
   );
 
-  /** Live hints under the password field, same wording as the API's rules. */
-  passwordHasLength(): boolean {
-    return this.form.controls.password.value.length >= 8;
-  }
+  private readonly password = toSignal(
+    this.form.controls.password.valueChanges.pipe(startWith('')),
+    { initialValue: '' },
+  );
 
-  passwordHasSymbol(): boolean {
-    return /[^\p{L}]/u.test(this.form.controls.password.value);
-  }
+  /** Live hints under the password field, same wording as the API's rules. */
+  readonly passwordChecks = computed(() => {
+    const value = this.password();
+    return [
+      { label: '8+ characters', met: value.length >= 8 },
+      { label: 'a number or symbol', met: /[^\p{L}]/u.test(value) },
+    ];
+  });
 
   submit(): void {
     if (this.form.invalid || this.submitting()) {
