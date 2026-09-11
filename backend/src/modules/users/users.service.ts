@@ -213,8 +213,9 @@ export class UsersService {
       .take(query.limit);
 
     if (reviewer.role === UserRole.RESIDENCY_ADMINISTRATOR) {
-      if (!reviewer.institutionId) {
-        // An administrator with no institution has nobody to vouch for.
+      // Same rule as assertCanReview: an unapproved administrator has no queue.
+      // Showing them one and refusing every action would only look broken.
+      if (!reviewer.institutionId || !reviewer.isValidated) {
         return paginate([], 0, query);
       }
       // Trainees only. An attending physician or another residency administrator
@@ -257,7 +258,8 @@ export class UsersService {
       where.push({ validationStatus: ValidationStatus.PENDING });
     } else if (
       reviewer.role === UserRole.RESIDENCY_ADMINISTRATOR &&
-      reviewer.institutionId
+      reviewer.institutionId &&
+      reviewer.isValidated
     ) {
       where.push(
         {
@@ -829,6 +831,16 @@ export class UsersService {
 
     if (reviewer.role !== UserRole.RESIDENCY_ADMINISTRATOR) {
       throw new ForbiddenException('You are not allowed to validate users');
+    }
+    // Their own membership has to be settled first. Signing up as a residency
+    // administrator on a recognised domain attaches the institution immediately,
+    // while the rank itself still needs an administrator's approval — so without
+    // this check anyone who claims the role can start approving people at that
+    // institution before anybody has confirmed they belong there at all.
+    if (!reviewer.isValidated) {
+      throw new ForbiddenException(
+        'Your own account has to be approved before you can validate anyone',
+      );
     }
     // Attending physicians and other residency administrators are reviewed by
     // platform staff. Letting a peer approve them would make the role

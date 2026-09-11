@@ -13,6 +13,11 @@ import { ValidationMethod, ValidationStatus } from './enums/validation-status.en
 const STANFORD = 'inst-stanford';
 const HARVARD = 'inst-harvard';
 
+/**
+ * `isValidated` is a getter on the entity, so a plain object has to derive it or
+ * every check that reads it silently sees undefined — which is how a fixture ends up
+ * failing a rule it was meant to satisfy.
+ */
 const makeUser = (overrides: Partial<User> = {}): User =>
   ({
     id: 'user-1',
@@ -34,6 +39,9 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     requestedInstitutionId: null,
     requestedInstitution: null,
     ...overrides,
+    isValidated:
+      (overrides.validationStatus ?? ValidationStatus.PENDING) ===
+      ValidationStatus.VALIDATED,
   }) as User;
 
 describe('UsersService', () => {
@@ -167,6 +175,24 @@ describe('UsersService', () => {
       );
     });
 
+    it('refuses a residency administrator who has not been approved yet', async () => {
+      // Signing up on a recognised domain attaches the institution immediately while
+      // the rank itself still waits on an admin. Without this rule the role approves
+      // itself: claim it, and start admitting people at that institution.
+      const unapproved = makeUser({
+        id: 'dir-new',
+        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        institutionId: STANFORD,
+        validationStatus: ValidationStatus.PENDING,
+      });
+      target = makeUser({ id: 'stu-x', institutionId: STANFORD });
+
+      await expect(service.validate('stu-x', unapproved, {})).rejects.toThrow(
+        ForbiddenException,
+      );
+      expect(repo.update).not.toHaveBeenCalled();
+    });
+
     it('refuses to validate an attending physician', async () => {
       // Same institution, so scope is not what stops this — rank is. Attendings are
       // reviewed by platform staff, or the role becomes self-propagating.
@@ -273,6 +299,7 @@ describe('UsersService', () => {
       id: 'dir-1',
       role: UserRole.RESIDENCY_ADMINISTRATOR,
       institutionId: STANFORD,
+      validationStatus: ValidationStatus.VALIDATED,
     });
 
     it('records the reason and keeps the request for the audit trail', async () => {
@@ -333,6 +360,7 @@ describe('UsersService', () => {
         id: 'd',
         role: UserRole.RESIDENCY_ADMINISTRATOR,
         institutionId: STANFORD,
+        validationStatus: ValidationStatus.VALIDATED,
       });
       await service.countPendingValidation(director);
 
@@ -370,6 +398,19 @@ describe('UsersService', () => {
       const director = makeUser({
         role: UserRole.RESIDENCY_ADMINISTRATOR,
         institutionId: null,
+        validationStatus: ValidationStatus.VALIDATED,
+      });
+      await expect(service.countPendingValidation(director)).resolves.toBe(0);
+      expect(repo.count).not.toHaveBeenCalled();
+    });
+
+    it('returns zero for a director who is not approved yet', async () => {
+      // The queue is empty rather than forbidden: showing a list and refusing every
+      // action on it would read as broken rather than as pending.
+      const director = makeUser({
+        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        institutionId: STANFORD,
+        validationStatus: ValidationStatus.PENDING,
       });
       await expect(service.countPendingValidation(director)).resolves.toBe(0);
       expect(repo.count).not.toHaveBeenCalled();

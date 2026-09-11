@@ -42,12 +42,23 @@ export class AuthService {
     const role = this.role();
     return role !== null && TRAINEE_ROLES.includes(role);
   });
-  /** Can open the validation queue. */
-  readonly canReview = computed(
-    () => this.isAdmin() || this.isResidencyAdministrator(),
-  );
   readonly isValidated = computed(
     () => this.currentUser()?.validationStatus === 'validated',
+  );
+  /**
+   * Can open the validation queue.
+   *
+   * A residency administrator has to be approved first. Signing up on a recognised
+   * domain attaches the institution straight away while the rank still waits on an
+   * administrator, so without the second condition somebody could start approving
+   * people at an institution nobody has confirmed they belong to.
+   *
+   * Declared after `isValidated` on purpose — a computed reads its dependencies
+   * lazily, so the order does not break it, but relying on that is one refactor away
+   * from an undefined call.
+   */
+  readonly canReview = computed(
+    () => this.isAdmin() || (this.isResidencyAdministrator() && this.isValidated()),
   );
   /**
    * The account is on a temporary password an admin handed out. The API refuses
