@@ -6,8 +6,8 @@
       @if (isSuperUser()) {
         Everyone waiting to be confirmed, across every institution.
       } @else if (reviewerInstitution()) {
-        Everyone who named your institution but whose email address did not match a
-        domain it owns — trainees, attending physicians and other administrators.
+        Students who indicated an affiliation with your institution but whose email
+        addresses did not match an institutional domain.
       } @else {
         You need to belong to an institution before you can validate anybody.
       }

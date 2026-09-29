@@ -13,11 +13,12 @@
     <h2 class="el-headline">
       Complete your profile{{ user()?.firstName ? ', ' + user()!.firstName : '' }}
     </h2>
-    <p class="el-lede">
-      Your account exists. This is what decides
-      <span class="el-hl-em">which institution you belong to</span> and who confirms
-      it.
-    </p>
+    @if (showsInstitutionLede()) {
+      <p class="el-lede">
+        Your account exists. This helps us connect you to
+        <span class="el-hl-em">your institution</span>.
+      </p>
+    }
   </header>
 
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -49,8 +50,7 @@
       />
       <mat-icon matPrefix>alternate_email</mat-icon>
       <mat-hint>
-        A private mailbox. It is what keeps your account reachable once an
-        institutional address is switched off.
+        Choose a back-up email account for password recovery purposes only
       </mat-hint>
       @if (form.controls.personalEmail.hasError('required')) {
         <mat-error>A personal email address is required</mat-error>

@@ -60,6 +60,24 @@ form {
   display: flex;
   flex-wrap: wrap;
   gap: var(--sp-2);
+
+  /* Material aligns a button's icon against the label's baseline, which only lands
+     right when the label is a text node it can measure. The buttons here swap their
+     whole contents in and out of an @if, so the icon was sitting a couple of pixels
+     above the words. Centring the row is the fix that does not depend on what is
+     inside it at the time. */
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    .mat-icon {
+      margin: 0;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
 }
 
 /* --- Personal address ----------------------------------------------------- */

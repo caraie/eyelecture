@@ -49,8 +49,8 @@
       <h2 class="el-title">Personal email</h2>
       <p class="el-lede small">
         A private address, outside any institution. It does not sign you in — your
-        <span class="el-hl-em">username</span> does that — but it is what keeps this
-        account yours once an institutional mailbox is switched off.
+        <span class="el-hl-em">username</span> does that — but it is what keeps your
+        account reachable if you change institutions.
       </p>
 
       @if (currentUser.personalEmail) {
@@ -91,14 +91,17 @@
                 [disabled]="busy()"
                 (click)="resendConfirmation()"
               >
+                <!-- One node per branch, and the label outside them both. Angular
+                     cannot project a node out of a control-flow block that holds
+                     more than one root, so the icon used to land in the label slot
+                     instead of the icon slot — which is what put it out of line
+                     with the words. -->
                 @if (busy()) {
                   <mat-spinner diameter="20" />
                 } @else {
-                  <ng-container>
-                    <mat-icon>send</mat-icon>
-                    Send a confirmation link
-                  </ng-container>
+                  <mat-icon>send</mat-icon>
                 }
+                Send a confirmation link
               </button>
             </div>
 

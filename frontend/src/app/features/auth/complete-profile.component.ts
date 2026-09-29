@@ -113,6 +113,16 @@ export class CompleteProfileComponent {
   });
 
   /**
+   * The one-line reason this form exists. It only holds for people we are about to
+   * ask for an institution — an attending physician is not being connected to one
+   * here, so saying so would be wrong. Shown before a type is picked, because that
+   * is the common case and the header should not appear out of nowhere.
+   */
+  readonly showsInstitutionLede = computed(
+    () => this.role() === '' || this.fields().institution,
+  );
+
+  /**
    * Whether a matching domain would let them in on its own. Only trainees; an
    * attending physician is reviewed either way, and a program administrator vouches
    * for other people — neither is something a domain match can establish.

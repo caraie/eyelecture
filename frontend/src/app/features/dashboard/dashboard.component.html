@@ -13,7 +13,6 @@
         }
       </p>
     </div>
-    <el-status-badge [user]="currentUser" />
   </header>
 
   <!-- Membership banner. Only shown when there is actually something to say. -->
@@ -30,8 +29,9 @@
           @if (currentUser.role === 'program_administrator') {
             A super user needs to approve your program administrator account.
           } @else {
-            Your account requires Institutional verification for full access to
-            Eyelecture.com
+            A program director needs to verify your institutional affiliation. You
+            will gain access to your institution's materials as soon as they do, but
+            can watch the core EyeLecture material in the interim.
           }
         </div>
       </div>
@@ -110,17 +110,12 @@
           <dt>Institution</dt>
           <dd>{{ currentUser.institution?.name ?? 'Not linked' }}</dd>
         </div>
+        <!-- The badge used to sit up in the page header and this row spelled the same
+             fact out in a sentence beside it. One of them had to go; the badge is the
+             one people recognise, so it took the row rather than the corner. -->
         <div>
           <dt>Membership</dt>
-          <dd>
-            @if (currentUser.validationMethod === 'email_domain') {
-              Confirmed automatically by email domain
-            } @else if (currentUser.validationMethod === 'manual') {
-              Confirmed by a reviewer
-            } @else {
-              Not confirmed yet
-            }
-          </dd>
+          <dd><el-status-badge [user]="currentUser" /></dd>
         </div>
       </dl>
       <a mat-stroked-button routerLink="/app/profile">Edit profile</a>

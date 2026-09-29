@@ -19,7 +19,7 @@ import { EyeLogoComponent } from '../../shared/components/eye-logo.component';
         </div>
 
         <h1 class="el-display">
-          Lectures that <span class="el-hl">look back</span> at the room.
+          Focus your mind. <span class="el-hl">Master</span> your craft.
         </h1>
 
         <p class="lede">

@@ -138,7 +138,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 
 /** One line each, for the rank picker. */
 export const ROLE_BLURBS: Record<UserRole, string> = {
-  medical_student: 'In medical school. Sign up with your school address.',
+  medical_student: 'Please register with your Institution email address',
   resident: 'In a residency programme. Sign up with your institution address.',
   fellow: 'In a fellowship. Sign up with your institution address.',
   attending_physician: 'Practising. A personal address is fine.',
