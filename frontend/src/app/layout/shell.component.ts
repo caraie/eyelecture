@@ -40,7 +40,8 @@ export class ShellComponent {
   readonly theme = inject(ThemeService);
 
   readonly user = this.auth.user;
-  readonly pendingCount = signal(0);
+  /** Owned by UsersService so the validation queue can refresh it after a decision. */
+  readonly pendingCount = this.users.pendingValidationCount;
   readonly navOpen = signal(false);
 
   /**
@@ -92,7 +93,7 @@ export class ShellComponent {
       });
     }
 
-    if (this.auth.isAdmin()) {
+    if (this.auth.isSuperUser()) {
       groups[groups.length - 1].items.push({
         label: 'All users',
         icon: 'group',
@@ -104,7 +105,7 @@ export class ShellComponent {
           { label: 'Institutions', icon: 'school', route: '/app/institutions' },
           { label: 'Reference lists', icon: 'list_alt', route: '/app/catalogs' },
           {
-            label: 'Administrators',
+            label: 'Super Users',
             icon: 'admin_panel_settings',
             route: '/app/admins',
           },
@@ -127,11 +128,7 @@ export class ShellComponent {
   }
 
   refreshPendingCount(): void {
-    this.users.pendingCount().subscribe({
-      next: ({ count }) => this.pendingCount.set(count),
-      // A failing badge count must never block the shell from rendering.
-      error: () => this.pendingCount.set(0),
-    });
+    this.users.refreshPendingCount();
   }
 
   toggleNav(): void {

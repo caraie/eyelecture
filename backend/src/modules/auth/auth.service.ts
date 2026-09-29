@@ -130,7 +130,7 @@ export class AuthService {
     );
 
     // Only trainees are let in by their address alone. An attending physician is
-    // expected to use a personal one, and a residency administrator vouches for
+    // expected to use a personal one, and a program administrator vouches for
     // other people — neither is something a domain match can establish.
     const autoValidated = matched !== null && TRAINEE_ROLES.includes(dto.role);
 
@@ -202,16 +202,17 @@ export class AuthService {
     institutionName: string | null,
     autoValidated: boolean,
   ): string {
+    // Short on purpose. The reviewers cut the "your address is affiliated with…"
+    // explanation: by this point the person has already seen which institution
+    // matched, on the form they just submitted, and repeating it here only delays
+    // the one instruction that matters.
     if (autoValidated && institutionName) {
-      return `Your address belongs to ${institutionName}, so your membership is already confirmed. Check your email to activate your account.`;
+      return 'Check your email to activate your account.';
     }
-    if (user.role === UserRole.RESIDENCY_ADMINISTRATOR) {
-      return 'Check your email to activate your account. An administrator will review your residency administrator request.';
+    if (user.role === UserRole.PROGRAM_ADMINISTRATOR) {
+      return 'Check your email to activate your account. A super user will review your program administrator request.';
     }
-    if (user.role === UserRole.ATTENDING_PHYSICIAN) {
-      return 'Check your email to activate your account. An administrator will confirm your membership.';
-    }
-    return 'Check your email to activate your account. Because your address is not on a known institution domain, someone needs to confirm your membership.';
+    return 'Check your email to activate your account. Your account requires Institutional verification for full access to Eyelecture.com';
   }
 
   // --- Email verification -----------------------------------------------------

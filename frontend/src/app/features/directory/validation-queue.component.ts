@@ -53,7 +53,9 @@ export class ValidationQueueComponent {
   /** Ids currently being acted on, so their row can show a spinner. */
   readonly busy = signal<Set<string>>(new Set());
 
-  readonly isAdmin = this.auth.isAdmin;
+  readonly isSuperUser = this.auth.isSuperUser;
+  /** False for a program administrator nobody has approved yet — see the empty state. */
+  readonly canReview = this.auth.canReview;
   readonly institutions = signal<Institution[]>([]);
   readonly reviewerInstitution = computed(
     () => this.auth.user()?.institution?.name ?? null,
@@ -65,7 +67,7 @@ export class ValidationQueueComponent {
     this.load();
 
     // Admins may need to attach a person to an institution while approving them.
-    if (this.auth.isAdmin()) {
+    if (this.auth.isSuperUser()) {
       this.institutionsApi.list().subscribe({
         next: (list) => this.institutions.set(list),
         error: () => this.institutions.set([]),
@@ -109,7 +111,7 @@ export class ValidationQueueComponent {
    */
   approve(user: User): void {
     const needsInstitution =
-      this.isAdmin() && !user.institution && !user.requestedInstitution;
+      this.isSuperUser() && !user.institution && !user.requestedInstitution;
 
     const data: ReviewDialogData = {
       mode: 'approve',
@@ -167,6 +169,9 @@ export class ValidationQueueComponent {
         // the list is short, so a full reload would just make the UI flicker.
         this.people.update((list) => list.filter((p) => p.id !== user.id));
         this.total.update((value) => Math.max(0, value - 1));
+        // The sidebar badge reads the same number from the server. Without this it
+        // keeps showing the count from page load, one ahead of the list.
+        this.usersApi.refreshPendingCount();
         this.clearBusy(user.id);
         this.notify.success(successMessage);
       },

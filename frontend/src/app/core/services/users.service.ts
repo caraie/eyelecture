@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
@@ -56,6 +56,24 @@ export class UsersService {
     return this.http.get<{ count: number }>(
       `${this.base}/pending-validation/count`,
     );
+  }
+
+  /**
+   * The number behind the sidebar badge, kept here rather than in the shell so that
+   * whoever changes it — the validation queue, after accepting or declining — can
+   * refresh it without reaching into another component. The shell used to read this
+   * once at construction, which is why the badge went on claiming nine while the
+   * list underneath it said eight.
+   */
+  private readonly pending = signal(0);
+  readonly pendingValidationCount = this.pending.asReadonly();
+
+  refreshPendingCount(): void {
+    this.pendingCount().subscribe({
+      next: ({ count }) => this.pending.set(count),
+      // A failing badge count must never block the shell from rendering.
+      error: () => this.pending.set(0),
+    });
   }
 
   get(id: string): Observable<User> {

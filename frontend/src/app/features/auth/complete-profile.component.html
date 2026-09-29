@@ -4,8 +4,7 @@
     <h2 class="el-headline">Check your email</h2>
     <p class="el-lede">{{ message }}</p>
     <p class="fine">
-      The link expires after 48 hours. You can close this page — nothing else is
-      needed here.
+      The verification link sent to your registered account expires after 48 hours.
     </p>
   </div>
 } @else {
@@ -23,7 +22,7 @@
 
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
     <mat-form-field appearance="outline">
-      <mat-label>User rank</mat-label>
+      <mat-label>User type</mat-label>
       <mat-select formControlName="role">
         @for (role of roles; track role) {
           <mat-option [value]="role">{{ roleLabels[role] }}</mat-option>
@@ -33,7 +32,7 @@
         <mat-hint>{{ roleBlurbs[form.controls.role.value] }}</mat-hint>
       }
       @if (form.controls.role.hasError('required') && form.controls.role.touched) {
-        <mat-error>Pick your rank</mat-error>
+        <mat-error>Pick your user type</mat-error>
       }
     </mat-form-field>
 
@@ -51,6 +50,10 @@
         "
       />
       <mat-icon matPrefix>alternate_email</mat-icon>
+      <mat-hint>
+        Use your Institutional email address here for verification purposes (e.g.
+        user&#64;medicalschool.edu)
+      </mat-hint>
       @if (form.controls.email.hasError('required')) {
         <mat-error>An email address is required</mat-error>
       } @else if (form.controls.email.hasError('email')) {
@@ -61,13 +64,15 @@
     @if (matchedInstitution(); as institution) {
       <div class="el-alert el-alert-success" role="status">
         <mat-icon>verified</mat-icon>
+        <!-- Two different statements, not one with a tail. A trainee on a matching
+             domain really is validated; anybody else is merely recognised and still
+             waiting, and saying "Validated" to them would be a lie. -->
         <div>
-          Recognised — <strong>{{ institution.name }}</strong
-          >.
           @if (expectsInstitutionalEmail()) {
-            You will be validated automatically.
+            Validated — <strong>{{ institution.name }}</strong>
           } @else {
-            Your membership still needs to be confirmed by an administrator.
+            <strong>{{ institution.name }}</strong> — your membership still needs to
+            be confirmed.
           }
         </div>
       </div>
@@ -82,8 +87,8 @@
           }
         </mat-select>
         <mat-hint>
-          Your address is not on a known domain, so somebody there has to confirm you.
-          Leave it blank and an administrator reviews you instead.
+          Your account will require further confirmation for full access to
+          Eyelecture.com
         </mat-hint>
       </mat-form-field>
     }
@@ -144,9 +149,7 @@
       />
       <mat-icon matPrefix>alternate_email</mat-icon>
       <mat-hint>
-        A private mailbox, so you keep the account after your institution closes the
-        address above. It has to be personal — a second institutional address is not
-        accepted. You can add it later from your profile.
+        Choose a back-up email account for password recovery purposes only
       </mat-hint>
       @if (form.controls.secondaryEmail.hasError('email')) {
         <mat-error>That does not look like an email address</mat-error>

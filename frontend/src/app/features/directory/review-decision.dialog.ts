@@ -40,7 +40,7 @@ export interface ReviewDialogResult {
   ],
   template: `
     <h2 mat-dialog-title>
-      {{ data.mode === 'approve' ? 'Validate' : 'Turn down' }} {{ data.user.fullName }}
+      {{ data.mode === 'approve' ? 'Accept' : 'Decline' }} {{ data.user.fullName }}
     </h2>
 
     <mat-dialog-content>
@@ -110,7 +110,7 @@ export interface ReviewDialogResult {
         [disabled]="data.mode === 'approve' && data.requireInstitution && !institutionId()"
         (click)="confirm()"
       >
-        {{ data.mode === 'approve' ? 'Validate' : 'Turn down' }}
+        {{ data.mode === 'approve' ? 'Accept' : 'Decline' }}
       </button>
     </mat-dialog-actions>
   `,

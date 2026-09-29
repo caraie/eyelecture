@@ -2,8 +2,7 @@
   <p class="el-overline">Get started</p>
   <h2 class="el-headline">Create your account</h2>
   <p class="el-lede">
-    Just a username and a password. We ask about your training
-    <span class="el-hl-em">on the next screen</span>.
+    Start by choosing a <span class="el-hl-em">username and password</span>.
   </p>
 </header>
 
@@ -35,7 +34,7 @@
       placeholder="ana.perez"
     />
     <mat-icon matPrefix>person</mat-icon>
-    <mat-hint>This is what you will sign in with.</mat-hint>
+    <mat-hint>This is what you will sign in with. It cannot be changed later.</mat-hint>
     @if (form.controls.username.hasError('required')) {
       <mat-error>A username is required</mat-error>
     } @else if (form.controls.username.hasError('minlength')) {

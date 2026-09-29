@@ -3,11 +3,11 @@
     <p class="el-overline">People</p>
     <h1 class="el-headline">Validation queue</h1>
     <p class="el-lede">
-      @if (isAdmin()) {
+      @if (isSuperUser()) {
         Everyone waiting to be confirmed, across every institution.
       } @else if (reviewerInstitution()) {
-        Students at {{ reviewerInstitution() }} whose address did not match an
-        institution domain.
+        Students who indicated an affiliation with your institution but whose email
+        addresses did not match an institutional domain.
       } @else {
         You need to belong to an institution before you can validate students.
       }
@@ -44,11 +44,20 @@
   } @else if (people().length === 0) {
     <div class="el-empty">
       <div class="ico"><mat-icon>task_alt</mat-icon></div>
-      <h4>Nothing waiting</h4>
-      <p>
-        Everyone who signed up has either been confirmed automatically by their
-        email domain or already reviewed.
-      </p>
+      @if (!isSuperUser() && !canReview()) {
+        <!-- A program administrator who has not been approved yet. The server already
+             refuses every action and returns an empty page, but "No pending requests"
+             would tell them the queue is clear rather than that it is not theirs to
+             see. -->
+        <h4>Your account is still in review</h4>
+        <p>
+          A super user has to approve your program administrator account before you
+          can validate anybody at your institution.
+        </p>
+      } @else {
+        <h4>No Pending Requests</h4>
+        <p>All user requests have been validated by a program administrator</p>
+      }
     </div>
   } @else {
     <ul class="queue">
@@ -116,7 +125,7 @@
                 class="reject"
                 (click)="reject(person)"
               >
-                Turn down
+                Decline
               </button>
               <button
                 mat-flat-button
@@ -124,7 +133,7 @@
                 type="button"
                 (click)="approve(person)"
               >
-                Validate
+                Accept
               </button>
             }
           </div>
