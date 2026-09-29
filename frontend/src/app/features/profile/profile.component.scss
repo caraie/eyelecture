@@ -28,10 +28,19 @@
   margin-bottom: var(--sp-5);
 }
 
+/* Same reasoning as the auth forms: a floating label rises above its own outline,
+   so 4px let it land on whatever sits above. */
 form {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--sp-3);
+}
+
+/* The change-institution form opens directly under the Membership list. Without
+   this the field's floating label lands on "Member since". */
+.kv + form,
+.kv + button {
+  margin-top: var(--sp-5);
 }
 
 .row {

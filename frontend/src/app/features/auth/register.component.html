@@ -8,7 +8,7 @@
 
 <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
   <div class="row">
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>First name</mat-label>
       <input matInput formControlName="firstName" autocomplete="given-name" />
       @if (form.controls.firstName.hasError('required')) {
@@ -16,7 +16,7 @@
       }
     </mat-form-field>
 
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>Last name</mat-label>
       <input matInput formControlName="lastName" autocomplete="family-name" />
       @if (form.controls.lastName.hasError('required')) {
@@ -25,7 +25,7 @@
     </mat-form-field>
   </div>
 
-  <mat-form-field appearance="outline">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
     <mat-label>Username</mat-label>
     <input
       matInput
@@ -47,7 +47,7 @@
     }
   </mat-form-field>
 
-  <mat-form-field appearance="outline">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
     <mat-label>Password</mat-label>
     <input
       matInput
@@ -76,7 +76,7 @@
     }
   </div>
 
-  <mat-form-field appearance="outline">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
     <mat-label>Confirm password</mat-label>
     <input
       matInput

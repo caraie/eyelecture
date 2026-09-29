@@ -16,7 +16,7 @@
 
       <form [formGroup]="form" (ngSubmit)="save()" novalidate>
         <div class="row">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>First name</mat-label>
             <input matInput formControlName="firstName" />
             @if (form.controls.firstName.hasError('required')) {
@@ -24,7 +24,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Last name</mat-label>
             <input matInput formControlName="lastName" />
             @if (form.controls.lastName.hasError('required')) {
@@ -126,7 +126,7 @@
 
       @if (!currentUser.personalEmail || editingPersonal()) {
         <form [formGroup]="personalForm" (ngSubmit)="savePersonal()" novalidate>
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Personal email</mat-label>
             <input
               matInput
@@ -224,7 +224,7 @@
             (ngSubmit)="saveInstitutional()"
             novalidate
           >
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label>Institutional email</mat-label>
               <input matInput type="email" formControlName="email" />
               <mat-icon matPrefix>alternate_email</mat-icon>

@@ -21,7 +21,7 @@
   </header>
 
   <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>User type</mat-label>
       <mat-select formControlName="role">
         @for (role of roles; track role) {
@@ -38,7 +38,7 @@
 
     <!-- The personal address comes first because it is the one that outlasts
          everything else on this form. -->
-    <mat-form-field appearance="outline">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>Personal email</mat-label>
       <input
         matInput
@@ -60,7 +60,7 @@
     </mat-form-field>
 
     @if (fields().institution) {
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label>Institutional email</mat-label>
         <input
           matInput
@@ -100,7 +100,7 @@
     }
 
     @if (needsInstitutionPicker()) {
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label>Institution</mat-label>
         <mat-select formControlName="requestedInstitutionId">
           @for (institution of institutions(); track institution.id) {
@@ -119,7 +119,7 @@
         <p class="el-overline">Your training</p>
 
         @if (fields().level) {
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Level</mat-label>
             <mat-select formControlName="trainingLevelId">
               @for (item of levels(); track item.id) {
@@ -136,7 +136,7 @@
         }
 
         @if (fields().specialty) {
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Clinical focus</mat-label>
             <mat-select formControlName="specialtyId">
               @for (item of specialties(); track item.id) {
@@ -156,7 +156,7 @@
         }
 
         @if (fields().programs) {
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Residency (optional)</mat-label>
             <mat-select formControlName="residencyProgramId">
               <mat-option [value]="''">Not listed</mat-option>
@@ -166,7 +166,7 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Fellowship (optional)</mat-label>
             <mat-select formControlName="fellowshipProgramId">
               <mat-option [value]="''">None or not listed</mat-option>

@@ -41,7 +41,7 @@ import { NotificationService } from '../../core/services/notification.service';
     </header>
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label>Personal email</mat-label>
         <input
           matInput

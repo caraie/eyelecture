@@ -14,10 +14,16 @@
   }
 }
 
+/* The gap has to clear a floating label, not just the box below it. An outlined
+   field's label rises above its own outline once the field has a value, so 4px left
+   it sitting on the hint of the field above — which is what "Pick Non-clinical…"
+   was doing to "Residency (optional)". The fields on these forms also use
+   subscriptSizing="dynamic", so a hint gets its real height instead of spilling out
+   of a one-line box. */
 form {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--sp-3);
 }
 
 .row {
