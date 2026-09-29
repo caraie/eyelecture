@@ -30,7 +30,7 @@ export class EmailVerificationToken {
   @Column({
     type: 'enum',
     enum: VerificationPurpose,
-    default: VerificationPurpose.PRIMARY_EMAIL,
+    default: VerificationPurpose.INSTITUTIONAL_EMAIL,
   })
   purpose!: VerificationPurpose;
 

@@ -53,3 +53,64 @@ export const REVIEWER_ROLES: readonly UserRole[] = [
   UserRole.SUPER_USER,
   UserRole.PROGRAM_ADMINISTRATOR,
 ];
+
+/**
+ * What the second half of signup asks, per rank. One table rather than a chain of
+ * ifs in the service and another in the form, because the two drifted apart once
+ * already: the form stopped showing the clinical block while the API still demanded
+ * it, and the only symptom was a 400 nobody could explain from the screen.
+ *
+ * - `institution` — an address at an institution is required, not merely accepted.
+ *   An attending physician is the exception: they may hold an unaffiliated account
+ *   and still watch the core curriculum.
+ * - `level` — PGY, asked of residents.
+ * - `specialty` — required where it is true. "Non-clinical" is on the list so a
+ *   program coordinator has an honest answer.
+ * - `programs` — past residency and fellowship, always optional, only shown to
+ *   people far enough along to have them.
+ */
+export interface ProfileFields {
+  institution: boolean;
+  level: boolean;
+  specialty: boolean;
+  programs: boolean;
+}
+
+export const PROFILE_FIELDS: Record<UserRole, ProfileFields> = {
+  [UserRole.MEDICAL_STUDENT]: {
+    institution: true,
+    level: false,
+    specialty: false,
+    programs: false,
+  },
+  [UserRole.RESIDENT]: {
+    institution: true,
+    level: true,
+    specialty: false,
+    programs: false,
+  },
+  [UserRole.FELLOW]: {
+    institution: true,
+    level: false,
+    specialty: true,
+    programs: true,
+  },
+  [UserRole.ATTENDING_PHYSICIAN]: {
+    institution: false,
+    level: false,
+    specialty: true,
+    programs: true,
+  },
+  [UserRole.PROGRAM_ADMINISTRATOR]: {
+    institution: true,
+    level: false,
+    specialty: true,
+    programs: true,
+  },
+  [UserRole.SUPER_USER]: {
+    institution: false,
+    level: false,
+    specialty: false,
+    programs: false,
+  },
+};

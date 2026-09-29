@@ -17,7 +17,10 @@ import * as bcrypt from 'bcrypt';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { UserRole } from './enums/user-role.enum';
-import { UserResponseDto } from './dto/user-response.dto';
+import {
+  AffiliationDto,
+  UserResponseDto,
+} from './dto/user-response.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
 import { RejectUserDto, ValidateUserDto } from './dto/validate-user.dto';
 import {
@@ -68,6 +71,18 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
   ): Promise<UserResponseDto> {
     return UserResponseDto.from(await this.users.updateProfile(user.id, dto));
+  }
+
+  @Get('me/affiliations')
+  @ApiOperation({
+    summary: 'Every institution you have belonged to',
+    description:
+      'Current one first, then the ones you have left, most recent first. A past ' +
+      'affiliation still grants access to that institution’s material.',
+  })
+  async myAffiliations(@CurrentUser() user: User): Promise<AffiliationDto[]> {
+    const affiliations = await this.users.findAffiliations(user.id);
+    return affiliations.map(AffiliationDto.from);
   }
 
   @Get('pending-validation')
@@ -137,7 +152,7 @@ export class UsersController {
           passwordHash: await hashPassword(dto.temporaryPassword),
           firstName: dto.firstName,
           lastName: dto.lastName,
-          ...(dto.secondaryEmail ? { secondaryEmail: dto.secondaryEmail } : {}),
+          ...(dto.personalEmail ? { personalEmail: dto.personalEmail } : {}),
         },
         admin.id,
       ),

@@ -7,6 +7,11 @@
  * institutional one, which is the address that decides membership.
  */
 export enum VerificationPurpose {
-  PRIMARY_EMAIL = 'primary_email',
-  SECONDARY_EMAIL = 'secondary_email',
+  INSTITUTIONAL_EMAIL = 'primary_email',
+  /**
+   * The stored value stays `secondary_email`. The name changed when the personal
+   * address became the required one; the string is a Postgres enum with live rows
+   * behind it, and renaming it would buy nothing but a migration.
+   */
+  PERSONAL_EMAIL = 'secondary_email',
 }

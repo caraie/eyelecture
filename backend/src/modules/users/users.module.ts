@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
+import { UserAffiliation } from './entities/user-affiliation.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { InstitutionsModule } from '../institutions/institutions.module';
@@ -14,7 +15,7 @@ import { EmailVerificationToken } from '../auth/entities/email-verification-toke
     // EmailVerificationToken is registered here as well as in AuthModule: an admin
     // changing someone's main address must destroy any link issued for the old one,
     // and forFeature only provides the repository token — it does not claim ownership.
-    TypeOrmModule.forFeature([User, EmailVerificationToken]),
+    TypeOrmModule.forFeature([User, UserAffiliation, EmailVerificationToken]),
     InstitutionsModule,
   ],
   providers: [UsersService],

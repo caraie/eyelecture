@@ -120,7 +120,7 @@ export function verifyPrimaryEmail(firstName: string, link: string): Rendered {
  * above: this address already signs the person in, so nothing is blocked on it and
  * the mail should not imply otherwise.
  */
-export function verifySecondaryEmail(
+export function verifyPersonalEmail(
   firstName: string,
   link: string,
 ): Rendered {

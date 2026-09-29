@@ -5,6 +5,7 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -12,6 +13,8 @@ import { Institution } from '../../institutions/entities/institution.entity';
 import { Specialty } from '../../catalogs/entities/specialty.entity';
 import { ResidencyProgram } from '../../catalogs/entities/residency-program.entity';
 import { FellowshipProgram } from '../../catalogs/entities/fellowship-program.entity';
+import { TrainingLevel } from '../../catalogs/entities/training-level.entity';
+import { UserAffiliation } from './user-affiliation.entity';
 import { UserRole } from '../enums/user-role.enum';
 import { UserStatus } from '../enums/user-status.enum';
 import {
@@ -34,9 +37,12 @@ export class User {
   username!: string;
 
   /**
-   * Institutional address. Null until the profile is completed: registration asks
-   * for a username and a password and nothing else, so there is a real window in
-   * which an account exists with no address attached.
+   * The institutional address of the *current* affiliation, copied here from
+   * `user_affiliations` so that the queries which only need "where are they now"
+   * stay one row deep. The affiliation table is the record; this is the shortcut.
+   *
+   * Null for somebody with no institution at all, which is now a perfectly ordinary
+   * state — an attending physician may never claim one.
    *
    * Always stored lowercased and trimmed — see UsersService.normalizeEmail.
    */
@@ -50,33 +56,34 @@ export class User {
   emailDomain!: string | null;
 
   /**
-   * Optional personal address, deliberately outside any institution — a place to
-   * reach someone after they graduate and their university mailbox is switched off.
-   * Either address signs them in.
+   * The personal address, deliberately outside any institution. This is the anchor
+   * of the account: it is the one thing that still works after a student graduates
+   * and the university switches their mailbox off.
    *
-   * Unique like `email`, and checked against `email` too, so one person's personal
-   * address can never collide with another's institutional one. In Postgres a unique
-   * index still permits many NULLs, which is what makes the column optional.
+   * It used to be the optional extra and is now required of everybody — that is the
+   * inversion the September review asked for. The column stays nullable so existing
+   * accounts are not invented an address they never gave; `PersonalEmailGuard` pins
+   * anybody in that state to a single screen until they supply one.
    *
-   * Institution membership is decided by `email` alone. This address never grants it.
+   * Unique, and checked against institutional addresses too, so one person's
+   * personal address can never collide with another's institutional one.
    */
   // Partial, matching the migration exactly. A plain `@Index({ unique: true })` would
   // read as equivalent — Postgres permits repeated NULLs either way — but the next
   // `migration:generate` would then want to add a second, non-partial index.
-  @Index('UQ_users_secondaryEmail', {
+  @Index('UQ_users_personalEmail', {
     unique: true,
-    where: '"secondaryEmail" IS NOT NULL',
+    where: '"personalEmail" IS NOT NULL',
   })
   @Column({ type: 'varchar', length: 320, nullable: true })
-  secondaryEmail!: string | null;
+  personalEmail!: string | null;
 
   /**
-   * Unverified is a normal, usable state, not a blocked one: the address works for
-   * sign-in right away and the person can confirm it later from their profile. It
-   * only gates things we would rather not send to an address nobody has proven.
+   * Unverified is a normal, usable state, not a blocked one. It only gates things we
+   * would rather not send to an address nobody has proven they can read.
    */
   @Column({ type: 'timestamptz', nullable: true })
-  secondaryEmailVerifiedAt!: Date | null;
+  personalEmailVerifiedAt!: Date | null;
 
   /** bcrypt hash. Never selected unless explicitly asked for. */
   @Column({ select: false })
@@ -121,6 +128,13 @@ export class User {
   @JoinColumn({ name: 'institutionId' })
   institution!: Institution | null;
 
+  /**
+   * Every institution this person has belonged to, current one included. The row
+   * whose `endedAt` is null is the one `institutionId` above points at.
+   */
+  @OneToMany(() => UserAffiliation, (affiliation) => affiliation.user)
+  affiliations!: UserAffiliation[];
+
   @Column({
     type: 'enum',
     enum: ValidationStatus,
@@ -157,11 +171,22 @@ export class User {
   @JoinColumn({ name: 'requestedInstitutionId' })
   requestedInstitution!: Institution | null;
 
-  // --- Clinical profile ---------------------------------------------------------
+  // --- Training and practice ------------------------------------------------------
   //
-  // Attending physicians only, for now. A trainee is still in a programme rather
-  // than looking back on one, and what to record for them is an open question — so
-  // the columns exist for everybody and the rule that fills them does not.
+  // Which of these are asked for depends on the rank, and the rule lives in one
+  // place: PROFILE_FIELDS in user-role.enum.ts. The columns are on everybody because
+  // a resident who becomes a fellow keeps the level they had.
+
+  /**
+   * How far along a resident is, e.g. PGY-2. A reference list rather than an integer
+   * — see TrainingLevel for why.
+   */
+  @Column({ type: 'uuid', nullable: true })
+  trainingLevelId!: string | null;
+
+  @ManyToOne(() => TrainingLevel, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'trainingLevelId' })
+  trainingLevel!: TrainingLevel | null;
 
   /** Their clinical focus, e.g. Glaucoma. */
   @Column({ type: 'uuid', nullable: true })
@@ -214,8 +239,19 @@ export class User {
    * authenticating them.
    */
   get contactEmails(): string[] {
-    return [this.email, this.secondaryEmail].filter(
+    return [this.email, this.personalEmail].filter(
       (value): value is string => value !== null,
     );
+  }
+
+  /**
+   * True for an account that predates the personal address being required. They are
+   * pinned to one screen until they give one — see PersonalEmailGuard.
+   *
+   * Deliberately not a status enum value: the condition is derivable, and a third
+   * enum migration to record something Postgres can work out from a null is churn.
+   */
+  get needsPersonalEmail(): boolean {
+    return this.hasCompleteProfile && this.personalEmail === null;
   }
 }

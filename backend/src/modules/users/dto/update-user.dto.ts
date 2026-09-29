@@ -31,7 +31,7 @@ export class UpdateProfileDto {
 }
 
 /** Add or replace the personal address on your own account. */
-export class SetSecondaryEmailDto {
+export class SetPersonalEmailDto {
   @ApiProperty({ example: 'ana.perez@gmail.com' })
   @Transform(({ value }) =>
     String(value ?? '')
@@ -40,7 +40,25 @@ export class SetSecondaryEmailDto {
   )
   @IsEmail({}, { message: 'The personal email address is not valid' })
   @MaxLength(320)
-  secondaryEmail!: string;
+  personalEmail!: string;
+}
+
+/** Changing institution, which is the same act as changing institutional address. */
+export class ChangeInstitutionalEmailDto {
+  @ApiProperty({ example: 'ana.perez@stanford.edu' })
+  @Transform(({ value }) => String(value ?? '').trim().toLowerCase())
+  @IsEmail({}, { message: 'The institutional email address is not valid' })
+  @MaxLength(320)
+  email!: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Only used when the new domain resolves to nothing — it puts them in that ' +
+      'institution’s review queue rather than the global one.',
+  })
+  @IsOptional()
+  @IsUUID()
+  requestedInstitutionId?: string;
 }
 
 // --- Admin management ---------------------------------------------------------
@@ -101,7 +119,7 @@ export class CreateAdminDto {
   )
   @IsEmail({}, { message: 'The personal email address is not valid' })
   @MaxLength(320)
-  secondaryEmail?: string;
+  personalEmail?: string;
 }
 
 /** Editing another account as an administrator. */
@@ -148,7 +166,7 @@ export class AdminUpdateUserDto {
   )
   @IsEmail({}, { message: 'The personal email address is not valid' })
   @MaxLength(320)
-  secondaryEmail?: string | null;
+  personalEmail?: string | null;
 }
 
 /** Hand an account a new temporary password. */

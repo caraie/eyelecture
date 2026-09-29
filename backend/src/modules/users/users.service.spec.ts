@@ -4,6 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { In } from 'typeorm';
 import { UsersService, emailDomainOf, normalizeEmail } from './users.service';
 import { User } from './entities/user.entity';
+import { UserAffiliation } from './entities/user-affiliation.entity';
 import { EmailVerificationToken } from '../auth/entities/email-verification-token.entity';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { TRAINEE_ROLES, UserRole } from './enums/user-role.enum';
@@ -38,10 +39,17 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     validationNote: null,
     requestedInstitutionId: null,
     requestedInstitution: null,
+    personalEmail: null,
+    personalEmailVerifiedAt: null,
     ...overrides,
     isValidated:
       (overrides.validationStatus ?? ValidationStatus.PENDING) ===
       ValidationStatus.VALIDATED,
+    hasCompleteProfile:
+      (overrides.status ?? UserStatus.ACTIVE) !== UserStatus.PENDING_PROFILE,
+    needsPersonalEmail:
+      (overrides.status ?? UserStatus.ACTIVE) !== UserStatus.PENDING_PROFILE &&
+      (overrides.personalEmail ?? null) === null,
   }) as User;
 
 describe('UsersService', () => {
@@ -59,6 +67,12 @@ describe('UsersService', () => {
   /** The next user findByIdOrFail should return. */
   let target: User;
   let tokenRepo: { delete: jest.Mock };
+  let affiliationRepo: {
+    find: jest.Mock;
+    findOne: jest.Mock;
+    create: jest.Mock;
+    save: jest.Mock;
+  };
   let institutions: { findByEmailDomain: jest.Mock };
 
   beforeEach(async () => {
@@ -66,6 +80,12 @@ describe('UsersService', () => {
 
     tokenRepo = { delete: jest.fn().mockResolvedValue({ affected: 0 }) };
     institutions = { findByEmailDomain: jest.fn().mockResolvedValue(null) };
+    affiliationRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+      create: jest.fn((data: object) => data),
+      save: jest.fn((data: object) => Promise.resolve(data)),
+    };
 
     repo = {
       findOne: jest.fn().mockImplementation(() => Promise.resolve(target)),
@@ -85,6 +105,7 @@ describe('UsersService', () => {
         // it invalidates pending verification links when an address changes, and
         // resolves institutions when checking a recovery address.
         { provide: getRepositoryToken(EmailVerificationToken), useValue: tokenRepo },
+        { provide: getRepositoryToken(UserAffiliation), useValue: affiliationRepo },
         { provide: InstitutionsService, useValue: institutions },
       ],
     }).compile();
@@ -451,6 +472,95 @@ describe('UsersService', () => {
       await service.markEmailVerified('u');
 
       expect(repo.update).not.toHaveBeenCalled();
+    });
+  });
+  describe('affiliations', () => {
+    it('reopens an ended affiliation rather than inserting a second row', async () => {
+      const ended = {
+        id: 'aff-1',
+        userId: 'u',
+        institutionId: STANFORD,
+        institutionalEmail: 'old@stanford.edu',
+        endedAt: new Date('2025-01-01'),
+      };
+      affiliationRepo.findOne.mockResolvedValue(ended);
+
+      await service.openAffiliation('u', STANFORD, 'new@stanford.edu');
+
+      expect(affiliationRepo.create).not.toHaveBeenCalled();
+      const [saved] = affiliationRepo.save.mock.calls[0] as [
+        Record<string, unknown>,
+      ];
+      expect(saved.id).toBe('aff-1');
+      expect(saved.endedAt).toBeNull();
+      expect(saved.institutionalEmail).toBe('new@stanford.edu');
+      expect(saved.emailDomain).toBe('stanford.edu');
+    });
+
+    it('closes the affiliations somebody is leaving and keeps the one they join', async () => {
+      affiliationRepo.find.mockResolvedValue([
+        { id: 'a', institutionId: STANFORD, endedAt: null },
+        { id: 'b', institutionId: HARVARD, endedAt: null },
+      ]);
+
+      await service.endOtherAffiliations('u', HARVARD);
+
+      const saved = affiliationRepo.save.mock.calls.map(
+        ([value]) => value as Record<string, unknown>,
+      );
+      expect(saved).toHaveLength(1);
+      expect(saved[0].id).toBe('a');
+      expect(saved[0].endedAt).toBeInstanceOf(Date);
+    });
+
+    it('moving institution ends the old affiliation and opens the new one', async () => {
+      target = makeUser({ id: 'u', institutionId: STANFORD });
+      affiliationRepo.find.mockResolvedValue([
+        { id: 'a', institutionId: STANFORD, endedAt: null },
+      ]);
+
+      await service.moveInstitution('u', {
+        email: 'Ana@Harvard.EDU',
+        institutionId: HARVARD,
+        requestedInstitutionId: null,
+        autoValidated: true,
+      });
+
+      const [, patch] = repo.update.mock.calls[0] as [unknown, Partial<User>];
+      expect(patch.email).toBe('ana@harvard.edu');
+      expect(patch.emailDomain).toBe('harvard.edu');
+      // A different mailbox, so nobody has proved they can read this one.
+      expect(patch.emailVerifiedAt).toBeNull();
+      expect(patch.validationStatus).toBe(ValidationStatus.VALIDATED);
+      expect(patch.validationMethod).toBe(ValidationMethod.EMAIL_DOMAIN);
+
+      const saved = affiliationRepo.save.mock.calls.map(
+        ([value]) => value as Record<string, unknown>,
+      );
+      expect(saved.find((row) => row.id === 'a')?.endedAt).toBeInstanceOf(Date);
+      expect(
+        saved.some((row) => row.institutionId === HARVARD && !row.endedAt),
+      ).toBe(true);
+    });
+  });
+
+  describe('needsPersonalEmail', () => {
+    it('is true for a finished account with no personal address', () => {
+      expect(makeUser({ personalEmail: null }).needsPersonalEmail).toBe(true);
+    });
+
+    it('is false while the profile is still being completed', () => {
+      // They have not been asked yet — the signup form is where they will be.
+      expect(
+        makeUser({ status: UserStatus.PENDING_PROFILE, personalEmail: null })
+          .needsPersonalEmail,
+      ).toBe(false);
+    });
+
+    it('is false once there is one', () => {
+      expect(
+        makeUser({ personalEmail: 'ana@gmail.com' }).needsPersonalEmail,
+      ).toBe(false);
     });
   });
 });

@@ -11,10 +11,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, LessThan, Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { createHash, randomBytes } from 'node:crypto';
-import { UsersService, emailDomainOf } from '../users/users.service';
+import {
+  UsersService,
+  emailDomainOf,
+  normalizeEmail,
+} from '../users/users.service';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { User } from '../users/entities/user.entity';
-import { TRAINEE_ROLES, UserRole } from '../users/enums/user-role.enum';
+import {
+  PROFILE_FIELDS,
+  ProfileFields,
+  TRAINEE_ROLES,
+  UserRole,
+} from '../users/enums/user-role.enum';
 import { UserStatus } from '../users/enums/user-status.enum';
 import {
   ValidationMethod,
@@ -34,7 +43,7 @@ import {
 } from './dto/token.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
 import { MailerService } from '../mail/mailer.service';
-import { verifyPrimaryEmail, verifySecondaryEmail } from '../mail/templates';
+import { verifyPrimaryEmail, verifyPersonalEmail } from '../mail/templates';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -111,23 +120,28 @@ export class AuthService {
       throw new BadRequestException('This profile has already been completed');
     }
 
-    if (await this.users.emailInUse(dto.email, userId)) {
+    const fields = PROFILE_FIELDS[dto.role];
+
+    if (fields.institution && !dto.email) {
+      throw new BadRequestException(
+        'An institutional email address is required for this user type',
+      );
+    }
+    if (dto.email && (await this.users.emailInUse(dto.email, userId))) {
       throw new ConflictException('An account with this email already exists');
     }
 
-    const secondaryEmail = dto.secondaryEmail
-      ? await this.users.assertSecondaryEmailAllowed(
-          dto.secondaryEmail,
-          dto.email,
-          userId,
-        )
-      : null;
-
-    const clinical = this.clinicalProfileFor(dto);
-
-    const matched = await this.institutions.findByEmailDomain(
-      emailDomainOf(dto.email),
+    const personalEmail = await this.users.assertPersonalEmailAllowed(
+      dto.personalEmail,
+      dto.email ?? null,
+      userId,
     );
+
+    const training = this.trainingProfileFor(dto, fields);
+
+    const matched = dto.email
+      ? await this.institutions.findByEmailDomain(emailDomainOf(dto.email))
+      : null;
 
     // Only trainees are let in by their address alone. An attending physician is
     // expected to use a personal one, and a program administrator vouches for
@@ -136,12 +150,12 @@ export class AuthService {
 
     const user = await this.users.completeProfile(userId, {
       role: dto.role,
-      email: dto.email,
-      secondaryEmail,
+      email: dto.email ?? null,
+      personalEmail,
       institutionId: matched?.id ?? null,
       requestedInstitutionId: matched ? null : (dto.requestedInstitutionId ?? null),
       autoValidated,
-      ...clinical,
+      ...training,
     });
 
     const verificationToken = await this.issueEmailVerificationToken(user);
@@ -157,43 +171,54 @@ export class AuthService {
   }
 
   /**
-   * The clinical half of the profile, and who is allowed to have one.
+   * The training half of the profile, filtered by what the rank is asked for.
    *
-   * Refusing the fields for other ranks rather than ignoring them is deliberate: a
+   * Refusing a field the rank does not have rather than ignoring it is deliberate: a
    * silently dropped value is how a form ends up looking like it saved something it
-   * did not. The specialty is required of an attending because it is the answer that
-   * makes their account useful; the two programmes are not, because the reference
-   * lists are still placeholders and nobody should be stuck behind an entry that has
-   * not been added yet.
+   * did not. The two programmes stay optional for everybody who is offered them,
+   * because the reference lists are still short and nobody should be stuck behind an
+   * entry that has not been added yet.
    */
-  private clinicalProfileFor(dto: CompleteProfileDto): {
+  private trainingProfileFor(
+    dto: CompleteProfileDto,
+    fields: ProfileFields,
+  ): {
+    trainingLevelId: string | null;
     specialtyId: string | null;
     residencyProgramId: string | null;
     fellowshipProgramId: string | null;
   } {
-    const isAttending = dto.role === UserRole.ATTENDING_PHYSICIAN;
-
-    if (!isAttending) {
-      if (dto.specialtyId || dto.residencyProgramId || dto.fellowshipProgramId) {
-        throw new BadRequestException(
-          'Only an attending physician records a specialty and training',
-        );
-      }
-      return {
-        specialtyId: null,
-        residencyProgramId: null,
-        fellowshipProgramId: null,
-      };
+    if (fields.level && !dto.trainingLevelId) {
+      throw new BadRequestException('Pick your training level');
+    }
+    if (!fields.level && dto.trainingLevelId) {
+      throw new BadRequestException(
+        'A training level is only recorded for residents',
+      );
     }
 
-    if (!dto.specialtyId) {
+    if (fields.specialty && !dto.specialtyId) {
       throw new BadRequestException('Pick your clinical focus');
+    }
+    if (!fields.specialty && dto.specialtyId) {
+      throw new BadRequestException(
+        'A clinical focus is not recorded for this user type',
+      );
+    }
+
+    if (!fields.programs && (dto.residencyProgramId || dto.fellowshipProgramId)) {
+      throw new BadRequestException(
+        'Past training is not recorded for this user type',
+      );
     }
 
     return {
-      specialtyId: dto.specialtyId,
-      residencyProgramId: dto.residencyProgramId ?? null,
-      fellowshipProgramId: dto.fellowshipProgramId ?? null,
+      trainingLevelId: fields.level ? (dto.trainingLevelId ?? null) : null,
+      specialtyId: fields.specialty ? (dto.specialtyId ?? null) : null,
+      residencyProgramId: fields.programs ? (dto.residencyProgramId ?? null) : null,
+      fellowshipProgramId: fields.programs
+        ? (dto.fellowshipProgramId ?? null)
+        : null,
     };
   }
 
@@ -219,15 +244,15 @@ export class AuthService {
 
   private async issueEmailVerificationToken(
     user: User,
-    purpose: VerificationPurpose = VerificationPurpose.PRIMARY_EMAIL,
+    purpose: VerificationPurpose = VerificationPurpose.INSTITUTIONAL_EMAIL,
   ): Promise<string> {
     const token = randomBytes(32).toString('hex');
     const ttlHours = this.config.getOrThrow<number>(
       'app.emailVerificationTtlHours',
     );
 
-    const isSecondary = purpose === VerificationPurpose.SECONDARY_EMAIL;
-    const targetEmail = isSecondary ? user.secondaryEmail : user.email;
+    const isPersonal = purpose === VerificationPurpose.PERSONAL_EMAIL;
+    const targetEmail = isPersonal ? user.personalEmail : user.email;
 
     if (!targetEmail) {
       throw new BadRequestException('There is no address to send a link to');
@@ -243,7 +268,7 @@ export class AuthService {
       }),
     );
 
-    const path = isSecondary
+    const path = isPersonal
       ? '/app/profile/confirm-personal-email'
       : '/auth/verify-email';
     const link = `${this.config.getOrThrow<string>('app.frontendUrl')}${path}?token=${token}`;
@@ -252,15 +277,15 @@ export class AuthService {
     // it is how you find the link again for a message that bounced or was dropped.
     this.logger.log(`Email verification link for ${targetEmail}: ${link}`);
 
-    const rendered = isSecondary
-      ? verifySecondaryEmail(user.firstName, link)
+    const rendered = isPersonal
+      ? verifyPersonalEmail(user.firstName, link)
       : verifyPrimaryEmail(user.firstName, link);
 
     // Awaited but never throws — see MailerService.send. A signup must not fail
     // because a mail provider is having a bad afternoon.
     await this.mailer.send(
       { to: targetEmail, ...rendered },
-      isSecondary ? 'personal address confirmation' : 'email verification',
+      isPersonal ? 'personal address confirmation' : 'email verification',
     );
 
     return token;
@@ -297,13 +322,13 @@ export class AuthService {
   async verifyEmail(token: string): Promise<AuthResponseDto> {
     const record = await this.consumeVerificationToken(
       token,
-      VerificationPurpose.PRIMARY_EMAIL,
+      VerificationPurpose.INSTITUTIONAL_EMAIL,
     );
 
     const user = await this.users.findByIdOrFail(record.userId);
 
     // The address must still be the one the link was sent to. This matters more here
-    // than on the secondary path, because succeeding also hands back a live session:
+    // than on the personal-address path, because succeeding also hands back a live session:
     // without the check, someone who registered an address they controlled, never
     // clicked, and then had an admin move the account to a different address, could
     // spend the stale link to verify that new address and sign in as the account.
@@ -320,31 +345,93 @@ export class AuthService {
     return this.buildAuthResponse(verified);
   }
 
-  // --- Secondary (personal) address -------------------------------------------
+  // --- Institutional address ------------------------------------------------
+
+  /**
+   * Move to a new institutional address, which is how somebody changes institution.
+   *
+   * The rule is deliberately the same one signup uses: a domain we recognise lets a
+   * trainee in without anybody reviewing them; anything else waits for a person. It
+   * would be easy to argue that a *later* move deserves more scrutiny than the first
+   * one, but nothing about the second address is less trustworthy than the first,
+   * and two rules for one question is how a system starts contradicting itself.
+   *
+   * The previous affiliation is closed, not deleted. That is the point of the table:
+   * a fellow keeps the material of the residency they came from.
+   */
+  async changeInstitutionalEmail(
+    userId: string,
+    email: string,
+    requestedInstitutionId?: string,
+  ): Promise<{ user: UserResponseDto; autoValidated: boolean; message: string }> {
+    const current = await this.users.findByIdOrFail(userId);
+
+    if (current.email && normalizeEmail(email) === normalizeEmail(current.email)) {
+      throw new BadRequestException('That is already your institutional address');
+    }
+    if (await this.users.emailInUse(email, userId)) {
+      throw new ConflictException('An account with this email already exists');
+    }
+    if (
+      current.personalEmail &&
+      normalizeEmail(email) === normalizeEmail(current.personalEmail)
+    ) {
+      throw new BadRequestException(
+        'Your institutional address has to be different from your personal one',
+      );
+    }
+
+    const matched = await this.institutions.findByEmailDomain(emailDomainOf(email));
+    const autoValidated = matched !== null && TRAINEE_ROLES.includes(current.role);
+
+    const user = await this.users.moveInstitution(userId, {
+      email,
+      institutionId: matched?.id ?? null,
+      requestedInstitutionId: matched ? null : (requestedInstitutionId ?? null),
+      autoValidated,
+    });
+
+    await this.verificationTokens.delete({
+      userId,
+      purpose: VerificationPurpose.INSTITUTIONAL_EMAIL,
+      consumedAt: IsNull(),
+    });
+    await this.issueEmailVerificationToken(user);
+
+    return {
+      user: UserResponseDto.from(user),
+      autoValidated,
+      message: autoValidated
+        ? `You are now at ${matched?.name}. Check your email to confirm the address.`
+        : 'Your new address needs to be confirmed by an administrator. Check your email in the meantime.',
+    };
+  }
+
+  // --- Personal address -------------------------------------------
 
   /**
    * Set or replace the personal address on your own account, then send a
    * confirmation link. The address is live for sign-in immediately either way —
    * confirming it is about trusting the address, not about unlocking it.
    */
-  async setSecondaryEmail(
+  async setPersonalEmail(
     userId: string,
-    secondaryEmail: string,
+    personalEmail: string,
   ): Promise<{ user: UserResponseDto; devToken?: string }> {
-    // setSecondaryEmail runs assertSecondaryEmailAllowed itself, so the rule is
+    // setPersonalEmail runs assertPersonalEmailAllowed itself, so the rule is
     // applied whether the caller comes through here or straight to the service.
-    const user = await this.users.setSecondaryEmail(userId, secondaryEmail);
+    const user = await this.users.setPersonalEmail(userId, personalEmail);
 
     // Any link already in flight pointed at the previous address.
     await this.verificationTokens.delete({
       userId,
-      purpose: VerificationPurpose.SECONDARY_EMAIL,
+      purpose: VerificationPurpose.PERSONAL_EMAIL,
       consumedAt: IsNull(),
     });
 
     const token = await this.issueEmailVerificationToken(
       user,
-      VerificationPurpose.SECONDARY_EMAIL,
+      VerificationPurpose.PERSONAL_EMAIL,
     );
 
     return {
@@ -353,42 +440,34 @@ export class AuthService {
     };
   }
 
-  async removeSecondaryEmail(userId: string): Promise<UserResponseDto> {
-    await this.verificationTokens.delete({
-      userId,
-      purpose: VerificationPurpose.SECONDARY_EMAIL,
-      consumedAt: IsNull(),
-    });
-    return UserResponseDto.from(await this.users.clearSecondaryEmail(userId));
-  }
 
-  async resendSecondaryEmailVerification(
+  async resendPersonalEmailVerification(
     userId: string,
   ): Promise<{ message: string; devToken?: string }> {
     const user = await this.users.findByIdOrFail(userId);
 
-    if (!user.secondaryEmail) {
+    if (!user.personalEmail) {
       throw new BadRequestException(
         'You have not added a personal address yet',
       );
     }
-    if (user.secondaryEmailVerifiedAt) {
+    if (user.personalEmailVerifiedAt) {
       throw new BadRequestException('That address is already confirmed');
     }
 
     await this.verificationTokens.delete({
       userId,
-      purpose: VerificationPurpose.SECONDARY_EMAIL,
+      purpose: VerificationPurpose.PERSONAL_EMAIL,
       consumedAt: IsNull(),
     });
 
     const token = await this.issueEmailVerificationToken(
       user,
-      VerificationPurpose.SECONDARY_EMAIL,
+      VerificationPurpose.PERSONAL_EMAIL,
     );
 
     return {
-      message: `A confirmation link is on its way to ${user.secondaryEmail}.`,
+      message: `A confirmation link is on its way to ${user.personalEmail}.`,
       ...(this.isProduction() ? {} : { devToken: token }),
     };
   }
@@ -399,29 +478,29 @@ export class AuthService {
    * The token records the address it was sent to. If the person has changed it since,
    * the old link must not confirm the new one, so a mismatch is treated as expired.
    */
-  async verifySecondaryEmail(
+  async verifyPersonalEmail(
     token: string,
-  ): Promise<{ secondaryEmail: string; message: string }> {
+  ): Promise<{ personalEmail: string; message: string }> {
     const record = await this.consumeVerificationToken(
       token,
-      VerificationPurpose.SECONDARY_EMAIL,
+      VerificationPurpose.PERSONAL_EMAIL,
     );
 
     const user = await this.users.findByIdOrFail(record.userId);
 
-    if (!user.secondaryEmail || user.secondaryEmail !== record.targetEmail) {
+    if (!user.personalEmail || user.personalEmail !== record.targetEmail) {
       throw new UnauthorizedException(
         'This link was sent to a different address than the one on the account now',
       );
     }
 
-    const updated = await this.users.markSecondaryEmailVerified(record.userId);
+    const updated = await this.users.markPersonalEmailVerified(record.userId);
 
     // Deliberately not the full user. This endpoint is public — the token is the only
     // credential — and a forwarded email or a proxy log should not be enough to read
     // back somebody's institutional address, role and validation state.
     return {
-      secondaryEmail: updated.secondaryEmail!,
+      personalEmail: updated.personalEmail!,
       message: 'That address is confirmed.',
     };
   }
@@ -500,7 +579,7 @@ export class AuthService {
   async revokePendingPrimaryEmailTokens(userId: string): Promise<void> {
     await this.verificationTokens.delete({
       userId,
-      purpose: VerificationPurpose.PRIMARY_EMAIL,
+      purpose: VerificationPurpose.INSTITUTIONAL_EMAIL,
       consumedAt: IsNull(),
     });
   }

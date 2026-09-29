@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { UserAffiliation } from './entities/user-affiliation.entity';
 import { TRAINEE_ROLES, UserRole } from './enums/user-role.enum';
 import { UserStatus } from './enums/user-status.enum';
 import {
@@ -45,6 +46,7 @@ export const isSameUser = (a: string, b: string): boolean =>
 const RELATIONS = {
   institution: true,
   requestedInstitution: true,
+  trainingLevel: true,
   specialty: true,
   residencyProgram: true,
   fellowshipProgram: true,
@@ -59,6 +61,8 @@ export class UsersService {
     // AuthService instead would mean UsersModule and AuthModule importing each other.
     @InjectRepository(EmailVerificationToken)
     private readonly verificationTokens: Repository<EmailVerificationToken>,
+    @InjectRepository(UserAffiliation)
+    private readonly affiliations: Repository<UserAffiliation>,
     private readonly institutions: InstitutionsService,
   ) {}
 
@@ -139,7 +143,7 @@ export class UsersService {
     const normalized = normalizeEmail(email);
     const qb = this.users
       .createQueryBuilder('user')
-      .where('(user.email = :email OR user.secondaryEmail = :email)', {
+      .where('(user.email = :email OR user.personalEmail = :email)', {
         email: normalized,
       });
 
@@ -178,7 +182,7 @@ export class UsersService {
         new Brackets((w) => {
           w.where('LOWER(user.username) LIKE :term', { term })
             .orWhere('LOWER(user.email) LIKE :term', { term })
-            .orWhere('LOWER(user.secondaryEmail) LIKE :term', { term })
+            .orWhere('LOWER(user.personalEmail) LIKE :term', { term })
             .orWhere('LOWER(user.firstName) LIKE :term', { term })
             .orWhere('LOWER(user.lastName) LIKE :term', { term });
         }),
@@ -240,7 +244,7 @@ export class UsersService {
         new Brackets((w) => {
           w.where('LOWER(user.username) LIKE :term', { term })
             .orWhere('LOWER(user.email) LIKE :term', { term })
-            .orWhere('LOWER(user.secondaryEmail) LIKE :term', { term })
+            .orWhere('LOWER(user.personalEmail) LIKE :term', { term })
             .orWhere('LOWER(user.firstName) LIKE :term', { term })
             .orWhere('LOWER(user.lastName) LIKE :term', { term });
         }),
@@ -300,7 +304,7 @@ export class UsersService {
     return this.findByIdOrFail(id);
   }
 
-  // --- Secondary (personal) address -------------------------------------------
+  // --- Personal address -------------------------------------------
 
   /**
    * The single gate every personal address has to pass, wherever it comes from —
@@ -318,13 +322,13 @@ export class UsersService {
    *
    * Returns the normalized address so the caller stores exactly what was checked.
    */
-  async assertSecondaryEmailAllowed(
-    secondaryEmail: string,
+  async assertPersonalEmailAllowed(
+    personalEmail: string,
     /** Null while the profile is still being completed and there is no main one yet. */
     primaryEmail: string | null,
     exceptUserId?: string,
   ): Promise<string> {
-    const normalized = normalizeEmail(secondaryEmail);
+    const normalized = normalizeEmail(personalEmail);
 
     if (primaryEmail !== null && normalized === normalizeEmail(primaryEmail)) {
       throw new BadRequestException(
@@ -361,12 +365,13 @@ export class UsersService {
     id: string,
     patch: {
       role: UserRole;
-      email: string;
-      /** Null when they chose to skip it. They can add one later from the profile. */
-      secondaryEmail: string | null;
+      /** Null for a rank that does not need an institution — an attending physician. */
+      email: string | null;
+      personalEmail: string;
       institutionId: string | null;
       requestedInstitutionId: string | null;
       autoValidated: boolean;
+      trainingLevelId: string | null;
       specialtyId: string | null;
       residencyProgramId: string | null;
       fellowshipProgramId: string | null;
@@ -377,11 +382,11 @@ export class UsersService {
       {
         role: patch.role,
         email: patch.email,
-        emailDomain: emailDomainOf(patch.email),
-        secondaryEmail: patch.secondaryEmail,
-        // Unverified on purpose: confirming the recovery address is a separate,
-        // optional act, and blocking on it here would defeat the point of having it.
-        secondaryEmailVerifiedAt: null,
+        emailDomain: patch.email ? emailDomainOf(patch.email) : null,
+        personalEmail: patch.personalEmail,
+        // Unverified on purpose: confirming the personal address is a separate act,
+        // and blocking on it here would stop somebody finishing signup.
+        personalEmailVerifiedAt: null,
         status: UserStatus.PENDING_EMAIL_VERIFICATION,
         institutionId: patch.institutionId,
         requestedInstitutionId: patch.requestedInstitutionId,
@@ -390,13 +395,126 @@ export class UsersService {
           : ValidationStatus.PENDING,
         validationMethod: patch.autoValidated ? ValidationMethod.EMAIL_DOMAIN : null,
         validatedAt: patch.autoValidated ? new Date() : null,
+        trainingLevelId: patch.trainingLevelId,
         specialtyId: patch.specialtyId,
         residencyProgramId: patch.residencyProgramId,
         fellowshipProgramId: patch.fellowshipProgramId,
       },
     );
 
+    // The affiliation is the record; `users.institutionId` above is the shortcut to
+    // the current one. Written here rather than by the caller so that no future
+    // path can set one without the other.
+    if (patch.institutionId) {
+      await this.openAffiliation(id, patch.institutionId, patch.email);
+    }
+
     return this.findByIdOrFail(id);
+  }
+
+  /**
+   * Move somebody to a new institutional address, closing the affiliation they had.
+   *
+   * The old row stays with an `endedAt` — it is what keeps their access to that
+   * institution's material. The new address is unverified again, because it is a
+   * different mailbox and nobody has proved they can read it.
+   */
+  async moveInstitution(
+    id: string,
+    patch: {
+      email: string;
+      institutionId: string | null;
+      requestedInstitutionId: string | null;
+      autoValidated: boolean;
+    },
+  ): Promise<User> {
+    const email = normalizeEmail(patch.email);
+
+    await this.users.update(
+      { id },
+      {
+        email,
+        emailDomain: emailDomainOf(email),
+        emailVerifiedAt: null,
+        status: UserStatus.PENDING_EMAIL_VERIFICATION,
+        institutionId: patch.institutionId,
+        requestedInstitutionId: patch.requestedInstitutionId,
+        validationStatus: patch.autoValidated
+          ? ValidationStatus.VALIDATED
+          : ValidationStatus.PENDING,
+        validationMethod: patch.autoValidated ? ValidationMethod.EMAIL_DOMAIN : null,
+        validatedAt: patch.autoValidated ? new Date() : null,
+        validationNote: null,
+      },
+    );
+
+    await this.endOtherAffiliations(id, patch.institutionId);
+    if (patch.institutionId) {
+      await this.openAffiliation(id, patch.institutionId, email);
+    }
+
+    return this.findByIdOrFail(id);
+  }
+
+  // --- Affiliations -------------------------------------------------------------
+
+  /**
+   * Start an affiliation, or reopen one that had ended.
+   *
+   * Reopening rather than inserting a second row: somebody who returns to an
+   * institution they trained at has one relationship with it, not two, and the
+   * unique index on (userId, institutionId) says so.
+   */
+  async openAffiliation(
+    userId: string,
+    institutionId: string,
+    institutionalEmail: string | null,
+  ): Promise<UserAffiliation> {
+    const existing = await this.affiliations.findOne({
+      where: { userId, institutionId },
+    });
+
+    if (existing) {
+      existing.endedAt = null;
+      existing.institutionalEmail = institutionalEmail;
+      existing.emailDomain = institutionalEmail
+        ? emailDomainOf(institutionalEmail)
+        : null;
+      return this.affiliations.save(existing);
+    }
+
+    return this.affiliations.save(
+      this.affiliations.create({
+        userId,
+        institutionId,
+        institutionalEmail,
+        emailDomain: institutionalEmail ? emailDomainOf(institutionalEmail) : null,
+        startedAt: new Date(),
+      }),
+    );
+  }
+
+  /** Close every current affiliation except the one named. Keeps the rows. */
+  async endOtherAffiliations(userId: string, keepInstitutionId: string | null) {
+    const open = await this.affiliations.find({
+      where: { userId, endedAt: IsNull() },
+    });
+
+    const now = new Date();
+    for (const affiliation of open) {
+      if (affiliation.institutionId === keepInstitutionId) continue;
+      affiliation.endedAt = now;
+      await this.affiliations.save(affiliation);
+    }
+  }
+
+  /** Every institution somebody has belonged to, current first, then most recent. */
+  async findAffiliations(userId: string): Promise<UserAffiliation[]> {
+    return this.affiliations.find({
+      where: { userId },
+      relations: { institution: true },
+      order: { endedAt: 'ASC', startedAt: 'DESC' },
+    });
   }
 
   /**
@@ -406,9 +524,9 @@ export class UsersService {
    * spelling but re-submitted — the cheap alternative (skip if equal) means a typo
    * corrected back to the original silently keeps a stale confirmation.
    */
-  async setSecondaryEmail(id: string, email: string): Promise<User> {
+  async setPersonalEmail(id: string, email: string): Promise<User> {
     const user = await this.findByIdOrFail(id);
-    const normalized = await this.assertSecondaryEmailAllowed(
+    const normalized = await this.assertPersonalEmailAllowed(
       email,
       user.email,
       id,
@@ -416,28 +534,28 @@ export class UsersService {
 
     await this.users.update(
       { id },
-      { secondaryEmail: normalized, secondaryEmailVerifiedAt: null },
+      { personalEmail: normalized, personalEmailVerifiedAt: null },
     );
     return this.findByIdOrFail(id);
   }
 
-  async clearSecondaryEmail(id: string): Promise<User> {
+  async clearPersonalEmail(id: string): Promise<User> {
     await this.findByIdOrFail(id);
     await this.users.update(
       { id },
-      { secondaryEmail: null, secondaryEmailVerifiedAt: null },
+      { personalEmail: null, personalEmailVerifiedAt: null },
     );
     return this.findByIdOrFail(id);
   }
 
-  async markSecondaryEmailVerified(id: string): Promise<User> {
+  async markPersonalEmailVerified(id: string): Promise<User> {
     const user = await this.findByIdOrFail(id);
-    if (!user.secondaryEmail) {
+    if (!user.personalEmail) {
       throw new BadRequestException('There is no personal address to confirm');
     }
-    if (user.secondaryEmailVerifiedAt) return user;
+    if (user.personalEmailVerifiedAt) return user;
 
-    await this.users.update({ id }, { secondaryEmailVerifiedAt: new Date() });
+    await this.users.update({ id }, { personalEmailVerifiedAt: new Date() });
     return this.findByIdOrFail(id);
   }
 
@@ -513,6 +631,12 @@ export class UsersService {
         validationNote: dto.note ?? null,
       },
     );
+
+    // Being approved into an institution *is* an affiliation, even when the person
+    // holds no address there — that is the whole point of the review queue. Without
+    // this the record and the shortcut column disagree the moment anybody is let in
+    // by hand rather than by their domain.
+    await this.openAffiliation(targetId, institutionId, target.email);
 
     return this.findByIdOrFail(targetId);
   }
@@ -602,7 +726,7 @@ export class UsersService {
 
     await this.verificationTokens.delete({
       userId: id,
-      purpose: VerificationPurpose.PRIMARY_EMAIL,
+      purpose: VerificationPurpose.INSTITUTIONAL_EMAIL,
       consumedAt: IsNull(),
     });
 
@@ -638,7 +762,7 @@ export class UsersService {
       passwordHash: string;
       firstName: string;
       lastName: string;
-      secondaryEmail?: string;
+      personalEmail?: string;
     },
     creatorId: string,
   ): Promise<User> {
@@ -650,8 +774,8 @@ export class UsersService {
 
     // Same gate as every other path, so an admin cannot install an institutional
     // address as somebody's "personal" one.
-    const secondaryEmail = data.secondaryEmail
-      ? await this.assertSecondaryEmailAllowed(data.secondaryEmail, email)
+    const personalEmail = data.personalEmail
+      ? await this.assertPersonalEmailAllowed(data.personalEmail, email)
       : null;
 
     const now = new Date();
@@ -661,8 +785,8 @@ export class UsersService {
       passwordHash: data.passwordHash,
       firstName: data.firstName,
       lastName: data.lastName,
-      secondaryEmail,
-      secondaryEmailVerifiedAt: null,
+      personalEmail,
+      personalEmailVerifiedAt: null,
       role: UserRole.SUPER_USER,
       status: UserStatus.ACTIVE,
       emailVerifiedAt: now,
@@ -701,7 +825,7 @@ export class UsersService {
       firstName?: string;
       lastName?: string;
       email?: string;
-      secondaryEmail?: string | null;
+      personalEmail?: string | null;
     },
     actingAdminId: string,
   ): Promise<User> {
@@ -724,8 +848,8 @@ export class UsersService {
         // could set the main address to the row's own personal address and leave both
         // columns identical, which makes the sign-in lookup ambiguous.
         if (
-          patch.secondaryEmail === undefined &&
-          user.secondaryEmail === email
+          patch.personalEmail === undefined &&
+          user.personalEmail === email
         ) {
           throw new BadRequestException(
             'That is already this account’s personal address — remove it first, or change both together',
@@ -745,17 +869,17 @@ export class UsersService {
       }
     }
 
-    if (patch.secondaryEmail !== undefined) {
-      if (patch.secondaryEmail === null) {
-        update.secondaryEmail = null;
-        update.secondaryEmailVerifiedAt = null;
-      } else if (normalizeEmail(patch.secondaryEmail) !== user.secondaryEmail) {
-        update.secondaryEmail = await this.assertSecondaryEmailAllowed(
-          patch.secondaryEmail,
+    if (patch.personalEmail !== undefined) {
+      if (patch.personalEmail === null) {
+        update.personalEmail = null;
+        update.personalEmailVerifiedAt = null;
+      } else if (normalizeEmail(patch.personalEmail) !== user.personalEmail) {
+        update.personalEmail = await this.assertPersonalEmailAllowed(
+          patch.personalEmail,
           update.email ?? user.email,
           id,
         );
-        update.secondaryEmailVerifiedAt = null;
+        update.personalEmailVerifiedAt = null;
       }
     }
 
@@ -764,7 +888,7 @@ export class UsersService {
     if (primaryEmailChanged) {
       await this.verificationTokens.delete({
         userId: id,
-        purpose: VerificationPurpose.PRIMARY_EMAIL,
+        purpose: VerificationPurpose.INSTITUTIONAL_EMAIL,
         consumedAt: IsNull(),
       });
     }

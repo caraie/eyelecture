@@ -15,7 +15,10 @@ import { RegisterDto } from './dto/register.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { SetSecondaryEmailDto } from '../users/dto/update-user.dto';
+import {
+  ChangeInstitutionalEmailDto,
+  SetPersonalEmailDto,
+} from '../users/dto/update-user.dto';
 import {
   AuthResponseDto,
   AuthTokensDto,
@@ -26,6 +29,7 @@ import {
 import { Public } from '../../common/decorators/public.decorator';
 import { AllowPendingPasswordChange } from '../../common/decorators/allow-password-change.decorator';
 import { AllowPendingProfile } from '../../common/decorators/allow-pending-profile.decorator';
+import { AllowMissingPersonalEmail } from '../../common/decorators/allow-missing-personal-email.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { UserResponseDto } from '../users/dto/user-response.dto';
@@ -111,7 +115,7 @@ export class AuthController {
   }
 
   @Public()
-  @Post('verify-secondary-email')
+  @Post('verify-personal-email')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Confirm the personal address',
@@ -120,47 +124,63 @@ export class AuthController {
       'itself identifies the account. Returns no session and no account details, so a ' +
       'forwarded link is neither a way in nor a way to read the account.',
   })
-  verifySecondaryEmail(
+  verifyPersonalEmail(
     @Body() dto: VerifyEmailDto,
-  ): Promise<{ secondaryEmail: string; message: string }> {
-    return this.auth.verifySecondaryEmail(dto.token);
+  ): Promise<{ personalEmail: string; message: string }> {
+    return this.auth.verifyPersonalEmail(dto.token);
   }
 
-  @Post('secondary-email')
+  @Post('institutional-email')
   @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Change your institutional address, and with it your institution',
+    description:
+      'A recognised domain confirms a trainee straight away, exactly as at signup. ' +
+      'The institution they were at before is kept as a past affiliation.',
+  })
+  changeInstitutionalEmail(
+    @CurrentUser() user: User,
+    @Body() dto: ChangeInstitutionalEmailDto,
+  ): Promise<{ user: UserResponseDto; autoValidated: boolean; message: string }> {
+    return this.auth.changeInstitutionalEmail(
+      user.id,
+      dto.email,
+      dto.requestedInstitutionId,
+    );
+  }
+
+  @Post('personal-email')
+  @ApiBearerAuth()
+  @AllowMissingPersonalEmail()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Add or replace your personal address',
     description:
       'Sends a confirmation link. The address works for sign-in right away.',
   })
-  setSecondaryEmail(
+  setPersonalEmail(
     @CurrentUser() user: User,
-    @Body() dto: SetSecondaryEmailDto,
+    @Body() dto: SetPersonalEmailDto,
   ): Promise<{ user: UserResponseDto; devToken?: string }> {
-    return this.auth.setSecondaryEmail(user.id, dto.secondaryEmail);
+    return this.auth.setPersonalEmail(user.id, dto.personalEmail);
   }
 
-  @Post('secondary-email/resend')
+  @Post('personal-email/resend')
   @ApiBearerAuth()
+  @AllowMissingPersonalEmail()
   @HttpCode(HttpStatus.OK)
-  resendSecondaryEmailVerification(
+  resendPersonalEmailVerification(
     @CurrentUser() user: User,
   ): Promise<{ message: string; devToken?: string }> {
-    return this.auth.resendSecondaryEmailVerification(user.id);
-  }
-
-  @Delete('secondary-email')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Remove your personal address' })
-  removeSecondaryEmail(@CurrentUser() user: User): Promise<UserResponseDto> {
-    return this.auth.removeSecondaryEmail(user.id);
+    return this.auth.resendPersonalEmailVerification(user.id);
   }
 
   @Post('change-password')
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
   @AllowPendingProfile()
+  @AllowMissingPersonalEmail()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Change your own password',
@@ -183,6 +203,7 @@ export class AuthController {
 
   // Signing out has to work in every state, including a pending password change.
   @Post('logout')
+  @AllowMissingPersonalEmail()
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
   @AllowPendingProfile()
@@ -192,6 +213,7 @@ export class AuthController {
   }
 
   @Post('logout-all')
+  @AllowMissingPersonalEmail()
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
   @AllowPendingProfile()
@@ -204,6 +226,7 @@ export class AuthController {
   // Reachable on a temporary password: the client needs it to discover that a
   // password change is pending in the first place.
   @Get('me')
+  @AllowMissingPersonalEmail()
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
   @AllowPendingProfile()

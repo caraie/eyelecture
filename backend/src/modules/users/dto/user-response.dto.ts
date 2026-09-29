@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
+import { UserAffiliation } from '../entities/user-affiliation.entity';
 import { UserRole } from '../enums/user-role.enum';
 import { UserStatus } from '../enums/user-status.enum';
 import {
@@ -19,6 +20,36 @@ export class UserInstitutionDto {
   @ApiProperty() slug!: string;
 }
 
+/**
+ * One institution somebody has belonged to. Shown on the profile as "where you are"
+ * and "where you have been" — the only difference between the two is `endedAt`.
+ */
+export class AffiliationDto {
+  @ApiProperty() id!: string;
+  @ApiProperty({ type: UserInstitutionDto }) institution!: UserInstitutionDto;
+  @ApiProperty({ nullable: true }) institutionalEmail!: string | null;
+  @ApiProperty() emailVerified!: boolean;
+  @ApiProperty() startedAt!: Date;
+  @ApiProperty({ nullable: true }) endedAt!: Date | null;
+  @ApiProperty() isCurrent!: boolean;
+
+  static from(affiliation: UserAffiliation): AffiliationDto {
+    return {
+      id: affiliation.id,
+      institution: {
+        id: affiliation.institution.id,
+        name: affiliation.institution.name,
+        slug: affiliation.institution.slug,
+      },
+      institutionalEmail: affiliation.institutionalEmail,
+      emailVerified: affiliation.emailVerifiedAt !== null,
+      startedAt: affiliation.startedAt,
+      endedAt: affiliation.endedAt,
+      isCurrent: affiliation.endedAt === null,
+    };
+  }
+}
+
 export class UserResponseDto {
   @ApiProperty() id!: string;
   @ApiProperty({ description: 'What this person signs in with.' })
@@ -32,12 +63,12 @@ export class UserResponseDto {
     nullable: true,
     description: 'Optional personal address, used to reach them, not to sign in.',
   })
-  secondaryEmail!: string | null;
+  personalEmail!: string | null;
   @ApiProperty({
     description:
       'False is a normal state. Confirming it only proves the mailbox is readable.',
   })
-  secondaryEmailVerified!: boolean;
+  personalEmailVerified!: boolean;
   @ApiProperty() firstName!: string;
   @ApiProperty() lastName!: string;
   @ApiProperty() fullName!: string;
@@ -53,6 +84,8 @@ export class UserResponseDto {
   @ApiProperty({ type: UserInstitutionDto, nullable: true })
   requestedInstitution!: UserInstitutionDto | null;
   @ApiProperty({ type: CatalogRefDto, nullable: true })
+  trainingLevel!: CatalogRefDto | null;
+  @ApiProperty({ type: CatalogRefDto, nullable: true })
   specialty!: CatalogRefDto | null;
   @ApiProperty({ type: CatalogRefDto, nullable: true })
   residencyProgram!: CatalogRefDto | null;
@@ -65,6 +98,12 @@ export class UserResponseDto {
       'should route the user to the change-password screen.',
   })
   mustChangePassword!: boolean;
+  @ApiProperty({
+    description:
+      'True for an account made before a personal address was required. The client ' +
+      'should route the user to the screen that adds one.',
+  })
+  needsPersonalEmail!: boolean;
   @ApiProperty() createdAt!: Date;
 
   static from(user: User): UserResponseDto {
@@ -88,8 +127,8 @@ export class UserResponseDto {
       id: user.id,
       username: user.username,
       email: user.email,
-      secondaryEmail: user.secondaryEmail,
-      secondaryEmailVerified: user.secondaryEmailVerifiedAt !== null,
+      personalEmail: user.personalEmail,
+      personalEmailVerified: user.personalEmailVerifiedAt !== null,
       firstName: user.firstName,
       lastName: user.lastName,
       fullName: `${user.firstName} ${user.lastName}`.trim(),
@@ -101,11 +140,13 @@ export class UserResponseDto {
       validationNote: user.validationNote,
       institution: toInstitution(user.institution),
       requestedInstitution: toInstitution(user.requestedInstitution),
+      trainingLevel: catalogRef(user.trainingLevel),
       specialty: catalogRef(user.specialty),
       residencyProgram: catalogRef(user.residencyProgram),
       fellowshipProgram: catalogRef(user.fellowshipProgram),
       emailVerified: user.emailVerifiedAt !== null,
       mustChangePassword: user.mustChangePassword,
+      needsPersonalEmail: user.needsPersonalEmail,
       createdAt: user.createdAt,
     };
   }
