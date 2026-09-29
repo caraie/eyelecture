@@ -75,7 +75,7 @@ export class InstitutionsController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List every institution with its email domains' })
   async findAll(): Promise<InstitutionResponseDto[]> {
@@ -84,7 +84,7 @@ export class InstitutionsController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
@@ -93,7 +93,7 @@ export class InstitutionsController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create an institution and optionally its email domains' })
   async create(@Body() dto: CreateInstitutionDto): Promise<InstitutionResponseDto> {
@@ -101,7 +101,7 @@ export class InstitutionsController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -111,7 +111,7 @@ export class InstitutionsController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
@@ -119,7 +119,7 @@ export class InstitutionsController {
   }
 
   @Post(':id/domains')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Attach an email domain, e.g. @stanford.edu' })
   async addDomain(
@@ -132,7 +132,7 @@ export class InstitutionsController {
   }
 
   @Delete(':id/domains/:domainId')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   async removeDomain(
     @Param('id', ParseUUIDPipe) id: string,

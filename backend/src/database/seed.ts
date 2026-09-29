@@ -36,7 +36,7 @@ async function seed(): Promise<void> {
         passwordHash: await bcrypt.hash(adminPassword, 12),
         firstName: 'Platform',
         lastName: 'Admin',
-        role: UserRole.ADMIN,
+        role: UserRole.SUPER_USER,
         status: UserStatus.ACTIVE,
         emailVerifiedAt: new Date(),
         validationStatus: ValidationStatus.VALIDATED,

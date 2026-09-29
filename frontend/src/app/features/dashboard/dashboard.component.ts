@@ -22,7 +22,7 @@ export class DashboardComponent {
 
   readonly user = this.auth.user;
   readonly canReview = this.auth.canReview;
-  readonly isAdmin = this.auth.isAdmin;
+  readonly isSuperUser = this.auth.isSuperUser;
 
   readonly pendingCount = signal<number | null>(null);
   readonly totalUsers = signal<number | null>(null);
@@ -62,7 +62,7 @@ export class DashboardComponent {
       });
     }
 
-    if (this.auth.isAdmin()) {
+    if (this.auth.isSuperUser()) {
       this.users.list({ limit: 1 }).subscribe({
         next: (page) => this.totalUsers.set(page.total),
         error: () => this.totalUsers.set(0),

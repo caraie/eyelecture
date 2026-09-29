@@ -110,10 +110,10 @@ describe('UsersService', () => {
     });
   });
 
-  describe('validate — residency administrator scoping', () => {
+  describe('validate — program administrator scoping', () => {
     const director = makeUser({
       id: 'dir-1',
-      role: UserRole.RESIDENCY_ADMINISTRATOR,
+      role: UserRole.PROGRAM_ADMINISTRATOR,
       institutionId: STANFORD,
       validationStatus: ValidationStatus.VALIDATED,
     });
@@ -163,10 +163,10 @@ describe('UsersService', () => {
       );
     });
 
-    it('refuses to validate another residency administrator', async () => {
+    it('refuses to validate another program administrator', async () => {
       target = makeUser({
         id: 'dir-2',
-        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        role: UserRole.PROGRAM_ADMINISTRATOR,
         institutionId: STANFORD,
       });
 
@@ -175,13 +175,13 @@ describe('UsersService', () => {
       );
     });
 
-    it('refuses a residency administrator who has not been approved yet', async () => {
+    it('refuses a program administrator who has not been approved yet', async () => {
       // Signing up on a recognised domain attaches the institution immediately while
       // the rank itself still waits on an admin. Without this rule the role approves
       // itself: claim it, and start admitting people at that institution.
       const unapproved = makeUser({
         id: 'dir-new',
-        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        role: UserRole.PROGRAM_ADMINISTRATOR,
         institutionId: STANFORD,
         validationStatus: ValidationStatus.PENDING,
       });
@@ -233,7 +233,7 @@ describe('UsersService', () => {
     it('refuses when the director belongs nowhere', async () => {
       const homeless = makeUser({
         id: 'dir-3',
-        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        role: UserRole.PROGRAM_ADMINISTRATOR,
         institutionId: null,
       });
       target = makeUser({ id: 'stu-6', institutionId: STANFORD });
@@ -245,12 +245,12 @@ describe('UsersService', () => {
   });
 
   describe('validate — admin', () => {
-    const admin = makeUser({ id: 'admin-1', role: UserRole.ADMIN });
+    const admin = makeUser({ id: 'admin-1', role: UserRole.SUPER_USER });
 
-    it('can validate a residency administrator', async () => {
+    it('can validate a program administrator', async () => {
       target = makeUser({
         id: 'dir-9',
-        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        role: UserRole.PROGRAM_ADMINISTRATOR,
         institutionId: STANFORD,
       });
 
@@ -297,7 +297,7 @@ describe('UsersService', () => {
   describe('reject', () => {
     const director = makeUser({
       id: 'dir-1',
-      role: UserRole.RESIDENCY_ADMINISTRATOR,
+      role: UserRole.PROGRAM_ADMINISTRATOR,
       institutionId: STANFORD,
       validationStatus: ValidationStatus.VALIDATED,
     });
@@ -337,17 +337,17 @@ describe('UsersService', () => {
 
     it('allows acting on somebody else', async () => {
       target = makeUser({ id: 'other' });
-      await service.setRole('other', UserRole.RESIDENCY_ADMINISTRATOR, 'admin-1');
+      await service.setRole('other', UserRole.PROGRAM_ADMINISTRATOR, 'admin-1');
       expect(repo.update).toHaveBeenCalledWith(
         { id: 'other' },
-        { role: UserRole.RESIDENCY_ADMINISTRATOR },
+        { role: UserRole.PROGRAM_ADMINISTRATOR },
       );
     });
   });
 
   describe('countPendingValidation', () => {
     it('counts everything for an admin', async () => {
-      const admin = makeUser({ id: 'a', role: UserRole.ADMIN });
+      const admin = makeUser({ id: 'a', role: UserRole.SUPER_USER });
       await service.countPendingValidation(admin);
 
       expect(repo.count).toHaveBeenCalledWith({
@@ -358,7 +358,7 @@ describe('UsersService', () => {
     it('counts only their own institution for a director', async () => {
       const director = makeUser({
         id: 'd',
-        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        role: UserRole.PROGRAM_ADMINISTRATOR,
         institutionId: STANFORD,
         validationStatus: ValidationStatus.VALIDATED,
       });
@@ -396,7 +396,7 @@ describe('UsersService', () => {
 
     it('returns zero for a director with no institution', async () => {
       const director = makeUser({
-        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        role: UserRole.PROGRAM_ADMINISTRATOR,
         institutionId: null,
         validationStatus: ValidationStatus.VALIDATED,
       });
@@ -408,7 +408,7 @@ describe('UsersService', () => {
       // The queue is empty rather than forbidden: showing a list and refusing every
       // action on it would read as broken rather than as pending.
       const director = makeUser({
-        role: UserRole.RESIDENCY_ADMINISTRATOR,
+        role: UserRole.PROGRAM_ADMINISTRATOR,
         institutionId: STANFORD,
         validationStatus: ValidationStatus.PENDING,
       });

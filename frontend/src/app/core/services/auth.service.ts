@@ -34,9 +34,9 @@ export class AuthService {
   readonly isReady = this.initialised.asReadonly();
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
   readonly role = computed<UserRole | null>(() => this.currentUser()?.role ?? null);
-  readonly isAdmin = computed(() => this.role() === 'admin');
-  readonly isResidencyAdministrator = computed(
-    () => this.role() === 'residency_administrator',
+  readonly isSuperUser = computed(() => this.role() === 'super_user');
+  readonly isProgramAdministrator = computed(
+    () => this.role() === 'program_administrator',
   );
   readonly isTrainee = computed(() => {
     const role = this.role();
@@ -48,9 +48,9 @@ export class AuthService {
   /**
    * Can open the validation queue.
    *
-   * A residency administrator has to be approved first. Signing up on a recognised
-   * domain attaches the institution straight away while the rank still waits on an
-   * administrator, so without the second condition somebody could start approving
+   * A program administrator has to be approved first. Signing up on a recognised
+   * domain attaches the institution straight away while the rank still waits on a
+   * super user, so without the second condition somebody could start approving
    * people at an institution nobody has confirmed they belong to.
    *
    * Declared after `isValidated` on purpose — a computed reads its dependencies
@@ -58,7 +58,7 @@ export class AuthService {
    * from an undefined call.
    */
   readonly canReview = computed(
-    () => this.isAdmin() || (this.isResidencyAdministrator() && this.isValidated()),
+    () => this.isSuperUser() || (this.isProgramAdministrator() && this.isValidated()),
   );
   /**
    * The account is on a temporary password an admin handed out. The API refuses

@@ -34,7 +34,7 @@ import { EyeLogoComponent } from '../../shared/components/eye-logo.component';
           </li>
           <li>
             <span class="dot"></span>
-            Residency administrators vouch for everyone else
+            Program administrators vouch for everyone else
           </li>
           <li>
             <span class="dot"></span>

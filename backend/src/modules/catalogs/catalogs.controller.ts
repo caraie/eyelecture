@@ -54,7 +54,7 @@ export class CatalogsController {
   }
 
   @Get(':kind')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'List every entry, retired ones included' })
   async findAll(
@@ -65,7 +65,7 @@ export class CatalogsController {
   }
 
   @Post(':kind')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   async create(
     @Param('kind', new ParseEnumPipe(CatalogKind)) kind: CatalogKind,
@@ -75,7 +75,7 @@ export class CatalogsController {
   }
 
   @Patch(':kind/:id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Rename an entry, or retire it by setting isActive to false',
@@ -89,7 +89,7 @@ export class CatalogsController {
   }
 
   @Delete(':kind/:id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({

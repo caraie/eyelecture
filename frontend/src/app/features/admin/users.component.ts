@@ -62,7 +62,7 @@ export class UsersComponent {
 
   readonly roleLabels = ROLE_LABELS;
   readonly statusLabels = STATUS_LABELS;
-  readonly roles: UserRole[] = [...SELF_SIGNUP_ROLES, 'admin'];
+  readonly roles: UserRole[] = [...SELF_SIGNUP_ROLES, 'super_user'];
   readonly statuses: UserStatus[] = [
     'active',
     'pending_profile',

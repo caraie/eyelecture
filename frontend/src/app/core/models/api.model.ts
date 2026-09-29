@@ -29,7 +29,7 @@ export interface RegisterPayload {
 
 /** Step two: who they are and where to reach them. */
 export interface CompleteProfilePayload {
-  role: Exclude<UserRole, 'admin'>;
+  role: Exclude<UserRole, 'super_user'>;
   email: string;
   /** Optional here; it can be added later from the profile. */
   secondaryEmail?: string;

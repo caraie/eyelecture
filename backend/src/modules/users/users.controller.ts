@@ -71,7 +71,7 @@ export class UsersController {
   }
 
   @Get('pending-validation')
-  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
+  @Roles(UserRole.SUPER_USER, UserRole.PROGRAM_ADMINISTRATOR)
   @ApiOperation({
     summary: 'People waiting to be vouched for',
     description:
@@ -86,7 +86,7 @@ export class UsersController {
   }
 
   @Get('pending-validation/count')
-  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
+  @Roles(UserRole.SUPER_USER, UserRole.PROGRAM_ADMINISTRATOR)
   async pendingCount(
     @CurrentUser() reviewer: User,
   ): Promise<{ count: number }> {
@@ -94,7 +94,7 @@ export class UsersController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   async findAll(
     @Query() query: QueryUsersDto,
   ): Promise<PaginatedResult<UserResponseDto>> {
@@ -107,19 +107,19 @@ export class UsersController {
   // `admins` would otherwise be swallowed by `:id` and fail as an invalid UUID.
 
   @Get('admins')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiOperation({ summary: 'Every administrator' })
   async findAdmins(
     @Query() query: QueryUsersDto,
   ): Promise<PaginatedResult<UserResponseDto>> {
     // Mutated rather than spread into a new object: `skip` is a getter on the DTO
     // class, and spreading would leave it behind as an undefined property.
-    query.role = UserRole.ADMIN;
+    query.role = UserRole.SUPER_USER;
     return toPage(await this.users.findAll(query));
   }
 
   @Post('admins')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiOperation({
     summary: 'Create another administrator',
     description:
@@ -145,7 +145,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiOperation({ summary: 'Edit an account as an administrator' })
   async adminUpdate(
     @Param('id', ParseUUIDPipe) id: string,
@@ -158,7 +158,7 @@ export class UsersController {
   }
 
   @Post(':id/reset-password')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiOperation({
     summary: 'Hand an account a new temporary password',
     description: 'The user is forced to replace it the next time they sign in.',
@@ -178,7 +178,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Delete an account',
@@ -195,7 +195,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
+  @Roles(UserRole.SUPER_USER, UserRole.PROGRAM_ADMINISTRATOR)
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UserResponseDto> {
@@ -203,7 +203,7 @@ export class UsersController {
   }
 
   @Post(':id/validate')
-  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
+  @Roles(UserRole.SUPER_USER, UserRole.PROGRAM_ADMINISTRATOR)
   @ApiOperation({ summary: 'Approve a membership request' })
   async validate(
     @Param('id', ParseUUIDPipe) id: string,
@@ -214,7 +214,7 @@ export class UsersController {
   }
 
   @Post(':id/reject')
-  @Roles(UserRole.ADMIN, UserRole.RESIDENCY_ADMINISTRATOR)
+  @Roles(UserRole.SUPER_USER, UserRole.PROGRAM_ADMINISTRATOR)
   @ApiOperation({ summary: 'Turn down a membership request' })
   async reject(
     @Param('id', ParseUUIDPipe) id: string,
@@ -225,7 +225,7 @@ export class UsersController {
   }
 
   @Patch(':id/role')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   async setRole(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() admin: User,
@@ -237,7 +237,7 @@ export class UsersController {
   }
 
   @Patch(':id/status')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   async setStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() admin: User,
@@ -249,7 +249,7 @@ export class UsersController {
   }
 
   @Post(':id/activate')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   @ApiOperation({
     summary: 'Activate an account without waiting for the confirmation email',
     description:
@@ -266,7 +266,7 @@ export class UsersController {
   }
 
   @Patch(':id/institution')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.SUPER_USER)
   async assignInstitution(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: AssignInstitutionDto,

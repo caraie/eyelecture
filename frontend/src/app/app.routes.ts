@@ -63,7 +63,7 @@ export const routes: Routes = [
       },
       {
         path: 'validation',
-        canActivate: [roleGuard('admin', 'residency_administrator')],
+        canActivate: [roleGuard('super_user', 'program_administrator')],
         title: 'Validation queue · EyeLecture',
         loadComponent: () =>
           import('./features/directory/validation-queue.component').then(
@@ -72,21 +72,21 @@ export const routes: Routes = [
       },
       {
         path: 'users',
-        canActivate: [roleGuard('admin')],
+        canActivate: [roleGuard('super_user')],
         title: 'People · EyeLecture',
         loadComponent: () =>
           import('./features/admin/users.component').then((m) => m.UsersComponent),
       },
       {
         path: 'admins',
-        canActivate: [roleGuard('admin')],
-        title: 'Administrators · EyeLecture',
+        canActivate: [roleGuard('super_user')],
+        title: 'Super Users · EyeLecture',
         loadComponent: () =>
           import('./features/admin/admins.component').then((m) => m.AdminsComponent),
       },
       {
         path: 'institutions',
-        canActivate: [roleGuard('admin')],
+        canActivate: [roleGuard('super_user')],
         title: 'Institutions · EyeLecture',
         loadComponent: () =>
           import('./features/admin/institutions.component').then(
@@ -95,7 +95,7 @@ export const routes: Routes = [
       },
       {
         path: 'catalogs',
-        canActivate: [roleGuard('admin')],
+        canActivate: [roleGuard('super_user')],
         title: 'Reference lists · EyeLecture',
         loadComponent: () =>
           import('./features/admin/catalogs.component').then(

@@ -5,8 +5,8 @@ export type UserRole =
   | 'resident'
   | 'fellow'
   | 'attending_physician'
-  | 'residency_administrator'
-  | 'admin';
+  | 'program_administrator'
+  | 'super_user';
 
 /** The ranks somebody may choose for themselves, in the order the form shows them. */
 export const SELF_SIGNUP_ROLES: UserRole[] = [
@@ -14,7 +14,7 @@ export const SELF_SIGNUP_ROLES: UserRole[] = [
   'resident',
   'fellow',
   'attending_physician',
-  'residency_administrator',
+  'program_administrator',
 ];
 
 /** Still in training, and so vouched for by a matching email domain alone. */
@@ -81,8 +81,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   resident: 'Resident',
   fellow: 'Fellow',
   attending_physician: 'Attending physician',
-  residency_administrator: 'Residency administrator',
-  admin: 'Administrator',
+  program_administrator: 'Program Administrator',
+  super_user: 'Super User',
 };
 
 /** One line each, for the rank picker. */
@@ -91,9 +91,9 @@ export const ROLE_BLURBS: Record<UserRole, string> = {
   resident: 'In a residency programme. Sign up with your institution address.',
   fellow: 'In a fellowship. Sign up with your institution address.',
   attending_physician: 'Practising. A personal address is fine.',
-  residency_administrator:
+  program_administrator:
     'Runs a programme and vouches for its trainees. Needs approval.',
-  admin: 'Platform staff.',
+  super_user: 'Platform staff.',
 };
 
 export const VALIDATION_LABELS: Record<ValidationStatus, string> = {

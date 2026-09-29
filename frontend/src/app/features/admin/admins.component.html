@@ -1,16 +1,16 @@
 <header class="page-head">
   <div>
     <p class="el-overline">Administration</p>
-    <h1 class="el-headline">Administrators</h1>
+    <h1 class="el-headline">Super Users</h1>
     <p class="el-lede">
       Platform staff. They manage institutions, validate anyone, and can
-      <span class="el-hl-em">create more administrators</span> — including you.
+      <span class="el-hl-em">create more super users</span> — including you.
     </p>
   </div>
 
   <button mat-flat-button color="primary" type="button" (click)="toggleCreate()">
     <mat-icon>{{ showCreate() ? 'close' : 'person_add' }}</mat-icon>
-    {{ showCreate() ? 'Cancel' : 'New administrator' }}
+    {{ showCreate() ? 'Cancel' : 'New super user' }}
   </button>
 </header>
 
@@ -59,7 +59,7 @@
 
 @if (showCreate()) {
   <section class="el-card create">
-    <h2 class="el-title">New administrator</h2>
+    <h2 class="el-title">New super user</h2>
     <p class="el-lede small">
       The account is created ready to use — no email confirmation, no review queue.
       You are the approval.
@@ -136,7 +136,7 @@
           @if (saving()) {
             <mat-spinner diameter="20" />
           } @else {
-            Create administrator
+            Create super user
           }
         </button>
         <button mat-stroked-button type="button" (click)="toggleCreate()">
@@ -154,7 +154,7 @@
 } @else if (admins().length === 0) {
   <section class="el-card empty">
     <mat-icon>group_off</mat-icon>
-    <p>No administrators yet.</p>
+    <p>No super users yet.</p>
   </section>
 } @else {
   <div class="el-stack list">
@@ -196,7 +196,7 @@
               </div>
             }
             <div class="meta">
-              Administrator since {{ admin.createdAt | date: 'mediumDate' }}
+              Super user since {{ admin.createdAt | date: 'mediumDate' }}
             </div>
           </div>
 

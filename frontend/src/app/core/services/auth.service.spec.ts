@@ -88,7 +88,7 @@ describe('AuthService', () => {
     });
 
     expect(service.isProgramDirector()).toBe(true);
-    expect(service.isAdmin()).toBe(false);
+    expect(service.isSuperUser()).toBe(false);
     expect(service.isStudent()).toBe(false);
     // A director can open the review queue; a student cannot.
     expect(service.canReview()).toBe(true);
@@ -100,10 +100,10 @@ describe('AuthService', () => {
       accessToken: 'a',
       refreshToken: 'r',
       expiresIn: 900,
-      user: makeUser({ role: 'admin' }),
+      user: makeUser({ role: 'super_user' }),
     });
 
-    expect(service.isAdmin()).toBe(true);
+    expect(service.isSuperUser()).toBe(true);
     expect(service.canReview()).toBe(true);
   });
 

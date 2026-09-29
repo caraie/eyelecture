@@ -192,7 +192,7 @@ export class UsersService {
   /**
    * The validation queue, scoped to what the caller is allowed to act on.
    *
-   * A residency administrator sees trainees who either already resolved to their
+   * A program administrator sees trainees who either already resolved to their
    * institution or explicitly asked to join it. An admin sees everything still
    * pending, including signups with no institution at all.
    */
@@ -212,13 +212,13 @@ export class UsersService {
       .skip(query.skip)
       .take(query.limit);
 
-    if (reviewer.role === UserRole.RESIDENCY_ADMINISTRATOR) {
+    if (reviewer.role === UserRole.PROGRAM_ADMINISTRATOR) {
       // Same rule as assertCanReview: an unapproved administrator has no queue.
       // Showing them one and refusing every action would only look broken.
       if (!reviewer.institutionId || !reviewer.isValidated) {
         return paginate([], 0, query);
       }
-      // Trainees only. An attending physician or another residency administrator
+      // Trainees only. An attending physician or another program administrator
       // is reviewed by platform staff, never by a peer at the same institution.
       qb.andWhere('user.role IN (:...traineeRoles)', {
         traineeRoles: [...TRAINEE_ROLES],
@@ -254,10 +254,10 @@ export class UsersService {
   countPendingValidation(reviewer: User): Promise<number> {
     const where: FindOptionsWhere<User>[] = [];
 
-    if (reviewer.role === UserRole.ADMIN) {
+    if (reviewer.role === UserRole.SUPER_USER) {
       where.push({ validationStatus: ValidationStatus.PENDING });
     } else if (
-      reviewer.role === UserRole.RESIDENCY_ADMINISTRATOR &&
+      reviewer.role === UserRole.PROGRAM_ADMINISTRATOR &&
       reviewer.institutionId &&
       reviewer.isValidated
     ) {
@@ -477,10 +477,10 @@ export class UsersService {
     }
 
     let institutionId: string | null;
-    if (reviewer.role === UserRole.RESIDENCY_ADMINISTRATOR) {
+    if (reviewer.role === UserRole.PROGRAM_ADMINISTRATOR) {
       if (dto.institutionId && dto.institutionId !== reviewer.institutionId) {
         throw new ForbiddenException(
-          'A residency administrator can only validate people into their own institution',
+          'A program administrator can only validate people into their own institution',
         );
       }
       institutionId = reviewer.institutionId;
@@ -663,7 +663,7 @@ export class UsersService {
       lastName: data.lastName,
       secondaryEmail,
       secondaryEmailVerifiedAt: null,
-      role: UserRole.ADMIN,
+      role: UserRole.SUPER_USER,
       status: UserStatus.ACTIVE,
       emailVerifiedAt: now,
       mustChangePassword: true,
@@ -817,7 +817,7 @@ export class UsersService {
 
   /** Number of admins that exist — used to refuse demoting the last one. */
   countAdmins(): Promise<number> {
-    return this.users.count({ where: { role: UserRole.ADMIN } });
+    return this.users.count({ where: { role: UserRole.SUPER_USER } });
   }
 
   countUnaffiliated(): Promise<number> {
@@ -827,9 +827,9 @@ export class UsersService {
   // --- Guards -----------------------------------------------------------------
 
   private assertCanReview(target: User, reviewer: User): void {
-    if (reviewer.role === UserRole.ADMIN) return;
+    if (reviewer.role === UserRole.SUPER_USER) return;
 
-    if (reviewer.role !== UserRole.RESIDENCY_ADMINISTRATOR) {
+    if (reviewer.role !== UserRole.PROGRAM_ADMINISTRATOR) {
       throw new ForbiddenException('You are not allowed to validate users');
     }
     // Their own membership has to be settled first. Signing up as a residency
@@ -842,12 +842,12 @@ export class UsersService {
         'Your own account has to be approved before you can validate anyone',
       );
     }
-    // Attending physicians and other residency administrators are reviewed by
+    // Attending physicians and other program administrators are reviewed by
     // platform staff. Letting a peer approve them would make the role
     // self-propagating: whoever gets in first can admit everybody after.
     if (!TRAINEE_ROLES.includes(target.role)) {
       throw new ForbiddenException(
-        'A residency administrator can only validate medical students, residents and fellows',
+        'A program administrator can only validate medical students, residents and fellows',
       );
     }
     if (!reviewer.institutionId) {

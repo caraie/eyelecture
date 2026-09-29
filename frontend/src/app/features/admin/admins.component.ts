@@ -142,7 +142,7 @@ export class AdminsComponent {
 
   load(): void {
     this.loading.set(true);
-    // limit 100 is the API ceiling. An installation with more administrators than
+    // limit 100 is the API ceiling. An installation with more super users than
     // that needs paging here, but it would be a strange installation.
     this.api.listAdmins({ page: 1, limit: 100 }).subscribe({
       next: (page) => {
@@ -151,7 +151,7 @@ export class AdminsComponent {
       },
       error: (error: unknown) => {
         this.loading.set(false);
-        this.notify.showHttpError(error, 'Could not load administrators');
+        this.notify.showHttpError(error, 'Could not load super users');
       },
     });
   }
@@ -206,11 +206,11 @@ export class AdminsComponent {
           });
           this.createForm.reset();
           this.showCreate.set(false);
-          this.notify.success(`${created.fullName} can now sign in as an administrator`);
+          this.notify.success(`${created.fullName} can now sign in as a super user`);
         },
         error: (error: unknown) => {
           this.saving.set(false);
-          this.notify.showHttpError(error, 'Could not create the administrator');
+          this.notify.showHttpError(error, 'Could not create the super user');
         },
       });
   }
@@ -221,7 +221,7 @@ export class AdminsComponent {
 
     try {
       await navigator.clipboard.writeText(
-        `EyeLecture administrator access\nUsername: ${issued.username}\nTemporary password: ${issued.password}\n\nYou will be asked to choose your own password when you sign in.`,
+        `EyeLecture super user access\nUsername: ${issued.username}\nTemporary password: ${issued.password}\n\nYou will be asked to choose your own password when you sign in.`,
       );
       this.notify.success('Copied. Send it over a channel you trust.');
     } catch {

@@ -29,7 +29,7 @@ import {
   UserRole,
 } from '../../core/models/user.model';
 
-type SignupRole = Exclude<UserRole, 'admin'>;
+type SignupRole = Exclude<UserRole, 'super_user'>;
 
 /**
  * Step two: rank and addresses.
