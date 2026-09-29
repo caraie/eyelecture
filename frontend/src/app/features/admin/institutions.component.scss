@@ -61,35 +61,95 @@
   padding: var(--sp-12);
 }
 
+/* Tighter than it was. Closed rows are one line each and this list is meant to be
+   scanned, so the old card gap turned ten institutions into a page of scrolling. */
 .list {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--sp-2);
 }
 
 .item {
+  /* The card's own padding belongs to the open state — the closed row is the button,
+     and it has to be clickable edge to edge. */
+  padding: 0;
+  overflow: hidden;
+
   &.paused {
-    opacity: 0.72;
     border-style: dashed;
+  }
+
+  &.open {
+    border-color: var(--md-sys-color-outline);
   }
 }
 
-.item-head {
+/* The whole closed row is one button. A click target that is only the caret is a
+   click target people miss. */
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-4) var(--sp-5);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background var(--motion-fast);
+
+  &:hover {
+    background: var(--md-sys-color-surface-container-low);
+  }
+
+  .caret {
+    flex: none;
+    color: var(--md-sys-color-on-surface-muted);
+  }
+
+  .nm {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .count {
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    flex: none;
+  }
+
+  .el-badge {
+    flex: none;
+  }
+}
+
+.paused .row .nm {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.detail {
+  padding: 0 var(--sp-5) var(--sp-5);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.detail-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--sp-4);
   flex-wrap: wrap;
+  padding-top: var(--sp-4);
   margin-bottom: var(--sp-5);
-
-  .titles {
-    min-width: 0;
-  }
 
   .slug {
     color: var(--md-sys-color-on-surface-muted);
     font-size: 12px;
-    margin-top: 2px;
   }
 
   .desc {
@@ -100,7 +160,8 @@
   }
 }
 
-.domains {
+.domains,
+.invites {
   border-top: 1px solid var(--md-sys-color-outline-variant);
   padding-top: var(--sp-4);
 
@@ -112,6 +173,72 @@
     font-size: 13.5px;
     color: var(--md-sys-color-on-surface-muted);
     margin-bottom: var(--sp-3);
+    max-width: 68ch;
+    line-height: 1.55;
+  }
+}
+
+.invites {
+  margin-top: var(--sp-5);
+
+  .state {
+    padding: var(--sp-5);
+  }
+}
+
+.invite-list {
+  list-style: none;
+  margin: 0 0 var(--sp-4);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-2) 0;
+    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    /* Spent, withdrawn and stale rows stay visible — they answer "did we ever ask
+       this person" — but they should not read as things still in flight. */
+    &.spent {
+      opacity: 0.6;
+    }
+  }
+
+  .who {
+    flex: none;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .addr {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+
+    strong {
+      font-size: 14px;
+      font-weight: 500;
+      overflow-wrap: anywhere;
+    }
+
+    .sub {
+      font-size: 12.5px;
+    }
+  }
+
+  .devlink {
+    flex: none;
+    font-size: 12.5px;
+    white-space: nowrap;
   }
 }
 

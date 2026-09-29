@@ -28,6 +28,16 @@ export interface RegisterPayload {
 }
 
 /**
+ * Redeeming an invitation. A registration with three of the usual questions already
+ * answered: the institution, the rank and the institutional address all come from
+ * the token, not from the form.
+ */
+export interface AcceptInvitationPayload extends RegisterPayload {
+  token: string;
+  personalEmail: string;
+}
+
+/**
  * Step two: who they are, where to reach them, and how far along they are.
  *
  * Which of the optional fields are actually required is decided by the user type —

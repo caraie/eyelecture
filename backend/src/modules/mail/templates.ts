@@ -116,6 +116,53 @@ export function verifyPrimaryEmail(firstName: string, link: string): Rendered {
 }
 
 /**
+ * The invitation that makes somebody the first administrator of an institution.
+ *
+ * Unlike the two above, the recipient did not ask for this and may never have heard
+ * of EyeLecture — so the message has to say who is asking, what it would make them,
+ * and that ignoring it costs nothing.
+ */
+export function invitedToAdminister(
+  institutionName: string,
+  link: string,
+  ttlDays: number,
+): Rendered {
+  const name = esc(institutionName);
+  return {
+    subject: `Administer ${institutionName} on EyeLecture`,
+    html: shell({
+      heading: `You have been asked to administer ${name}`,
+      intro:
+        `EyeLecture is a teaching platform for ophthalmology. Somebody there has asked ` +
+        `you to be the program administrator for <strong>${name}</strong> — the person ` +
+        `who vouches for its trainees and approves the people who join it. ` +
+        `This link sets up your account; nothing exists until you use it.`,
+      buttonLabel: 'Set up my account',
+      buttonUrl: link,
+      after: `The link stops working after ${ttlDays} days.`,
+      footer:
+        'If this is not something you expected, ignoring this message is enough — no ' +
+        'account is created and nobody is told. The link only works once.',
+    }),
+    text: [
+      `You have been asked to administer ${institutionName}`,
+      '',
+      'EyeLecture is a teaching platform for ophthalmology. Somebody there has asked',
+      `you to be the program administrator for ${institutionName} — the person who`,
+      'vouches for its trainees and approves the people who join it. This link sets up',
+      'your account; nothing exists until you use it.',
+      '',
+      link,
+      '',
+      `The link stops working after ${ttlDays} days.`,
+      '',
+      'If this is not something you expected, ignoring this message is enough — no',
+      'account is created and nobody is told. The link only works once.',
+    ].join('\n'),
+  };
+}
+
+/**
  * Confirming the optional personal address. Deliberately lower-key than the one
  * above: this address already signs the person in, so nothing is blocked on it and
  * the mail should not imply otherwise.

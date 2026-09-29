@@ -1,0 +1,155 @@
+@if (checking()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (invitation(); as offer) {
+  <header class="head">
+    <p class="el-overline">Invitation</p>
+    <h2 class="el-headline">Administer {{ offer.institutionName }}</h2>
+    <p class="el-lede">
+      You have been asked to be the
+      <span class="el-hl-em">program administrator</span> for
+      {{ offer.institutionName }} — the person who vouches for its trainees and
+      approves the people who join it.
+    </p>
+  </header>
+
+  <!-- The address is shown, not asked. It came with the link, and the fact that
+       they are reading it is what proves the mailbox is theirs. -->
+  <div class="el-alert el-alert-success" role="status">
+    <mat-icon>verified</mat-icon>
+    <div>
+      <strong>{{ offer.email }}</strong>
+      This becomes your institutional address. Nothing further to confirm.
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="row">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>First name</mat-label>
+        <input matInput formControlName="firstName" autocomplete="given-name" />
+        @if (form.controls.firstName.hasError('required')) {
+          <mat-error>Your first name is required</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Last name</mat-label>
+        <input matInput formControlName="lastName" autocomplete="family-name" />
+        @if (form.controls.lastName.hasError('required')) {
+          <mat-error>Your last name is required</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Username</mat-label>
+      <input
+        matInput
+        formControlName="username"
+        autocomplete="username"
+        placeholder="sofia.marchetti"
+      />
+      <mat-icon matPrefix>person</mat-icon>
+      <mat-hint>This is what you will sign in with. It cannot be changed later.</mat-hint>
+      @if (form.controls.username.hasError('required')) {
+        <mat-error>A username is required</mat-error>
+      } @else if (form.controls.username.hasError('minlength')) {
+        <mat-error>At least 3 characters</mat-error>
+      } @else if (form.controls.username.hasError('pattern')) {
+        <mat-error>
+          Letters, numbers, dots, underscores and hyphens — starting and ending with a
+          letter or number
+        </mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Personal email</mat-label>
+      <input
+        matInput
+        type="email"
+        formControlName="personalEmail"
+        autocomplete="email"
+        placeholder="you@gmail.com"
+      />
+      <mat-icon matPrefix>alternate_email</mat-icon>
+      <mat-hint>
+        Choose a back-up email account for password recovery purposes only
+      </mat-hint>
+      @if (form.controls.personalEmail.hasError('required')) {
+        <mat-error>A personal email address is required</mat-error>
+      } @else if (form.controls.personalEmail.hasError('email')) {
+        <mat-error>That does not look like an email address</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Password</mat-label>
+      <input
+        matInput
+        [type]="hidePassword() ? 'password' : 'text'"
+        formControlName="password"
+        autocomplete="new-password"
+      />
+      <mat-icon matPrefix>lock</mat-icon>
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+        (click)="hidePassword.set(!hidePassword())"
+      >
+        <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <div class="password-rules">
+      @for (check of passwordChecks(); track check.label) {
+        <span [class.met]="check.met">
+          <mat-icon>{{ check.met ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+          {{ check.label }}
+        </span>
+      }
+    </div>
+
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Confirm password</mat-label>
+      <input
+        matInput
+        [type]="hidePassword() ? 'password' : 'text'"
+        formControlName="confirmPassword"
+        autocomplete="new-password"
+      />
+      <mat-icon matPrefix>key</mat-icon>
+      @if (form.hasError('mismatch') && form.controls.confirmPassword.touched) {
+        <mat-error>The two passwords do not match</mat-error>
+      }
+    </mat-form-field>
+
+    <button
+      mat-flat-button
+      color="primary"
+      class="submit"
+      type="submit"
+      [disabled]="submitting()"
+    >
+      @if (submitting()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        Accept and set up my account
+      }
+    </button>
+  </form>
+} @else {
+  <!-- One message for every way a link can fail. Which kind of invalid it is would
+       describe somebody else's invitation to whoever is holding this. -->
+  <div class="result">
+    <div class="ico bad"><mat-icon>link_off</mat-icon></div>
+    <h2 class="el-headline">This link is no longer valid</h2>
+    <p>
+      It may have been used already, withdrawn, or simply expired. Whoever invited you
+      can send a new one.
+    </p>
+    <a mat-stroked-button routerLink="/auth/login">Go to sign in</a>
+  </div>
+}

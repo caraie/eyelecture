@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  AcceptInvitationPayload,
   AuthResponse,
   AuthTokens,
   ChangeInstitutionalEmailPayload,
@@ -127,6 +128,17 @@ export class AuthService {
   register(payload: RegisterPayload): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.base}/register`, payload)
+      .pipe(tap((response) => this.applySession(response)));
+  }
+
+  /**
+   * Redeem an invitation to administer an institution. One step rather than two:
+   * the institution, the rank and the institutional address all came with the link,
+   * so there is no second half of the form to send anybody to.
+   */
+  acceptInvitation(payload: AcceptInvitationPayload): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.base}/invitation/accept`, payload)
       .pipe(tap((response) => this.applySession(response)));
   }
 

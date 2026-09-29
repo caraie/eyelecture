@@ -5,13 +5,18 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AuthService, SessionContext } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
+import { AcceptInvitationDto } from './dto/accept-invitation.dto';
+import { InstitutionInvitationsService } from '../institutions/institution-invitations.service';
+import { InvitationPreviewDto } from '../institutions/dto/invitation.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -42,7 +47,10 @@ const sessionContextFrom = (req: Request): SessionContext => ({
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly invitations: InstitutionInvitationsService,
+  ) {}
 
   @Public()
   @Post('register')
@@ -57,6 +65,41 @@ export class AuthController {
     @Req() req: Request,
   ): Promise<AuthResponseDto> {
     return this.auth.register(dto, sessionContextFrom(req));
+  }
+
+  /**
+   * What the link shows before anybody fills anything in: who is asking, and which
+   * address they asked. Public by necessity — the holder has no account yet — and
+   * thin by design, since a valid token is the only credential involved.
+   */
+  @Public()
+  @Get('invitation')
+  @ApiOperation({ summary: 'Look at an invitation without redeeming it' })
+  async previewInvitation(
+    @Query('token') token?: string,
+  ): Promise<InvitationPreviewDto> {
+    if (!token) {
+      throw new NotFoundException('This invitation link is no longer valid');
+    }
+    return InvitationPreviewDto.from(
+      await this.invitations.findLiveByToken(token),
+    );
+  }
+
+  @Public()
+  @Post('invitation/accept')
+  @ApiOperation({
+    summary: 'Redeem an invitation to administer an institution',
+    description:
+      'Creates the account already validated into that institution, as a program ' +
+      'administrator, and signs them in. No review queue and no verification mail: ' +
+      'the link carried both decisions.',
+  })
+  acceptInvitation(
+    @Body() dto: AcceptInvitationDto,
+    @Req() req: Request,
+  ): Promise<AuthResponseDto> {
+    return this.auth.acceptInvitation(dto, sessionContextFrom(req));
   }
 
   @Post('complete-profile')

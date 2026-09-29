@@ -17,6 +17,7 @@ import {
   normalizeEmail,
 } from '../users/users.service';
 import { InstitutionsService } from '../institutions/institutions.service';
+import { InstitutionInvitationsService } from '../institutions/institution-invitations.service';
 import { User } from '../users/entities/user.entity';
 import {
   PROFILE_FIELDS,
@@ -34,6 +35,7 @@ import { RefreshToken } from './entities/refresh-token.entity';
 import { EmailVerificationToken } from './entities/email-verification-token.entity';
 import { VerificationPurpose } from './enums/verification-purpose.enum';
 import { RegisterDto } from './dto/register.dto';
+import { AcceptInvitationDto } from './dto/accept-invitation.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { LoginDto } from './dto/login.dto';
 import {
@@ -63,6 +65,7 @@ export class AuthService {
   constructor(
     private readonly users: UsersService,
     private readonly institutions: InstitutionsService,
+    private readonly invitations: InstitutionInvitationsService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     @InjectRepository(RefreshToken)
@@ -168,6 +171,86 @@ export class AuthService {
         ? {}
         : { devEmailVerificationToken: verificationToken }),
     };
+  }
+
+  // --- Invitations --------------------------------------------------------------
+
+  /**
+   * Redeem an invitation to administer an institution.
+   *
+   * This is the one path into the app that skips both the review queue and the
+   * verification mail, and both skips are earned by the link itself: a super user
+   * decided the institution and the rank before the account existed, and only
+   * somebody reading that mailbox could be holding the token. Sending a "confirm
+   * your address" mail to an address just proven by a mail would be theatre.
+   *
+   * Nothing is written until the token has been checked and the username and both
+   * addresses are known to be free, so a half-made account cannot survive a
+   * rejection halfway down.
+   */
+  async acceptInvitation(
+    dto: AcceptInvitationDto,
+    context: SessionContext = {},
+  ): Promise<AuthResponseDto> {
+    const invitation = await this.invitations.findLiveByToken(dto.token);
+
+    if (await this.users.usernameInUse(dto.username)) {
+      throw new ConflictException('That username is already taken');
+    }
+    if (await this.users.emailInUse(invitation.email)) {
+      // Not "the link is invalid": the link is fine, the address it was sent to is
+      // already on an account. Saying so is what points them at signing in instead.
+      throw new ConflictException(
+        'An account already exists for that address. Sign in with it instead.',
+      );
+    }
+
+    const personalEmail = await this.users.assertPersonalEmailAllowed(
+      dto.personalEmail,
+      invitation.email,
+    );
+
+    const now = new Date();
+    const user = await this.users.create({
+      username: dto.username,
+      email: invitation.email,
+      emailDomain: emailDomainOf(invitation.email),
+      passwordHash: await bcrypt.hash(dto.password, BCRYPT_ROUNDS),
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      personalEmail,
+      personalEmailVerifiedAt: null,
+      role: UserRole.PROGRAM_ADMINISTRATOR,
+      status: UserStatus.ACTIVE,
+      // Reading the invitation is the proof. There is nothing further to confirm.
+      emailVerifiedAt: now,
+      institutionId: invitation.institutionId,
+      requestedInstitutionId: null,
+      validationStatus: ValidationStatus.VALIDATED,
+      validationMethod: ValidationMethod.MANUAL,
+      validatedAt: now,
+      // Credited to whoever sent the invitation, not to the person accepting it.
+      validatedById: invitation.invitedById,
+      validationNote: 'Invited to administer this institution',
+    });
+
+    await this.users.openAffiliation(
+      user.id,
+      invitation.institutionId,
+      invitation.email,
+    );
+    await this.invitations.markAccepted(invitation.id, user.id);
+
+    // The institutional address needs no confirming — they just read a mail sent to
+    // it. The personal one does, and it is the only way back into an administrator's
+    // account once the institution switches their mailbox off, so it gets the same
+    // link everybody else's personal address gets. Nothing waits on it.
+    await this.issueEmailVerificationToken(
+      user,
+      VerificationPurpose.PERSONAL_EMAIL,
+    );
+
+    return this.buildAuthResponse(user, context);
   }
 
   /**

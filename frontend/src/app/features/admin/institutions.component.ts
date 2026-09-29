@@ -17,7 +17,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { InstitutionsService } from '../../core/services/institutions.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Institution } from '../../core/models/institution.model';
+import { DatePipe } from '@angular/common';
+import {
+  INVITATION_STATE_LABELS,
+  Institution,
+  Invitation,
+  InvitationState,
+} from '../../core/models/institution.model';
 
 /** Strips a leading @ and lowercases, mirroring what the API stores. */
 const normalizeDomain = (value: string): string =>
@@ -29,6 +35,7 @@ const normalizeDomain = (value: string): string =>
   imports: [
     FormsModule,
     ReactiveFormsModule,
+    DatePipe,
     MatIconModule,
     MatButtonModule,
     MatFormFieldModule,
@@ -72,7 +79,31 @@ export class InstitutionsComponent {
   });
   /** Per-institution scratch value for the "add a domain" input. */
   readonly domainDrafts = signal<Record<string, string>>({});
+  readonly inviteDrafts = signal<Record<string, string>>({});
   readonly busyId = signal<string | null>(null);
+
+  /**
+   * Which rows are open. A set rather than a single id: comparing two institutions
+   * is a normal thing to want, and an accordion that closes the one you were reading
+   * is the kind of helpfulness nobody asked for.
+   */
+  readonly openIds = signal<Set<string>>(new Set());
+
+  /**
+   * Invitations are fetched per institution, the first time its row is opened, and
+   * kept afterwards. Loading them with the list would mean a query per institution
+   * on every page load to fill in a panel almost nobody opens.
+   */
+  readonly invitations = signal<Record<string, Invitation[]>>({});
+  readonly invitationsLoading = signal<Set<string>>(new Set());
+
+  readonly stateLabels = INVITATION_STATE_LABELS;
+  readonly stateIcons: Record<InvitationState, string> = {
+    pending: 'schedule',
+    accepted: 'how_to_reg',
+    revoked: 'undo',
+    expired: 'hourglass_disabled',
+  };
 
   readonly createForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -140,12 +171,118 @@ export class InstitutionsComponent {
       });
   }
 
+  // --- Opening a row ------------------------------------------------------------
+
+  isOpen(id: string): boolean {
+    return this.openIds().has(id);
+  }
+
+  toggleOpen(id: string): void {
+    this.openIds.update((open) => {
+      const next = new Set(open);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+    // Fetched once, on first open, and kept. Re-fetching every time would make a
+    // row you are toggling to re-read flicker for no new information.
+    if (this.isOpen(id) && !(id in this.invitations())) {
+      this.loadInvitations(id);
+    }
+  }
+
   draftFor(id: string): string {
     return this.domainDrafts()[id] ?? '';
   }
 
   setDraft(id: string, value: string): void {
     this.domainDrafts.update((drafts) => ({ ...drafts, [id]: value }));
+  }
+
+  // --- Invitations --------------------------------------------------------------
+
+  invitationsFor(id: string): Invitation[] {
+    return this.invitations()[id] ?? [];
+  }
+
+  inviteDraftFor(id: string): string {
+    return this.inviteDrafts()[id] ?? '';
+  }
+
+  setInviteDraft(id: string, value: string): void {
+    this.inviteDrafts.update((drafts) => ({ ...drafts, [id]: value }));
+  }
+
+  private loadInvitations(id: string): void {
+    this.invitationsLoading.update((set) => new Set(set).add(id));
+    this.api.invitations(id).subscribe({
+      next: (list) => {
+        this.invitations.update((all) => ({ ...all, [id]: list }));
+        this.clearInvitationsLoading(id);
+      },
+      error: (error: unknown) => {
+        // An empty list rather than nothing, so the invite form still appears and
+        // the panel does not look broken.
+        this.invitations.update((all) => ({ ...all, [id]: [] }));
+        this.clearInvitationsLoading(id);
+        this.notify.showHttpError(error, 'Could not load the invitations');
+      },
+    });
+  }
+
+  invite(institution: Institution): void {
+    const email = this.inviteDraftFor(institution.id).trim().toLowerCase();
+    if (!email) return;
+
+    this.busyId.set(institution.id);
+    this.api.invite(institution.id, email).subscribe({
+      next: (invitation) => {
+        this.invitations.update((all) => ({
+          ...all,
+          [institution.id]: [invitation, ...this.invitationsFor(institution.id)],
+        }));
+        this.setInviteDraft(institution.id, '');
+        this.busyId.set(null);
+        this.notify.success(
+          invitation.devLink
+            ? `Invitation created for ${email} — mail is off, so use the link`
+            : `Invitation sent to ${email}`,
+        );
+      },
+      error: (error: unknown) => {
+        this.busyId.set(null);
+        this.notify.showHttpError(error, 'Could not send that invitation');
+      },
+    });
+  }
+
+  revokeInvitation(institution: Institution, invitation: Invitation): void {
+    this.busyId.set(institution.id);
+    this.api.revokeInvitation(institution.id, invitation.id).subscribe({
+      next: (updated) => {
+        this.invitations.update((all) => ({
+          ...all,
+          [institution.id]: this.invitationsFor(institution.id).map((item) =>
+            item.id === updated.id ? updated : item,
+          ),
+        }));
+        this.busyId.set(null);
+        this.notify.info(`${invitation.email}'s link no longer works`);
+      },
+      error: (error: unknown) => {
+        this.busyId.set(null);
+        this.notify.showHttpError(error, 'Could not withdraw that invitation');
+      },
+    });
+  }
+
+  private clearInvitationsLoading(id: string): void {
+    this.invitationsLoading.update((set) => {
+      const next = new Set(set);
+      next.delete(id);
+      return next;
+    });
   }
 
   addDomain(institution: Institution): void {

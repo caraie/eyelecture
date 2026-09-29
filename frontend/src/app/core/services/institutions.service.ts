@@ -6,6 +6,8 @@ import {
   CreateInstitutionPayload,
   DomainLookup,
   Institution,
+  Invitation,
+  InvitationPreview,
   PublicInstitution,
   UpdateInstitutionPayload,
 } from '../models/institution.model';
@@ -56,5 +58,29 @@ export class InstitutionsService {
 
   removeDomain(id: string, domainId: string): Observable<Institution> {
     return this.http.delete<Institution>(`${this.base}/${id}/domains/${domainId}`);
+  }
+
+  // --- Administrator invitations ------------------------------------------------
+
+  invitations(id: string): Observable<Invitation[]> {
+    return this.http.get<Invitation[]>(`${this.base}/${id}/invitations`);
+  }
+
+  invite(id: string, email: string): Observable<Invitation> {
+    return this.http.post<Invitation>(`${this.base}/${id}/invitations`, { email });
+  }
+
+  revokeInvitation(id: string, invitationId: string): Observable<Invitation> {
+    return this.http.delete<Invitation>(
+      `${this.base}/${id}/invitations/${invitationId}`,
+    );
+  }
+
+  /** Public: what the link shows before anybody fills the form in. */
+  previewInvitation(token: string): Observable<InvitationPreview> {
+    return this.http.get<InvitationPreview>(
+      `${environment.apiUrl}/auth/invitation`,
+      { params: { token } },
+    );
   }
 }

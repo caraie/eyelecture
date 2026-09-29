@@ -36,6 +36,17 @@ export const routes: Routes = [
           import('./features/auth/register.component').then((m) => m.RegisterComponent),
       },
       {
+        // Guest-guarded like registration: this link creates an account, and
+        // somebody already signed in has one.
+        path: 'invitation',
+        canActivate: [guestGuard],
+        title: 'Your invitation · EyeLecture',
+        loadComponent: () =>
+          import('./features/auth/accept-invitation.component').then(
+            (m) => m.AcceptInvitationComponent,
+          ),
+      },
+      {
         // Not guest-guarded: the link may be opened while already signed in.
         path: 'verify-email',
         title: 'Confirm your email · EyeLecture',
