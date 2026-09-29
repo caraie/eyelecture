@@ -1,18 +1,46 @@
 import { Test } from '@nestjs/testing';
-import { ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { In } from 'typeorm';
+import { Not } from 'typeorm';
 import { UsersService, emailDomainOf, normalizeEmail } from './users.service';
 import { User } from './entities/user.entity';
 import { UserAffiliation } from './entities/user-affiliation.entity';
 import { EmailVerificationToken } from '../auth/entities/email-verification-token.entity';
 import { InstitutionsService } from '../institutions/institutions.service';
+import { QueryUsersDto } from './dto/query-users.dto';
 import { TRAINEE_ROLES, UserRole } from './enums/user-role.enum';
 import { UserStatus } from './enums/user-status.enum';
 import { ValidationMethod, ValidationStatus } from './enums/validation-status.enum';
 
 const STANFORD = 'inst-stanford';
 const HARVARD = 'inst-harvard';
+
+/**
+ * Every builder method returns the builder, which is what the service chains on.
+ * Only the terminal call has to produce anything.
+ */
+const fakeQueryBuilder = () => {
+  const qb: Record<string, jest.Mock> = {};
+  for (const method of [
+    'leftJoinAndSelect',
+    'where',
+    'andWhere',
+    'orderBy',
+    'skip',
+    'take',
+    'addSelect',
+  ]) {
+    qb[method] = jest.fn(() => qb);
+  }
+  qb.getManyAndCount = jest.fn().mockResolvedValue([[], 0]);
+  qb.getCount = jest.fn().mockResolvedValue(0);
+  qb.getOne = jest.fn().mockResolvedValue(null);
+  return qb;
+};
 
 /**
  * `isValidated` is a getter on the entity, so a plain object has to derive it or
@@ -131,6 +159,103 @@ describe('UsersService', () => {
     });
   });
 
+  describe('findByIdFor', () => {
+    const director = makeUser({
+      id: 'dir-1',
+      role: UserRole.PROGRAM_ADMINISTRATOR,
+      institutionId: STANFORD,
+      validationStatus: ValidationStatus.VALIDATED,
+    });
+
+    it('lets a super user open anybody', async () => {
+      const admin = makeUser({ id: 'admin-1', role: UserRole.SUPER_USER });
+      target = makeUser({ id: 'stu-1', institutionId: HARVARD });
+
+      await expect(service.findByIdFor('stu-1', admin)).resolves.toBe(target);
+    });
+
+    it('lets a program administrator open somebody at their institution', async () => {
+      target = makeUser({ id: 'stu-1', institutionId: STANFORD });
+
+      await expect(service.findByIdFor('stu-1', director)).resolves.toBe(target);
+    });
+
+    it('lets them open somebody who asked to join it', async () => {
+      target = makeUser({ id: 'stu-2', requestedInstitutionId: STANFORD });
+
+      await expect(service.findByIdFor('stu-2', director)).resolves.toBe(target);
+    });
+
+    it('says not found — not forbidden — for somebody elsewhere', async () => {
+      // A 403 would confirm the id belongs to a real account, which is the fact
+      // being withheld.
+      target = makeUser({ id: 'stu-3', institutionId: HARVARD });
+
+      await expect(service.findByIdFor('stu-3', director)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('always lets them open themselves', async () => {
+      const homeless = makeUser({
+        id: 'dir-9',
+        role: UserRole.PROGRAM_ADMINISTRATOR,
+        institutionId: null,
+      });
+      target = homeless;
+
+      await expect(service.findByIdFor('dir-9', homeless)).resolves.toBe(target);
+    });
+  });
+
+  describe('findAll scoping', () => {
+    const query = () =>
+      ({ page: 1, limit: 20, skip: 0 }) as unknown as QueryUsersDto;
+
+    it('pins a program administrator to their own institution', async () => {
+      const director = makeUser({
+        id: 'dir-1',
+        role: UserRole.PROGRAM_ADMINISTRATOR,
+        institutionId: STANFORD,
+        validationStatus: ValidationStatus.VALIDATED,
+      });
+      const qb = fakeQueryBuilder();
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      // An institutionId the caller passed is overwritten, not narrowed: the
+      // parameter is a filter for a super user, not a way to look elsewhere.
+      const q = Object.assign(query(), { institutionId: HARVARD });
+      await service.findAll(q, director);
+
+      expect(q.institutionId).toBe(STANFORD);
+    });
+
+    it('gives an unaffiliated program administrator an empty page', async () => {
+      const homeless = makeUser({
+        id: 'dir-2',
+        role: UserRole.PROGRAM_ADMINISTRATOR,
+        institutionId: null,
+      });
+
+      const page = await service.findAll(query(), homeless);
+
+      expect(page.items).toEqual([]);
+      expect(page.total).toBe(0);
+      expect(repo.createQueryBuilder).not.toHaveBeenCalled();
+    });
+
+    it('leaves a super user unscoped', async () => {
+      const admin = makeUser({ id: 'admin-1', role: UserRole.SUPER_USER });
+      const qb = fakeQueryBuilder();
+      repo.createQueryBuilder.mockReturnValue(qb);
+
+      const q = query();
+      await service.findAll(q, admin);
+
+      expect(q.institutionId).toBeUndefined();
+    });
+  });
+
   describe('validate — program administrator scoping', () => {
     const director = makeUser({
       id: 'dir-1',
@@ -184,16 +309,34 @@ describe('UsersService', () => {
       );
     });
 
-    it('refuses to validate another program administrator', async () => {
+    it('validates another program administrator at their own institution', async () => {
       target = makeUser({
         id: 'dir-2',
         role: UserRole.PROGRAM_ADMINISTRATOR,
         institutionId: STANFORD,
       });
 
-      await expect(service.validate('dir-2', director, {})).rejects.toThrow(
+      await service.validate('dir-2', director, {});
+
+      expect(repo.update).toHaveBeenCalledWith(
+        { id: 'dir-2' },
+        expect.objectContaining({ institutionId: STANFORD }),
+      );
+    });
+
+    it('refuses to validate a super user', async () => {
+      // Platform staff are approved by platform staff. This is the one rank a local
+      // administrator cannot hand out, because it is not local.
+      target = makeUser({
+        id: 'su-1',
+        role: UserRole.SUPER_USER,
+        institutionId: STANFORD,
+      });
+
+      await expect(service.validate('su-1', director, {})).rejects.toThrow(
         ForbiddenException,
       );
+      expect(repo.update).not.toHaveBeenCalled();
     });
 
     it('refuses a program administrator who has not been approved yet', async () => {
@@ -214,18 +357,40 @@ describe('UsersService', () => {
       expect(repo.update).not.toHaveBeenCalled();
     });
 
-    it('refuses to validate an attending physician', async () => {
-      // Same institution, so scope is not what stops this — rank is. Attendings are
-      // reviewed by platform staff, or the role becomes self-propagating.
+    it('validates an attending physician at their own institution', async () => {
       target = makeUser({
         id: 'att-1',
         role: UserRole.ATTENDING_PHYSICIAN,
         institutionId: STANFORD,
       });
 
-      await expect(service.validate('att-1', director, {})).rejects.toThrow(
-        ForbiddenException,
+      await service.validate('att-1', director, {});
+
+      expect(repo.update).toHaveBeenCalledWith(
+        { id: 'att-1' },
+        expect.objectContaining({ institutionId: STANFORD }),
       );
+    });
+
+    it('still cannot approve the first administrator at an institution', async () => {
+      // The bootstrap rule, and it needs no check of its own: reaching the scope
+      // test at all requires a *validated* administrator at that institution, so
+      // the first one anywhere has nobody local who could let them in.
+      const unapprovedPeer = makeUser({
+        id: 'dir-first',
+        role: UserRole.PROGRAM_ADMINISTRATOR,
+        institutionId: HARVARD,
+        validationStatus: ValidationStatus.PENDING,
+      });
+      target = makeUser({
+        id: 'dir-second',
+        role: UserRole.PROGRAM_ADMINISTRATOR,
+        institutionId: HARVARD,
+      });
+
+      await expect(
+        service.validate('dir-second', unapprovedPeer, {}),
+      ).rejects.toThrow(ForbiddenException);
       expect(repo.update).not.toHaveBeenCalled();
     });
 
@@ -390,22 +555,12 @@ describe('UsersService', () => {
       expect(where).toEqual([
         expect.objectContaining({
           institutionId: STANFORD,
-          role: In([...TRAINEE_ROLES]),
+          role: Not(UserRole.SUPER_USER),
         }),
         expect.objectContaining({
           requestedInstitutionId: STANFORD,
-          role: In([...TRAINEE_ROLES]),
+          role: Not(UserRole.SUPER_USER),
         }),
-      ]);
-    });
-
-    it('does not count attendings or other administrators', () => {
-      // The scoped query asks for trainee ranks only. Anyone senior to that is
-      // reviewed by platform staff, so they must not appear in this count.
-      expect([...TRAINEE_ROLES]).toEqual([
-        UserRole.MEDICAL_STUDENT,
-        UserRole.RESIDENT,
-        UserRole.FELLOW,
       ]);
     });
 

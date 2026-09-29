@@ -73,7 +73,10 @@ export const routes: Routes = [
       },
       {
         path: 'users',
-        canActivate: [roleGuard('super_user')],
+        // A program administrator gets the same screen, scoped by the server to
+        // their own institution. The row actions it offers are already gated on
+        // super user, so widening the route does not widen what they can do.
+        canActivate: [roleGuard('super_user', 'program_administrator')],
         title: 'People · EyeLecture',
         loadComponent: () =>
           import('./features/admin/users.component').then((m) => m.UsersComponent),

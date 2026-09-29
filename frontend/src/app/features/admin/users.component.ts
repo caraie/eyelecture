@@ -73,6 +73,14 @@ export class UsersComponent {
   /** Guards the UI against actions the API would reject anyway. */
   readonly currentUserId = this.auth.user()?.id ?? '';
 
+  /**
+   * A program administrator reads this screen; they do not act on it. Changing a
+   * role, suspending and deleting are all super-user endpoints, so the menu would
+   * offer them a column of buttons that every one of them answers 403 to.
+   */
+  readonly isSuperUser = this.auth.isSuperUser;
+  readonly institutionName = this.auth.user()?.institution?.name ?? null;
+
   /** Row with a delete in flight. Only deletes need this — they cannot be undone. */
   readonly deletingId = signal<string | null>(null);
 

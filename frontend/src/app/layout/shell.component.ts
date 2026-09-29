@@ -93,12 +93,18 @@ export class ShellComponent {
       });
     }
 
-    if (this.auth.isSuperUser()) {
+    // Both reviewers get the People screen; the server decides how much of it they
+    // see. The label is the honest difference — a program administrator's list is
+    // their institution, not the platform.
+    if (this.auth.canReview()) {
       groups[groups.length - 1].items.push({
-        label: 'All users',
+        label: this.auth.isSuperUser() ? 'All users' : 'Your institution',
         icon: 'group',
         route: '/app/users',
       });
+    }
+
+    if (this.auth.isSuperUser()) {
       groups.push({
         title: 'Administration',
         items: [

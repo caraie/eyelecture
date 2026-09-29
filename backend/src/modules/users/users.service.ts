@@ -6,10 +6,17 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
+import {
+  Brackets,
+  FindOptionsWhere,
+  In,
+  IsNull,
+  Not,
+  Repository,
+} from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserAffiliation } from './entities/user-affiliation.entity';
-import { TRAINEE_ROLES, UserRole } from './enums/user-role.enum';
+import { UserRole } from './enums/user-role.enum';
 import { UserStatus } from './enums/user-status.enum';
 import {
   ValidationMethod,
@@ -75,6 +82,29 @@ export class UsersService {
   async findByIdOrFail(id: string): Promise<User> {
     const user = await this.findById(id);
     if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  /**
+   * One account, as far as the viewer is allowed to see it.
+   *
+   * A program administrator who asks for somebody outside their institution is told
+   * the account does not exist rather than that they may not look at it: a 403 here
+   * would confirm the id belongs to a real person, which is exactly the fact being
+   * withheld. Someone who asked to join their institution is in scope — they have to
+   * be, or the queue would list people the administrator cannot open.
+   */
+  async findByIdFor(id: string, viewer: User): Promise<User> {
+    const user = await this.findByIdOrFail(id);
+    if (viewer.role !== UserRole.PROGRAM_ADMINISTRATOR) return user;
+
+    const inScope =
+      isSameUser(user.id, viewer.id) ||
+      (viewer.institutionId !== null &&
+        (user.institutionId === viewer.institutionId ||
+          user.requestedInstitutionId === viewer.institutionId));
+
+    if (!inScope) throw new NotFoundException('User not found');
     return user;
   }
 
@@ -154,7 +184,25 @@ export class UsersService {
     return (await qb.getCount()) > 0;
   }
 
-  async findAll(query: QueryUsersDto): Promise<PaginatedResult<User>> {
+  /**
+   * Everybody, or everybody at one institution.
+   *
+   * `viewer` is what scopes it. A super user works across the platform and sees all
+   * of it; a program administrator administers exactly one institution, so that is
+   * the list they get — and an unaffiliated one gets nothing rather than everything,
+   * which is the safe direction for a missing institutionId to fail in.
+   */
+  async findAll(
+    query: QueryUsersDto,
+    viewer?: User,
+  ): Promise<PaginatedResult<User>> {
+    if (viewer?.role === UserRole.PROGRAM_ADMINISTRATOR) {
+      if (!viewer.institutionId) return paginate([], 0, query);
+      // Overwrites rather than narrows any institutionId the caller passed: the
+      // parameter is a filter for a super user, not a way to look elsewhere.
+      query.institutionId = viewer.institutionId;
+    }
+
     const qb = this.users
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.institution', 'institution')
@@ -196,9 +244,10 @@ export class UsersService {
   /**
    * The validation queue, scoped to what the caller is allowed to act on.
    *
-   * A program administrator sees trainees who either already resolved to their
-   * institution or explicitly asked to join it. An admin sees everything still
-   * pending, including signups with no institution at all.
+   * A program administrator sees everyone who either already resolved to their
+   * institution or explicitly asked to join it — trainees, attending physicians and
+   * other program administrators alike. An admin sees everything still pending,
+   * including signups with no institution at all.
    */
   async findPendingValidation(
     reviewer: User,
@@ -222,10 +271,12 @@ export class UsersService {
       if (!reviewer.institutionId || !reviewer.isValidated) {
         return paginate([], 0, query);
       }
-      // Trainees only. An attending physician or another program administrator
-      // is reviewed by platform staff, never by a peer at the same institution.
-      qb.andWhere('user.role IN (:...traineeRoles)', {
-        traineeRoles: [...TRAINEE_ROLES],
+      // Everyone except platform staff, who are only ever approved by another
+      // super user. The first program administrator at an institution still cannot
+      // appear here, because reaching this branch already requires a validated
+      // administrator at that institution — see assertCanReview.
+      qb.andWhere('user.role != :superUser', {
+        superUser: UserRole.SUPER_USER,
       });
       qb.andWhere(
         new Brackets((w) => {
@@ -268,12 +319,12 @@ export class UsersService {
       where.push(
         {
           validationStatus: ValidationStatus.PENDING,
-          role: In([...TRAINEE_ROLES]),
+          role: Not(UserRole.SUPER_USER),
           institutionId: reviewer.institutionId,
         },
         {
           validationStatus: ValidationStatus.PENDING,
-          role: In([...TRAINEE_ROLES]),
+          role: Not(UserRole.SUPER_USER),
           requestedInstitutionId: reviewer.institutionId,
         },
       );
@@ -578,9 +629,9 @@ export class UsersService {
   /**
    * Approve a pending membership request.
    *
-   * A program director can only approve students, and only into their own
-   * institution — passing someone else's institutionId is rejected rather than
-   * silently ignored, so a mistake surfaces instead of quietly doing the wrong thing.
+   * A program administrator approves people into their own institution and nowhere
+   * else — passing someone else's institutionId is rejected rather than silently
+   * ignored, so a mistake surfaces instead of quietly doing the wrong thing.
    */
   async validate(
     targetId: string,
@@ -966,12 +1017,17 @@ export class UsersService {
         'Your own account has to be approved before you can validate anyone',
       );
     }
-    // Attending physicians and other program administrators are reviewed by
-    // platform staff. Letting a peer approve them would make the role
-    // self-propagating: whoever gets in first can admit everybody after.
-    if (!TRAINEE_ROLES.includes(target.role)) {
+    // Platform staff are only ever approved by other platform staff. Everyone else
+    // at the institution — trainees, attending physicians, and further program
+    // administrators — is the local administrator's to approve.
+    //
+    // The role is not self-propagating even so, and this is where that holds: the
+    // check above requires the reviewer to be a validated program administrator at
+    // the institution, so the *first* administrator anywhere has nobody who could
+    // approve them and has to come from a super user. Every one after that is local.
+    if (target.role === UserRole.SUPER_USER) {
       throw new ForbiddenException(
-        'A program administrator can only validate medical students, residents and fellows',
+        'Platform staff are approved by another super user',
       );
     }
     if (!reviewer.institutionId) {

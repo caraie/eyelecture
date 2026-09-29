@@ -2,7 +2,13 @@
   <div>
     <p class="el-overline">Administration</p>
     <h1 class="el-headline">People</h1>
-    <p class="el-lede">Everyone with an account, across every institution.</p>
+    <p class="el-lede">
+      @if (isSuperUser()) {
+        Everyone with an account, across every institution.
+      } @else {
+        Everyone at {{ institutionName ?? 'your institution' }}.
+      }
+    </p>
   </div>
 </header>
 
@@ -71,7 +77,9 @@
             <th>Membership</th>
             <th>Account</th>
             <th>Joined</th>
-            <th class="right">Actions</th>
+            @if (isSuperUser()) {
+              <th class="right">Actions</th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -110,6 +118,7 @@
                 </span>
               </td>
               <td class="nowrap el-muted">{{ person.createdAt | date: 'mediumDate' }}</td>
+              @if (isSuperUser()) {
               <td class="right">
                 @if (person.id !== currentUserId) {
                   @if (deletingId() === person.id) {
@@ -171,6 +180,7 @@
                   <span class="el-muted you">You</span>
                 }
               </td>
+              }
             </tr>
           }
         </tbody>

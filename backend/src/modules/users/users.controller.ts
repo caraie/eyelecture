@@ -109,11 +109,18 @@ export class UsersController {
   }
 
   @Get()
-  @Roles(UserRole.SUPER_USER)
+  @Roles(UserRole.SUPER_USER, UserRole.PROGRAM_ADMINISTRATOR)
+  @ApiOperation({
+    summary: 'Everyone you administer',
+    description:
+      'A super user sees every account on the platform. A program administrator sees ' +
+      'their own institution and nothing else.',
+  })
   async findAll(
+    @CurrentUser() viewer: User,
     @Query() query: QueryUsersDto,
   ): Promise<PaginatedResult<UserResponseDto>> {
-    return toPage(await this.users.findAll(query));
+    return toPage(await this.users.findAll(query, viewer));
   }
 
   // --- Administrator management -----------------------------------------------
@@ -213,8 +220,9 @@ export class UsersController {
   @Roles(UserRole.SUPER_USER, UserRole.PROGRAM_ADMINISTRATOR)
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() viewer: User,
   ): Promise<UserResponseDto> {
-    return UserResponseDto.from(await this.users.findByIdOrFail(id));
+    return UserResponseDto.from(await this.users.findByIdFor(id, viewer));
   }
 
   @Post(':id/validate')
