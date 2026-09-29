@@ -159,6 +159,44 @@ describe('UsersService', () => {
     });
   });
 
+  describe('completeProfile', () => {
+    const base = {
+      personalEmail: 'someone@gmail.com',
+      institutionId: null,
+      requestedInstitutionId: null,
+      autoValidated: false,
+      trainingLevelId: null,
+      specialtyId: null,
+      residencyProgramId: null,
+      fellowshipProgramId: null,
+    };
+
+    it('parks somebody with an institutional address on email verification', async () => {
+      await service.completeProfile('u-1', {
+        ...base,
+        role: UserRole.MEDICAL_STUDENT,
+        email: 'student@stanford.edu',
+      });
+
+      const [, patch] = repo.update.mock.calls[0] as [unknown, Partial<User>];
+      expect(patch.status).toBe(UserStatus.PENDING_EMAIL_VERIFICATION);
+    });
+
+    it('activates a rank that is never asked for one', async () => {
+      // An attending physician gives no institutional address, so waiting on one
+      // would leave them unable to sign in for a mailbox nobody asked them for.
+      await service.completeProfile('u-2', {
+        ...base,
+        role: UserRole.ATTENDING_PHYSICIAN,
+        email: null,
+      });
+
+      const [, patch] = repo.update.mock.calls[0] as [unknown, Partial<User>];
+      expect(patch.status).toBe(UserStatus.ACTIVE);
+      expect(patch.emailDomain).toBeNull();
+    });
+  });
+
   describe('findByIdFor', () => {
     const director = makeUser({
       id: 'dir-1',

@@ -438,7 +438,15 @@ export class UsersService {
         // Unverified on purpose: confirming the personal address is a separate act,
         // and blocking on it here would stop somebody finishing signup.
         personalEmailVerifiedAt: null,
-        status: UserStatus.PENDING_EMAIL_VERIFICATION,
+        // PENDING_EMAIL_VERIFICATION blocks sign-in until the *institutional*
+        // address is confirmed. A rank that is never asked for one — an attending
+        // physician — would sit there forever waiting on a mailbox they were never
+        // asked to give, so they go straight to ACTIVE. Their personal address still
+        // gets a confirmation link; it just does not hold the door shut, exactly as
+        // it does not for everybody else.
+        status: patch.email
+          ? UserStatus.PENDING_EMAIL_VERIFICATION
+          : UserStatus.ACTIVE,
         institutionId: patch.institutionId,
         requestedInstitutionId: patch.requestedInstitutionId,
         validationStatus: patch.autoValidated

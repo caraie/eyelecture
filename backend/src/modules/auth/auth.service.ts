@@ -161,7 +161,16 @@ export class AuthService {
       ...training,
     });
 
-    const verificationToken = await this.issueEmailVerificationToken(user);
+    // Whichever address they actually gave. An attending physician is never asked
+    // for an institutional one, so the institutional link has no recipient — asking
+    // for it anyway is what used to make this whole step fail for them with "there
+    // is no address to send a link to".
+    const verificationToken = await this.issueEmailVerificationToken(
+      user,
+      user.email
+        ? VerificationPurpose.INSTITUTIONAL_EMAIL
+        : VerificationPurpose.PERSONAL_EMAIL,
+    );
 
     return {
       user: UserResponseDto.from(user),
@@ -314,6 +323,13 @@ export class AuthService {
     // explanation: by this point the person has already seen which institution
     // matched, on the form they just submitted, and repeating it here only delays
     // the one instruction that matters.
+    // No institutional address means nothing is holding their account shut — they
+    // are already signed in. Telling them to check their email to *activate* would
+    // be an instruction to do something that is not required and will not appear to
+    // work. The link they get confirms their personal address, and can wait.
+    if (!user.email) {
+      return 'You are all set. Your membership still needs to be confirmed by a program director.';
+    }
     if (autoValidated && institutionName) {
       return 'Check your email to activate your account.';
     }
