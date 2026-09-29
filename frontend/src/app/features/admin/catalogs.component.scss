@@ -16,15 +16,22 @@
   padding: var(--sp-12);
 }
 
-/* Three columns while they fit, then one. Nothing in between: at two columns the
-   odd list out stretches to full width and stops reading as a peer of the others. */
+/* Four columns while they fit, then two, then one. Two is fine now that there are
+   four lists — they pair up evenly instead of leaving one stretched to full width
+   and no longer reading as a peer of the others. */
 .columns {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--sp-4);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1400px) {
+  .columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 800px) {
   .columns {
     grid-template-columns: minmax(0, 1fr);
   }

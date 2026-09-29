@@ -5,6 +5,7 @@ import { CatalogItem } from './entities/catalog-item.entity';
 import { Specialty } from './entities/specialty.entity';
 import { ResidencyProgram } from './entities/residency-program.entity';
 import { FellowshipProgram } from './entities/fellowship-program.entity';
+import { TrainingLevel } from './entities/training-level.entity';
 import {
   CATALOG_LABELS,
   CATALOG_LABELS_PLURAL,
@@ -27,11 +28,14 @@ export class CatalogsService {
     residencies: Repository<ResidencyProgram>,
     @InjectRepository(FellowshipProgram)
     fellowships: Repository<FellowshipProgram>,
+    @InjectRepository(TrainingLevel)
+    levels: Repository<TrainingLevel>,
   ) {
     this.repositories = {
       [CatalogKind.SPECIALTIES]: specialties,
       [CatalogKind.RESIDENCIES]: residencies,
       [CatalogKind.FELLOWSHIPS]: fellowships,
+      [CatalogKind.LEVELS]: levels,
     };
   }
 
@@ -41,7 +45,7 @@ export class CatalogsService {
   ): Promise<CatalogItem[]> {
     return this.repo(kind).find({
       where: options?.activeOnly ? { isActive: true } : {},
-      order: { name: 'ASC' },
+      order: { sortOrder: 'ASC', name: 'ASC' },
     });
   }
 

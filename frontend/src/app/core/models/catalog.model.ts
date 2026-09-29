@@ -1,8 +1,13 @@
-/** The three reference lists a profile is built from. Matches the API's URL segment. */
-export type CatalogKind = 'specialties' | 'residencies' | 'fellowships';
+/** The reference lists a profile is built from. Matches the API's URL segment. */
+export type CatalogKind =
+  | 'specialties'
+  | 'residencies'
+  | 'fellowships'
+  | 'levels';
 
 export const CATALOG_KINDS: CatalogKind[] = [
   'specialties',
+  'levels',
   'residencies',
   'fellowships',
 ];
@@ -38,6 +43,13 @@ export const CATALOG_META: Record<CatalogKind, CatalogMeta> = {
     icon: 'workspace_premium',
     blurb: 'Where somebody did their fellowship.',
     placeholder: 'Stanford Medical Center',
+  },
+  levels: {
+    title: 'Training levels',
+    singular: 'training level',
+    icon: 'stairs',
+    blurb: 'How far along a resident is.',
+    placeholder: 'PGY-8',
   },
 };
 

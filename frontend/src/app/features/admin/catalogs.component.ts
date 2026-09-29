@@ -48,6 +48,7 @@ export class CatalogsComponent {
   readonly loading = signal(true);
   readonly items = signal<Record<CatalogKind, CatalogItem[]>>({
     specialties: [],
+    levels: [],
     residencies: [],
     fellowships: [],
   });

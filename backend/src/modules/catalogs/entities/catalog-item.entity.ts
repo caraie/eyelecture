@@ -28,6 +28,15 @@ export abstract class CatalogItem {
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
 
+  /**
+   * Explicit order, because alphabetical is wrong for some of these lists: PGY-10
+   * sorts before PGY-2, and "Non-clinical" belongs at the end of the specialties
+   * rather than between Neuro-Ophthalmology and Oculoplastics. Everything left at 0
+   * still falls back to alphabetical, which is what the other lists want.
+   */
+  @Column({ type: 'int', default: 0 })
+  sortOrder!: number;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
