@@ -25,6 +25,8 @@ import {
   ROLE_BLURBS,
   ROLE_LABELS,
   SELF_SIGNUP_ROLES,
+  PROFILE_FIELDS,
+  ProfileFields,
   TRAINEE_ROLES,
   UserRole,
 } from '../../core/models/user.model';
@@ -76,14 +78,18 @@ export class CompleteProfileComponent {
 
   readonly form = this.fb.nonNullable.group({
     role: ['' as SignupRole | '', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    // Optional: requiring it would block signing up on something the profile
-    // screen can collect any time afterwards.
-    secondaryEmail: ['', [Validators.email]],
+    // The anchor of the account, and the only address that survives leaving an
+    // institution. Required of everybody.
+    personalEmail: ['', [Validators.required, Validators.email]],
+    // Required for every user type that implies an institution — which is all of
+    // them except the attending physician. The validator follows the type.
+    email: ['', [Validators.email]],
     requestedInstitutionId: [''],
-    // Attending physicians only. The specialty becomes required when that rank is
-    // picked; the two programmes stay optional, because the reference lists are
-    // still placeholders and nobody should be stuck behind a missing entry.
+    // Required or refused depending on the user type; see `fields` below. The two
+    // programmes stay optional for everybody who is offered them, because the
+    // reference lists are still short and nobody should be stuck behind an entry
+    // that has not been added yet.
+    trainingLevelId: [''],
     specialtyId: [''],
     residencyProgramId: [''],
     fellowshipProgramId: [''],
@@ -96,22 +102,32 @@ export class CompleteProfileComponent {
   );
 
   /**
-   * Trainees are expected to hold an institution address; an attending physician is
-   * not. The copy on the address field changes accordingly, because "institutional
-   * email" is wrong advice for two of the five ranks.
+   * What this user type is asked, straight from the table the API enforces. Nothing
+   * in this component decides on its own which fields to show.
    */
-  readonly expectsInstitutionalEmail = computed(() => {
+  readonly fields = computed<ProfileFields>(() => {
+    const role = this.role();
+    return role === ''
+      ? { institution: false, level: false, specialty: false, programs: false }
+      : PROFILE_FIELDS[role];
+  });
+
+  /**
+   * Whether a matching domain would let them in on its own. Only trainees; an
+   * attending physician is reviewed either way, and a program administrator vouches
+   * for other people — neither is something a domain match can establish.
+   */
+  readonly autoValidatesOnDomain = computed(() => {
     const role = this.role();
     return role !== '' && TRAINEE_ROLES.includes(role);
   });
 
-  /** Attending physicians describe their practice; nobody else does, for now. */
-  readonly isAttending = computed(() => this.role() === 'attending_physician');
-
   readonly specialties = signal<PublicCatalogItem[]>([]);
+  readonly levels = signal<PublicCatalogItem[]>([]);
   readonly residencies = signal<PublicCatalogItem[]>([]);
   readonly fellowships = signal<PublicCatalogItem[]>([]);
   private catalogsRequested = false;
+  private levelsRequested = false;
 
   /** What the typed address resolves to, looked up while they type. */
   private readonly lookup = toSignal(
@@ -130,12 +146,12 @@ export class CompleteProfileComponent {
   readonly matchedInstitution = computed(() => this.lookup()?.institution ?? null);
 
   /**
-   * Only trainees on an unrecognised domain need to name an institution. For an
-   * attending physician there is nothing to pick — they are reviewed by platform
-   * staff either way — and showing the picker would imply otherwise.
+   * Only somebody who needs an institution and whose domain resolves to nothing has
+   * anything to pick. For an attending physician there is nothing to choose — they
+   * hold an unaffiliated account — and showing the picker would imply otherwise.
    */
   readonly needsInstitutionPicker = computed(
-    () => this.expectsInstitutionalEmail() && this.matchedInstitution() === null,
+    () => this.fields().institution && this.matchedInstitution() === null,
   );
 
   constructor() {
@@ -144,10 +160,18 @@ export class CompleteProfileComponent {
       error: () => this.institutions.set([]),
     });
 
-    // Fetched the first time somebody picks the rank that needs them, rather than on
-    // load: four of the five ranks never see these lists.
+    // Fetched the first time somebody picks a user type that needs them, rather than
+    // on load: a medical student never sees any of these lists.
     effect(() => {
-      if (!this.isAttending() || this.catalogsRequested) return;
+      const fields = this.fields();
+      if (fields.level && !this.levelsRequested) {
+        this.levelsRequested = true;
+        this.catalogsApi.listPublic('levels').subscribe({
+          next: (list) => this.levels.set(list),
+          error: () => this.levels.set([]),
+        });
+      }
+      if (!fields.specialty || this.catalogsRequested) return;
       this.catalogsRequested = true;
 
       this.catalogsApi.listPublic('specialties').subscribe({
@@ -164,20 +188,39 @@ export class CompleteProfileComponent {
       });
     });
 
-    // The specialty is only meaningful for an attending, so the requirement follows
-    // the rank rather than sitting on the control for everybody.
+    // Requirements follow the user type rather than sitting on the controls for
+    // everybody. Clearing a control the type does not have matters as much as the
+    // validator: the API refuses a value it did not ask for, so a leftover from a
+    // type somebody picked and changed their mind about would fail the submit with
+    // a message about a field that is no longer on screen.
     effect(() => {
-      const control = this.form.controls.specialtyId;
-      if (this.isAttending()) {
-        control.addValidators(Validators.required);
-      } else {
-        control.removeValidators(Validators.required);
-        control.setValue('', { emitEvent: false });
+      const fields = this.fields();
+
+      this.applyRequirement(this.form.controls.email, fields.institution);
+      this.applyRequirement(this.form.controls.trainingLevelId, fields.level);
+      this.applyRequirement(this.form.controls.specialtyId, fields.specialty);
+
+      if (!fields.programs) {
         this.form.controls.residencyProgramId.setValue('', { emitEvent: false });
         this.form.controls.fellowshipProgramId.setValue('', { emitEvent: false });
       }
-      control.updateValueAndValidity({ emitEvent: false });
     });
+  }
+
+  private applyRequirement(
+    control: (typeof this.form.controls)[
+      | 'email'
+      | 'trainingLevelId'
+      | 'specialtyId'],
+    required: boolean,
+  ): void {
+    if (required) {
+      control.addValidators(Validators.required);
+    } else {
+      control.removeValidators(Validators.required);
+      control.setValue('', { emitEvent: false });
+    }
+    control.updateValueAndValidity({ emitEvent: false });
   }
 
   submit(): void {
@@ -189,27 +232,26 @@ export class CompleteProfileComponent {
     const raw = this.form.getRawValue();
     if (raw.role === '') return;
 
+    const fields = this.fields();
+
     this.submitting.set(true);
     this.auth
       .completeProfile({
         role: raw.role,
-        email: raw.email.trim().toLowerCase(),
-        ...(raw.secondaryEmail.trim()
-          ? { secondaryEmail: raw.secondaryEmail.trim().toLowerCase() }
+        personalEmail: raw.personalEmail.trim().toLowerCase(),
+        ...(fields.institution && raw.email.trim()
+          ? { email: raw.email.trim().toLowerCase() }
           : {}),
         ...(this.needsInstitutionPicker() && raw.requestedInstitutionId
           ? { requestedInstitutionId: raw.requestedInstitutionId }
           : {}),
-        ...(this.isAttending()
-          ? {
-              specialtyId: raw.specialtyId,
-              ...(raw.residencyProgramId
-                ? { residencyProgramId: raw.residencyProgramId }
-                : {}),
-              ...(raw.fellowshipProgramId
-                ? { fellowshipProgramId: raw.fellowshipProgramId }
-                : {}),
-            }
+        ...(fields.level ? { trainingLevelId: raw.trainingLevelId } : {}),
+        ...(fields.specialty ? { specialtyId: raw.specialtyId } : {}),
+        ...(fields.programs && raw.residencyProgramId
+          ? { residencyProgramId: raw.residencyProgramId }
+          : {}),
+        ...(fields.programs && raw.fellowshipProgramId
+          ? { fellowshipProgramId: raw.fellowshipProgramId }
           : {}),
       })
       .subscribe({

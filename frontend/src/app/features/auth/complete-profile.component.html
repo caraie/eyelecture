@@ -36,46 +36,67 @@
       }
     </mat-form-field>
 
+    <!-- The personal address comes first because it is the one that outlasts
+         everything else on this form. -->
     <mat-form-field appearance="outline">
-      <mat-label>
-        {{ expectsInstitutionalEmail() ? 'Institutional email' : 'Primary email' }}
-      </mat-label>
+      <mat-label>Personal email</mat-label>
       <input
         matInput
         type="email"
-        formControlName="email"
+        formControlName="personalEmail"
         autocomplete="email"
-        [placeholder]="
-          expectsInstitutionalEmail() ? 'you@stanford.edu' : 'you@example.com'
-        "
+        placeholder="you@gmail.com"
       />
       <mat-icon matPrefix>alternate_email</mat-icon>
       <mat-hint>
-        Use your Institutional email address here for verification purposes (e.g.
-        user&#64;medicalschool.edu)
+        A private mailbox. It is what keeps your account reachable once an
+        institutional address is switched off.
       </mat-hint>
-      @if (form.controls.email.hasError('required')) {
-        <mat-error>An email address is required</mat-error>
-      } @else if (form.controls.email.hasError('email')) {
+      @if (form.controls.personalEmail.hasError('required')) {
+        <mat-error>A personal email address is required</mat-error>
+      } @else if (form.controls.personalEmail.hasError('email')) {
         <mat-error>That does not look like an email address</mat-error>
       }
     </mat-form-field>
 
-    @if (matchedInstitution(); as institution) {
-      <div class="el-alert el-alert-success" role="status">
-        <mat-icon>verified</mat-icon>
-        <!-- Two different statements, not one with a tail. A trainee on a matching
-             domain really is validated; anybody else is merely recognised and still
-             waiting, and saying "Validated" to them would be a lie. -->
-        <div>
-          @if (expectsInstitutionalEmail()) {
-            Validated — <strong>{{ institution.name }}</strong>
-          } @else {
-            <strong>{{ institution.name }}</strong> — your membership still needs to
-            be confirmed.
-          }
+    @if (fields().institution) {
+      <mat-form-field appearance="outline">
+        <mat-label>Institutional email</mat-label>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="you@stanford.edu"
+        />
+        <mat-icon matPrefix>alternate_email</mat-icon>
+        <mat-hint>
+          Use your Institutional email address here for verification purposes (e.g.
+          user&#64;medicalschool.edu)
+        </mat-hint>
+        @if (form.controls.email.hasError('required')) {
+          <mat-error>An institutional email address is required</mat-error>
+        } @else if (form.controls.email.hasError('email')) {
+          <mat-error>That does not look like an email address</mat-error>
+        }
+      </mat-form-field>
+
+      @if (matchedInstitution(); as institution) {
+        <div class="el-alert el-alert-success" role="status">
+          <mat-icon>verified</mat-icon>
+          <!-- Two different statements, not one with a tail. A trainee on a matching
+               domain really is validated; anybody else is merely recognised and still
+               waiting, and saying "Validated" to them would be a lie. -->
+          <div>
+            @if (autoValidatesOnDomain()) {
+              Validated — <strong>{{ institution.name }}</strong>
+            } @else {
+              <strong>{{ institution.name }}</strong> — your membership still needs to
+              be confirmed.
+            }
+          </div>
         </div>
-      </div>
+      }
     }
 
     @if (needsInstitutionPicker()) {
@@ -93,68 +114,74 @@
       </mat-form-field>
     }
 
-    @if (isAttending()) {
+    @if (fields().level || fields().specialty) {
       <div class="clinical">
-        <p class="el-overline">Your practice</p>
+        <p class="el-overline">Your training</p>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Clinical focus</mat-label>
-          <mat-select formControlName="specialtyId">
-            @for (item of specialties(); track item.id) {
-              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+        @if (fields().level) {
+          <mat-form-field appearance="outline">
+            <mat-label>Level</mat-label>
+            <mat-select formControlName="trainingLevelId">
+              @for (item of levels(); track item.id) {
+                <mat-option [value]="item.id">{{ item.name }}</mat-option>
+              }
+            </mat-select>
+            @if (
+              form.controls.trainingLevelId.hasError('required') &&
+              form.controls.trainingLevelId.touched
+            ) {
+              <mat-error>Pick your level</mat-error>
             }
-          </mat-select>
-          @if (
-            form.controls.specialtyId.hasError('required') &&
-            form.controls.specialtyId.touched
-          ) {
-            <mat-error>Pick your clinical focus</mat-error>
-          }
-        </mat-form-field>
+          </mat-form-field>
+        }
 
-        <mat-form-field appearance="outline">
-          <mat-label>Residency (optional)</mat-label>
-          <mat-select formControlName="residencyProgramId">
-            <mat-option [value]="''">Not listed</mat-option>
-            @for (item of residencies(); track item.id) {
-              <mat-option [value]="item.id">{{ item.name }}</mat-option>
+        @if (fields().specialty) {
+          <mat-form-field appearance="outline">
+            <mat-label>Clinical focus</mat-label>
+            <mat-select formControlName="specialtyId">
+              @for (item of specialties(); track item.id) {
+                <mat-option [value]="item.id">{{ item.name }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>
+              Pick "Non-clinical" if your role is administrative.
+            </mat-hint>
+            @if (
+              form.controls.specialtyId.hasError('required') &&
+              form.controls.specialtyId.touched
+            ) {
+              <mat-error>Pick your clinical focus</mat-error>
             }
-          </mat-select>
-        </mat-form-field>
+          </mat-form-field>
+        }
 
-        <mat-form-field appearance="outline">
-          <mat-label>Fellowship (optional)</mat-label>
-          <mat-select formControlName="fellowshipProgramId">
-            <mat-option [value]="''">None or not listed</mat-option>
-            @for (item of fellowships(); track item.id) {
-              <mat-option [value]="item.id">{{ item.name }}</mat-option>
-            }
-          </mat-select>
-          <mat-hint>
-            These lists are still short. If yours is missing, leave it blank and tell
-            us — an administrator can add it.
-          </mat-hint>
-        </mat-form-field>
+        @if (fields().programs) {
+          <mat-form-field appearance="outline">
+            <mat-label>Residency (optional)</mat-label>
+            <mat-select formControlName="residencyProgramId">
+              <mat-option [value]="''">Not listed</mat-option>
+              @for (item of residencies(); track item.id) {
+                <mat-option [value]="item.id">{{ item.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Fellowship (optional)</mat-label>
+            <mat-select formControlName="fellowshipProgramId">
+              <mat-option [value]="''">None or not listed</mat-option>
+              @for (item of fellowships(); track item.id) {
+                <mat-option [value]="item.id">{{ item.name }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>
+              These lists are still short. If yours is missing, leave it blank and
+              tell us — a super user can add it.
+            </mat-hint>
+          </mat-form-field>
+        }
       </div>
     }
-
-    <mat-form-field appearance="outline">
-      <mat-label>Recovery email (optional)</mat-label>
-      <input
-        matInput
-        type="email"
-        formControlName="secondaryEmail"
-        autocomplete="email"
-        placeholder="you@gmail.com"
-      />
-      <mat-icon matPrefix>alternate_email</mat-icon>
-      <mat-hint>
-        Choose a back-up email account for password recovery purposes only
-      </mat-hint>
-      @if (form.controls.secondaryEmail.hasError('email')) {
-        <mat-error>That does not look like an email address</mat-error>
-      }
-    </mat-form-field>
 
     <button
       mat-flat-button

@@ -12,6 +12,7 @@ import { UsersService } from '../../core/services/users.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { StatusBadgeComponent } from '../../shared/components/status-badge.component';
 import { ROLE_LABELS, initialsOf } from '../../core/models/user.model';
+import { Affiliation } from '../../core/models/api.model';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -59,7 +60,7 @@ export class ProfileComponent {
   // --- Personal address -------------------------------------------------------
 
   readonly busy = signal(false);
-  readonly editingSecondary = signal(false);
+  readonly editingPersonal = signal(false);
   /** Dev-only: without a mail server the confirmation link comes back inline. */
   readonly devConfirmToken = signal<string | null>(null);
 
@@ -70,8 +71,8 @@ export class ProfileComponent {
       : `/app/profile/confirm-personal-email?token=${token}`;
   });
 
-  readonly secondaryForm = this.fb.nonNullable.group({
-    secondaryEmail: ['', [Validators.required, Validators.email]],
+  readonly personalForm = this.fb.nonNullable.group({
+    personalEmail: ['', [Validators.required, Validators.email]],
   });
 
   constructor() {
@@ -88,34 +89,36 @@ export class ProfileComponent {
 
     // Arriving from a confirmation link. The token is in the query string and the
     // route reuses this component, so the confirmation happens here.
+    this.loadAffiliations();
+
     const token = this.route.snapshot.queryParamMap.get('token');
-    if (token) this.confirmSecondary(token);
+    if (token) this.confirmPersonal(token);
   }
 
-  startEditingSecondary(): void {
-    this.secondaryForm.reset({ secondaryEmail: this.user()?.secondaryEmail ?? '' });
-    this.editingSecondary.set(true);
+  startEditingPersonal(): void {
+    this.personalForm.reset({ personalEmail: this.user()?.personalEmail ?? '' });
+    this.editingPersonal.set(true);
   }
 
-  cancelEditingSecondary(): void {
-    this.editingSecondary.set(false);
-    this.secondaryForm.reset();
+  cancelEditingPersonal(): void {
+    this.editingPersonal.set(false);
+    this.personalForm.reset();
   }
 
-  saveSecondary(): void {
-    if (this.secondaryForm.invalid || this.busy()) {
-      this.secondaryForm.markAllAsTouched();
+  savePersonal(): void {
+    if (this.personalForm.invalid || this.busy()) {
+      this.personalForm.markAllAsTouched();
       return;
     }
 
     this.busy.set(true);
-    const value = this.secondaryForm.getRawValue().secondaryEmail.trim();
+    const value = this.personalForm.getRawValue().personalEmail.trim();
 
-    this.auth.setSecondaryEmail(value).subscribe({
+    this.auth.setPersonalEmail(value).subscribe({
       next: (response) => {
         this.busy.set(false);
-        this.editingSecondary.set(false);
-        this.secondaryForm.reset();
+        this.editingPersonal.set(false);
+        this.personalForm.reset();
         this.devConfirmToken.set(response.devToken ?? null);
         this.notify.success(
           `Saved. You can sign in with ${value} straight away — check it for a confirmation link.`,
@@ -132,7 +135,7 @@ export class ProfileComponent {
     if (this.busy()) return;
 
     this.busy.set(true);
-    this.auth.resendSecondaryEmailVerification().subscribe({
+    this.auth.resendPersonalEmailVerification().subscribe({
       next: (response) => {
         this.busy.set(false);
         this.devConfirmToken.set(response.devToken ?? null);
@@ -145,33 +148,70 @@ export class ProfileComponent {
     });
   }
 
-  removeSecondary(): void {
-    if (this.busy()) return;
+  // --- Institutional address, and with it the institution ---------------------
+
+  readonly editingInstitutional = signal(false);
+  readonly institutionalForm = this.fb.nonNullable.group({
+    email: ['', [Validators.required, Validators.email]],
+  });
+
+  startEditingInstitutional(): void {
+    this.institutionalForm.reset({ email: this.user()?.email ?? '' });
+    this.editingInstitutional.set(true);
+  }
+
+  cancelEditingInstitutional(): void {
+    this.editingInstitutional.set(false);
+    this.institutionalForm.reset();
+  }
+
+  saveInstitutional(): void {
+    if (this.institutionalForm.invalid || this.busy()) {
+      this.institutionalForm.markAllAsTouched();
+      return;
+    }
 
     this.busy.set(true);
-    this.auth.removeSecondaryEmail().subscribe({
-      next: () => {
+    const email = this.institutionalForm.getRawValue().email.trim().toLowerCase();
+
+    this.auth.changeInstitutionalEmail({ email }).subscribe({
+      next: (response) => {
         this.busy.set(false);
-        this.editingSecondary.set(false);
-        this.devConfirmToken.set(null);
-        this.notify.info(
-          'Personal address removed. From now on only your institution address signs you in.',
-        );
+        this.editingInstitutional.set(false);
+        this.institutionalForm.reset();
+        this.loadAffiliations();
+        this.notify.success(response.message);
       },
       error: (error: unknown) => {
         this.busy.set(false);
-        this.notify.showHttpError(error, 'Could not remove that address');
+        this.notify.showHttpError(error, 'Could not change that address');
       },
     });
   }
 
-  private confirmSecondary(token: string): void {
+  // --- Affiliations -----------------------------------------------------------
+
+  readonly affiliations = signal<Affiliation[]>([]);
+  readonly pastAffiliations = computed(() =>
+    this.affiliations().filter((affiliation) => !affiliation.isCurrent),
+  );
+
+  private loadAffiliations(): void {
+    this.usersApi.myAffiliations().subscribe({
+      next: (list) => this.affiliations.set(list),
+      // A missing history is not worth an error toast on a screen that works
+      // without it.
+      error: () => this.affiliations.set([]),
+    });
+  }
+
+  private confirmPersonal(token: string): void {
     this.busy.set(true);
-    this.auth.verifySecondaryEmail(token).subscribe({
+    this.auth.verifyPersonalEmail(token).subscribe({
       next: (result) => {
         this.busy.set(false);
         this.devConfirmToken.set(null);
-        this.notify.success(`${result.secondaryEmail} is confirmed.`);
+        this.notify.success(`${result.personalEmail} is confirmed.`);
         // Drop the token from the URL so a refresh does not retry a spent link.
         void this.router.navigate(['/app/profile'], { replaceUrl: true });
       },

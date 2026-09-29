@@ -33,6 +33,11 @@ async function seed(): Promise<void> {
         username: process.env.SEED_ADMIN_USERNAME ?? 'admin',
         email: adminEmail,
         emailDomain: adminEmail.split('@')[1],
+        // Left unset by default on purpose: the seeded account then meets the same
+        // add-a-personal-address screen every pre-existing account will, which is
+        // the cheapest way to find out whether that screen works. Set
+        // SEED_ADMIN_PERSONAL_EMAIL to skip it.
+        personalEmail: process.env.SEED_ADMIN_PERSONAL_EMAIL ?? null,
         passwordHash: await bcrypt.hash(adminPassword, 12),
         firstName: 'Platform',
         lastName: 'Admin',

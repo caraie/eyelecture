@@ -49,12 +49,12 @@ export interface User {
   /** Institutional address. Null until the profile is completed. */
   email: string | null;
   /** Recovery address. Reaches them; does not sign them in. */
-  secondaryEmail: string | null;
+  personalEmail: string | null;
   /**
    * Unverified is a normal state. Confirming it only proves somebody can read that
    * mailbox, which is what lets us write to it later.
    */
-  secondaryEmailVerified: boolean;
+  personalEmailVerified: boolean;
   firstName: string;
   lastName: string;
   fullName: string;
@@ -66,15 +66,66 @@ export interface User {
   validationNote: string | null;
   institution: UserInstitution | null;
   requestedInstitution: UserInstitution | null;
-  /** Attending physicians only, for now. Null for everybody else. */
+  /** Which of these are filled in depends on the user type — see PROFILE_FIELDS. */
+  trainingLevel: CatalogRef | null;
   specialty: CatalogRef | null;
   residencyProgram: CatalogRef | null;
   fellowshipProgram: CatalogRef | null;
   emailVerified: boolean;
   /** True while an admin-issued temporary password is still in place. */
   mustChangePassword: boolean;
+  /**
+   * True for an account made before a personal address was required. The router
+   * pins them to the screen that adds one; the API refuses everything else.
+   */
+  needsPersonalEmail: boolean;
   createdAt: string;
 }
+
+/**
+ * What the second half of signup asks, per user type. Mirrors PROFILE_FIELDS in
+ * backend/src/modules/users/enums/user-role.enum.ts, which is what actually enforces
+ * it — this copy exists so the form shows the same fields the API will accept.
+ *
+ * The two drifted apart once already: the form stopped showing the clinical block
+ * while the API still demanded it, and the only symptom was a 400 that made no sense
+ * from the screen.
+ */
+export interface ProfileFields {
+  institution: boolean;
+  level: boolean;
+  specialty: boolean;
+  programs: boolean;
+}
+
+export const PROFILE_FIELDS: Record<UserRole, ProfileFields> = {
+  medical_student: {
+    institution: true,
+    level: false,
+    specialty: false,
+    programs: false,
+  },
+  resident: { institution: true, level: true, specialty: false, programs: false },
+  fellow: { institution: true, level: false, specialty: true, programs: true },
+  attending_physician: {
+    institution: false,
+    level: false,
+    specialty: true,
+    programs: true,
+  },
+  program_administrator: {
+    institution: true,
+    level: false,
+    specialty: true,
+    programs: true,
+  },
+  super_user: {
+    institution: false,
+    level: false,
+    specialty: false,
+    programs: false,
+  },
+};
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   medical_student: 'Medical student',

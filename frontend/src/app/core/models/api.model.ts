@@ -1,4 +1,4 @@
-import { User, UserRole } from './user.model';
+import { User, UserInstitution, UserRole } from './user.model';
 
 export interface PaginatedResult<T> {
   items: T[];
@@ -27,17 +27,46 @@ export interface RegisterPayload {
   password: string;
 }
 
-/** Step two: who they are and where to reach them. */
+/**
+ * Step two: who they are, where to reach them, and how far along they are.
+ *
+ * Which of the optional fields are actually required is decided by the user type —
+ * see PROFILE_FIELDS in user.model.ts, which mirrors the table the API enforces.
+ */
 export interface CompleteProfilePayload {
   role: Exclude<UserRole, 'super_user'>;
-  email: string;
-  /** Optional here; it can be added later from the profile. */
-  secondaryEmail?: string;
+  /** Required of everybody: the address that survives leaving an institution. */
+  personalEmail: string;
+  /** Required of every user type that implies an institution. */
+  email?: string;
   requestedInstitutionId?: string;
-  /** Attending physicians only. The specialty is required of them. */
+  trainingLevelId?: string;
   specialtyId?: string;
   residencyProgramId?: string;
   fellowshipProgramId?: string;
+}
+
+/** Changing institution, which is the same act as changing institutional address. */
+export interface ChangeInstitutionalEmailPayload {
+  email: string;
+  requestedInstitutionId?: string;
+}
+
+export interface ChangeInstitutionalEmailResponse {
+  user: User;
+  autoValidated: boolean;
+  message: string;
+}
+
+/** One institution somebody has belonged to. `endedAt` is the only thing that ends it. */
+export interface Affiliation {
+  id: string;
+  institution: UserInstitution;
+  institutionalEmail: string | null;
+  emailVerified: boolean;
+  startedAt: string;
+  endedAt: string | null;
+  isCurrent: boolean;
 }
 
 export interface CompleteProfileResponse {
@@ -57,12 +86,12 @@ export interface ChangePasswordPayload {
  * confirmation token — there is no mail transport wired up yet, so this is what makes
  * the flow testable end to end.
  */
-export interface SecondaryEmailResponse {
+export interface PersonalEmailResponse {
   user: User;
   devToken?: string;
 }
 
-export interface ResendSecondaryEmailResponse {
+export interface ResendPersonalEmailResponse {
   message: string;
   devToken?: string;
 }
@@ -72,8 +101,8 @@ export interface ResendSecondaryEmailResponse {
  * public — the token is the whole credential — so it deliberately does not hand back
  * the account.
  */
-export interface VerifySecondaryEmailResponse {
-  secondaryEmail: string;
+export interface VerifyPersonalEmailResponse {
+  personalEmail: string;
   message: string;
 }
 
@@ -83,7 +112,7 @@ export interface CreateAdminPayload {
   firstName: string;
   lastName: string;
   temporaryPassword: string;
-  secondaryEmail?: string;
+  personalEmail?: string;
 }
 
 export interface AdminUpdateUserPayload {
@@ -91,7 +120,7 @@ export interface AdminUpdateUserPayload {
   lastName?: string;
   email?: string;
   /** Empty string removes the personal address. */
-  secondaryEmail?: string | null;
+  personalEmail?: string | null;
 }
 
 export interface RegisterResponse {

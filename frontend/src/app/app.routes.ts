@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import {
   authGuard,
   completeProfileGuard,
+  personalEmailGuard,
   guestGuard,
   passwordChangeGuard,
   roleGuard,
@@ -109,6 +110,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/auth/complete-profile.component').then(
             (m) => m.CompleteProfileComponent,
+          ),
+      },
+      {
+        path: 'personal-email',
+        canActivate: [personalEmailGuard],
+        title: 'Add a personal email · EyeLecture',
+        loadComponent: () =>
+          import('./features/auth/personal-email.component').then(
+            (m) => m.PersonalEmailComponent,
           ),
       },
       {

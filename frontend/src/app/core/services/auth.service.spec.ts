@@ -12,13 +12,14 @@ import { environment } from '../../../environments/environment';
 
 const makeUser = (overrides: Partial<User> = {}): User => ({
   id: 'u1',
+  username: 'ana.perez',
   email: 'ana@stanford.edu',
-  secondaryEmail: null,
-  secondaryEmailVerified: false,
+  personalEmail: 'ana@gmail.com',
+  personalEmailVerified: false,
   firstName: 'Ana',
   lastName: 'Perez',
   fullName: 'Ana Perez',
-  role: 'student',
+  role: 'medical_student',
   status: 'active',
   validationStatus: 'validated',
   validationMethod: 'email_domain',
@@ -26,8 +27,13 @@ const makeUser = (overrides: Partial<User> = {}): User => ({
   validationNote: null,
   institution: { id: 'i1', name: 'Stanford', slug: 'stanford' },
   requestedInstitution: null,
+  trainingLevel: null,
+  specialty: null,
+  residencyProgram: null,
+  fellowshipProgram: null,
   emailVerified: true,
   mustChangePassword: false,
+  needsPersonalEmail: false,
   createdAt: '2026-01-01T00:00:00.000Z',
   ...overrides,
 });
@@ -63,7 +69,7 @@ describe('AuthService', () => {
   });
 
   it('stores both tokens and the user on login', () => {
-    service.login({ email: 'ana@stanford.edu', password: 'x' }).subscribe();
+    service.login({ username: 'ana.perez', password: 'x' }).subscribe();
 
     http.expectOne(`${environment.apiUrl}/auth/login`).flush({
       accessToken: 'access-1',
@@ -79,23 +85,52 @@ describe('AuthService', () => {
   });
 
   it('derives role flags from the signed-in user', () => {
-    service.login({ email: 'a@b.c', password: 'x' }).subscribe();
+    service.login({ username: 'ana.perez', password: 'x' }).subscribe();
     http.expectOne(`${environment.apiUrl}/auth/login`).flush({
       accessToken: 'a',
       refreshToken: 'r',
       expiresIn: 900,
-      user: makeUser({ role: 'program_director' }),
+      user: makeUser({ role: 'program_administrator' }),
     });
 
-    expect(service.isProgramDirector()).toBe(true);
+    expect(service.isProgramAdministrator()).toBe(true);
     expect(service.isSuperUser()).toBe(false);
-    expect(service.isStudent()).toBe(false);
-    // A director can open the review queue; a student cannot.
+    expect(service.isTrainee()).toBe(false);
+    // An approved program administrator can open the review queue.
     expect(service.canReview()).toBe(true);
   });
 
-  it('treats an admin as a reviewer too', () => {
-    service.login({ email: 'a@b.c', password: 'x' }).subscribe();
+  it('refuses the review queue to a program administrator nobody approved', () => {
+    service.login({ username: 'ana.perez', password: 'x' }).subscribe();
+    http.expectOne(`${environment.apiUrl}/auth/login`).flush({
+      accessToken: 'a',
+      refreshToken: 'r',
+      expiresIn: 900,
+      user: makeUser({
+        role: 'program_administrator',
+        validationStatus: 'pending',
+        validationMethod: null,
+      }),
+    });
+
+    expect(service.isProgramAdministrator()).toBe(true);
+    expect(service.canReview()).toBe(false);
+  });
+
+  it('pins an account with no personal address to that one screen', () => {
+    service.login({ username: 'ana.perez', password: 'x' }).subscribe();
+    http.expectOne(`${environment.apiUrl}/auth/login`).flush({
+      accessToken: 'a',
+      refreshToken: 'r',
+      expiresIn: 900,
+      user: makeUser({ personalEmail: null, needsPersonalEmail: true }),
+    });
+
+    expect(service.needsPersonalEmail()).toBe(true);
+  });
+
+  it('treats a super user as a reviewer too', () => {
+    service.login({ username: 'ana.perez', password: 'x' }).subscribe();
     http.expectOne(`${environment.apiUrl}/auth/login`).flush({
       accessToken: 'a',
       refreshToken: 'r',
@@ -107,8 +142,8 @@ describe('AuthService', () => {
     expect(service.canReview()).toBe(true);
   });
 
-  it('does not report a pending student as validated', () => {
-    service.login({ email: 'a@b.c', password: 'x' }).subscribe();
+  it('does not report a pending trainee as validated', () => {
+    service.login({ username: 'ana.perez', password: 'x' }).subscribe();
     http.expectOne(`${environment.apiUrl}/auth/login`).flush({
       accessToken: 'a',
       refreshToken: 'r',

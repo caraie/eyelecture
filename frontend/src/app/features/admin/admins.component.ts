@@ -110,7 +110,7 @@ export class AdminsComponent {
     firstName: ['', [Validators.required, Validators.maxLength(100)]],
     lastName: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email]],
-    secondaryEmail: ['', [optionalEmail]],
+    personalEmail: ['', [optionalEmail]],
     temporaryPassword: [
       '',
       [
@@ -125,7 +125,7 @@ export class AdminsComponent {
     firstName: ['', [Validators.required, Validators.maxLength(100)]],
     lastName: ['', [Validators.required, Validators.maxLength(100)]],
     email: ['', [Validators.required, Validators.email]],
-    secondaryEmail: ['', [optionalEmail]],
+    personalEmail: ['', [optionalEmail]],
   });
 
   constructor() {
@@ -178,7 +178,7 @@ export class AdminsComponent {
     }
 
     const raw = this.createForm.getRawValue();
-    const secondaryEmail = raw.secondaryEmail.trim().toLowerCase();
+    const personalEmail = raw.personalEmail.trim().toLowerCase();
 
     this.saving.set(true);
     this.api
@@ -187,7 +187,7 @@ export class AdminsComponent {
         firstName: raw.firstName.trim(),
         lastName: raw.lastName.trim(),
         temporaryPassword: raw.temporaryPassword,
-        ...(secondaryEmail ? { secondaryEmail } : {}),
+        ...(personalEmail ? { personalEmail } : {}),
       })
       .subscribe({
         next: (created) => {
@@ -244,7 +244,7 @@ export class AdminsComponent {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email ?? '',
-      secondaryEmail: user.secondaryEmail ?? '',
+      personalEmail: user.personalEmail ?? '',
     });
   }
 
@@ -260,7 +260,7 @@ export class AdminsComponent {
     }
 
     const raw = this.editForm.getRawValue();
-    const secondaryEmail = raw.secondaryEmail.trim().toLowerCase();
+    const personalEmail = raw.personalEmail.trim().toLowerCase();
 
     this.busyId.set(user.id);
     this.api
@@ -270,7 +270,7 @@ export class AdminsComponent {
         email: raw.email.trim().toLowerCase(),
         // '' is meaningful here: it clears the address. undefined would leave it be,
         // so the two cases cannot be collapsed.
-        secondaryEmail,
+        personalEmail,
       })
       .subscribe({
         next: (updated) => {

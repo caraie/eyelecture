@@ -3,6 +3,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  Affiliation,
   AdminUpdateUserPayload,
   CreateAdminPayload,
   PaginatedResult,
@@ -50,6 +51,11 @@ export class UsersService {
     return this.http.get<PaginatedResult<User>>(`${this.base}/pending-validation`, {
       params: toParams(query),
     });
+  }
+
+  /** Every institution you have belonged to, current one first. */
+  myAffiliations(): Observable<Affiliation[]> {
+    return this.http.get<Affiliation[]>(`${this.base}/me/affiliations`);
   }
 
   pendingCount(): Observable<{ count: number }> {

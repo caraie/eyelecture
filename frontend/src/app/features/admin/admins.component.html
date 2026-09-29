@@ -97,10 +97,10 @@
 
       <mat-form-field appearance="outline">
         <mat-label>Personal email (optional)</mat-label>
-        <input matInput type="email" formControlName="secondaryEmail" />
+        <input matInput type="email" formControlName="personalEmail" />
         <mat-icon matPrefix>alternate_email</mat-icon>
         <mat-hint>Signs them in as well. Must not be an institution domain.</mat-hint>
-        @if (createForm.controls.secondaryEmail.hasError('email')) {
+        @if (createForm.controls.personalEmail.hasError('email')) {
           <mat-error>That does not look like an email address</mat-error>
         }
       </mat-form-field>
@@ -184,14 +184,14 @@
                 <span class="el-sep" aria-hidden="true">·</span>{{ admin.email }}
               }
             </div>
-            @if (admin.secondaryEmail) {
+            @if (admin.personalEmail) {
               <div class="em secondary">
                 <mat-icon>{{
-                  admin.secondaryEmailVerified ? 'verified' : 'mark_email_unread'
+                  admin.personalEmailVerified ? 'verified' : 'mark_email_unread'
                 }}</mat-icon>
-                {{ admin.secondaryEmail }}
+                {{ admin.personalEmail }}
                 <span class="el-muted">
-                  ({{ admin.secondaryEmailVerified ? 'confirmed' : 'not confirmed' }})
+                  ({{ admin.personalEmailVerified ? 'confirmed' : 'not confirmed' }})
                 </span>
               </div>
             }
@@ -307,10 +307,10 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Personal email</mat-label>
-              <input matInput type="email" formControlName="secondaryEmail" />
+              <input matInput type="email" formControlName="personalEmail" />
               <mat-icon matPrefix>alternate_email</mat-icon>
               <mat-hint>Clear the field to remove it.</mat-hint>
-              @if (editForm.controls.secondaryEmail.hasError('email')) {
+              @if (editForm.controls.personalEmail.hasError('email')) {
                 <mat-error>That does not look like an email address</mat-error>
               }
             </mat-form-field>

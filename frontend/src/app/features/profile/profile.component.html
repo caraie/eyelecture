@@ -10,8 +10,8 @@
     <section class="el-card">
       <h2 class="el-title">Your details</h2>
       <p class="el-lede small">
-        Your email address cannot be changed here — it is what links you to your
-        institution.
+        Your <span class="el-hl-em">username</span> is permanent. Everything else
+        here can change as you move.
       </p>
 
       <form [formGroup]="form" (ngSubmit)="save()" novalidate>
@@ -33,12 +33,6 @@
           </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
-          <input matInput [value]="currentUser.email" disabled />
-          <mat-icon matPrefix>alternate_email</mat-icon>
-        </mat-form-field>
-
         <div class="form-actions">
           <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
             @if (saving()) {
@@ -52,38 +46,38 @@
     </section>
 
     <section class="el-card">
-      <h2 class="el-title">Recovery email</h2>
+      <h2 class="el-title">Personal email</h2>
       <p class="el-lede small">
-        A private address, outside your institution. It does not sign you in — your
-        <span class="el-hl-em">username</span> does that — but it keeps your account
-        reachable once your institution closes the one above.
+        A private address, outside any institution. It does not sign you in — your
+        <span class="el-hl-em">username</span> does that — but it is what keeps this
+        account yours once an institutional mailbox is switched off.
       </p>
 
-      @if (currentUser.secondaryEmail) {
-        <div class="secondary-current">
+      @if (currentUser.personalEmail) {
+        <div class="personal-current">
           <div class="addr">
             <mat-icon>{{
-              currentUser.secondaryEmailVerified ? 'verified' : 'mark_email_unread'
+              currentUser.personalEmailVerified ? 'verified' : 'mark_email_unread'
             }}</mat-icon>
             <div>
-              <strong>{{ currentUser.secondaryEmail }}</strong>
+              <strong>{{ currentUser.personalEmail }}</strong>
               <span
                 class="el-badge"
-                [class.el-badge-success]="currentUser.secondaryEmailVerified"
-                [class.el-badge-warning]="!currentUser.secondaryEmailVerified"
+                [class.el-badge-success]="currentUser.personalEmailVerified"
+                [class.el-badge-warning]="!currentUser.personalEmailVerified"
               >
-                {{ currentUser.secondaryEmailVerified ? 'Confirmed' : 'Not confirmed' }}
+                {{ currentUser.personalEmailVerified ? 'Confirmed' : 'Not confirmed' }}
               </span>
             </div>
           </div>
 
-          @if (!currentUser.secondaryEmailVerified) {
+          @if (!currentUser.personalEmailVerified) {
             <!-- Deliberately not framed as a problem. The address already works for
                  signing in; confirming it is what lets us actually write to it. -->
             <div class="el-alert el-alert-info">
               <mat-icon>info</mat-icon>
               <div>
-                <strong>This address already signs you in</strong>
+                <strong>This address is already on your account</strong>
                 Confirming it just proves you can read that mailbox, which is what
                 lets us use it to reach you. You can do it whenever you like.
               </div>
@@ -121,33 +115,23 @@
               mat-stroked-button
               type="button"
               [disabled]="busy()"
-              (click)="startEditingSecondary()"
+              (click)="startEditingPersonal()"
             >
               <mat-icon>edit</mat-icon>
               Change
-            </button>
-            <button
-              mat-stroked-button
-              type="button"
-              class="danger"
-              [disabled]="busy()"
-              (click)="removeSecondary()"
-            >
-              <mat-icon>delete</mat-icon>
-              Remove
             </button>
           </div>
         </div>
       }
 
-      @if (!currentUser.secondaryEmail || editingSecondary()) {
-        <form [formGroup]="secondaryForm" (ngSubmit)="saveSecondary()" novalidate>
+      @if (!currentUser.personalEmail || editingPersonal()) {
+        <form [formGroup]="personalForm" (ngSubmit)="savePersonal()" novalidate>
           <mat-form-field appearance="outline">
             <mat-label>Personal email</mat-label>
             <input
               matInput
               type="email"
-              formControlName="secondaryEmail"
+              formControlName="personalEmail"
               autocomplete="email"
               placeholder="you@gmail.com"
             />
@@ -156,9 +140,9 @@
               Has to be personal — an address on a known institution domain is not
               accepted here.
             </mat-hint>
-            @if (secondaryForm.controls.secondaryEmail.hasError('required')) {
+            @if (personalForm.controls.personalEmail.hasError('required')) {
               <mat-error>Enter an address</mat-error>
-            } @else if (secondaryForm.controls.secondaryEmail.hasError('email')) {
+            } @else if (personalForm.controls.personalEmail.hasError('email')) {
               <mat-error>That does not look like an email address</mat-error>
             }
           </mat-form-field>
@@ -176,12 +160,12 @@
                 Save and send a link
               }
             </button>
-            @if (editingSecondary()) {
+            @if (editingPersonal()) {
               <button
                 mat-stroked-button
                 type="button"
                 [disabled]="busy()"
-                (click)="cancelEditingSecondary()"
+                (click)="cancelEditingPersonal()"
               >
                 Cancel
               </button>
@@ -199,67 +183,145 @@
         <el-status-badge [user]="currentUser" />
       </section>
 
+      <!-- Five rows and no prose. The explanation of how membership was confirmed
+           used to live here as a sentence; it is the badge above instead. -->
       <section class="el-card">
         <h3 class="el-title">Membership</h3>
         <dl class="kv">
-          <dt>Institution</dt>
-          <dd>{{ currentUser.institution?.name ?? 'Not linked' }}</dd>
-
-          <dt>How it was confirmed</dt>
+          <dt>Username</dt>
           <dd>
-            @switch (currentUser.validationMethod) {
-              @case ('email_domain') {
-                Automatically — your address is on a domain
-                {{ currentUser.institution?.name }} owns
+            <span class="el-mono">{{ currentUser.username }}</span>
+            <span class="el-muted"> — permanent</span>
+          </dd>
+
+          <dt>Institutional email</dt>
+          <dd>
+            @if (currentUser.email) {
+              {{ currentUser.email }}
+              @if (!currentUser.emailVerified) {
+                <span class="el-badge el-badge-warning">Not confirmed</span>
               }
-              @case ('manual') {
-                By a program director or administrator
-              }
-              @default {
-                Not confirmed yet
-              }
+            } @else {
+              <span class="el-muted">None</span>
             }
           </dd>
 
-          @if (currentUser.validatedAt) {
-            <dt>Confirmed on</dt>
-            <dd>{{ currentUser.validatedAt | date: 'mediumDate' }}</dd>
-          }
-
-          @if (currentUser.validationNote) {
-            <dt>Note</dt>
-            <dd>{{ currentUser.validationNote }}</dd>
-          }
-
-          <dt>Email</dt>
+          <dt>Personal email</dt>
           <dd>
-            {{ currentUser.emailVerified ? 'Verified' : 'Not verified yet' }}
+            {{ currentUser.personalEmail ?? '—' }}
           </dd>
 
-          <dt>Signs you in</dt>
-          <dd>
-            <span class="el-mono">{{ currentUser.username }}</span> — your username.
-            Neither address signs you in; the recovery one exists for when the other
-            is gone.
-          </dd>
-
-          @if (currentUser.specialty) {
-            <dt>Clinical focus</dt>
-            <dd>{{ currentUser.specialty.name }}</dd>
-          }
-          @if (currentUser.residencyProgram) {
-            <dt>Residency</dt>
-            <dd>{{ currentUser.residencyProgram.name }}</dd>
-          }
-          @if (currentUser.fellowshipProgram) {
-            <dt>Fellowship</dt>
-            <dd>{{ currentUser.fellowshipProgram.name }}</dd>
-          }
+          <dt>Current institution</dt>
+          <dd>{{ currentUser.institution?.name ?? 'Unaffiliated' }}</dd>
 
           <dt>Member since</dt>
           <dd>{{ currentUser.createdAt | date: 'mediumDate' }}</dd>
         </dl>
+
+        @if (editingInstitutional()) {
+          <form
+            [formGroup]="institutionalForm"
+            (ngSubmit)="saveInstitutional()"
+            novalidate
+          >
+            <mat-form-field appearance="outline">
+              <mat-label>Institutional email</mat-label>
+              <input matInput type="email" formControlName="email" />
+              <mat-icon matPrefix>alternate_email</mat-icon>
+              <mat-hint>
+                An address on a domain we know confirms you there straight away. The
+                institution you are leaving stays on your record.
+              </mat-hint>
+              @if (institutionalForm.controls.email.hasError('required')) {
+                <mat-error>Enter an address</mat-error>
+              } @else if (institutionalForm.controls.email.hasError('email')) {
+                <mat-error>That does not look like an email address</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="busy()"
+              >
+                @if (busy()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  Move
+                }
+              </button>
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="busy()"
+                (click)="cancelEditingInstitutional()"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        } @else {
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="startEditingInstitutional()"
+          >
+            <mat-icon>swap_horiz</mat-icon>
+            Changed institution?
+          </button>
+        }
       </section>
+
+      @if (
+        currentUser.trainingLevel ||
+        currentUser.specialty ||
+        currentUser.residencyProgram ||
+        currentUser.fellowshipProgram
+      ) {
+        <section class="el-card">
+          <h3 class="el-title">Training</h3>
+          <dl class="kv">
+            @if (currentUser.trainingLevel) {
+              <dt>Level</dt>
+              <dd>{{ currentUser.trainingLevel.name }}</dd>
+            }
+            @if (currentUser.specialty) {
+              <dt>Clinical focus</dt>
+              <dd>{{ currentUser.specialty.name }}</dd>
+            }
+            @if (currentUser.residencyProgram) {
+              <dt>Residency</dt>
+              <dd>{{ currentUser.residencyProgram.name }}</dd>
+            }
+            @if (currentUser.fellowshipProgram) {
+              <dt>Fellowship</dt>
+              <dd>{{ currentUser.fellowshipProgram.name }}</dd>
+            }
+          </dl>
+        </section>
+      }
+
+      @if (pastAffiliations().length > 0) {
+        <section class="el-card">
+          <h3 class="el-title">Past affiliations</h3>
+          <p class="el-lede small">
+            You keep access to the material of every institution you have been at.
+          </p>
+          <ul class="affiliations">
+            @for (affiliation of pastAffiliations(); track affiliation.id) {
+              <li>
+                <strong>{{ affiliation.institution.name }}</strong>
+                <span class="el-muted">
+                  {{ affiliation.startedAt | date: 'MMM yyyy' }} –
+                  {{ affiliation.endedAt | date: 'MMM yyyy' }}
+                </span>
+              </li>
+            }
+          </ul>
+        </section>
+      }
 
       <section class="el-card">
         <h3 class="el-title">Password</h3>

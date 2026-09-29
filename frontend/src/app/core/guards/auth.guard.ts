@@ -31,11 +31,18 @@ export const authGuard: CanActivateFn = (_route, state): boolean | UrlTree => {
     return router.createUrlTree([COMPLETE_PROFILE_ROUTE]);
   }
 
+  // Last of the three, because it only applies to accounts that already finished
+  // signing up — the ones made before a personal address was required.
+  if (auth.needsPersonalEmail() && !state.url.startsWith(PERSONAL_EMAIL_ROUTE)) {
+    return router.createUrlTree([PERSONAL_EMAIL_ROUTE]);
+  }
+
   return true;
 };
 
 const FORCED_PASSWORD_ROUTE = '/app/change-password';
 const COMPLETE_PROFILE_ROUTE = '/app/complete-profile';
+const PERSONAL_EMAIL_ROUTE = '/app/personal-email';
 
 /**
  * The inverse, for the complete-profile screen. Somebody who already finished has
@@ -48,6 +55,17 @@ export const completeProfileGuard: CanActivateFn = (): boolean | UrlTree => {
 
   if (!auth.isAuthenticated()) return router.createUrlTree(['/auth/login']);
   return auth.mustCompleteProfile() ? true : router.createUrlTree(['/app/dashboard']);
+};
+
+/** The inverse, for the add-a-personal-address screen. */
+export const personalEmailGuard: CanActivateFn = (): boolean | UrlTree => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+
+  if (!auth.isAuthenticated()) return router.createUrlTree(['/auth/login']);
+  return auth.needsPersonalEmail()
+    ? true
+    : router.createUrlTree(['/app/dashboard']);
 };
 
 /**

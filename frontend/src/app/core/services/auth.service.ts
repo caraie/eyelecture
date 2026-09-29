@@ -6,14 +6,16 @@ import { environment } from '../../../environments/environment';
 import {
   AuthResponse,
   AuthTokens,
+  ChangeInstitutionalEmailPayload,
+  ChangeInstitutionalEmailResponse,
   ChangePasswordPayload,
   LoginPayload,
   CompleteProfilePayload,
   CompleteProfileResponse,
   RegisterPayload,
-  ResendSecondaryEmailResponse,
-  SecondaryEmailResponse,
-  VerifySecondaryEmailResponse,
+  ResendPersonalEmailResponse,
+  PersonalEmailResponse,
+  VerifyPersonalEmailResponse,
 } from '../models/api.model';
 import { TRAINEE_ROLES, User, UserRole } from '../models/user.model';
 
@@ -76,6 +78,15 @@ export class AuthService {
    */
   readonly mustCompleteProfile = computed(
     () => this.currentUser()?.status === 'pending_profile',
+  );
+
+  /**
+   * An account made before a personal address was required. The API refuses
+   * everything but /me, that one screen and logout, so the router pins them there
+   * rather than letting them wander into pages that will only fail.
+   */
+  readonly needsPersonalEmail = computed(
+    () => this.currentUser()?.needsPersonalEmail === true,
   );
 
   get accessToken(): string | null {
@@ -146,28 +157,40 @@ export class AuthService {
     });
   }
 
-  // --- Personal (secondary) address -------------------------------------------
+  // --- Personal address -------------------------------------------
 
   /** Adds or replaces the personal address and triggers a confirmation link. */
-  setSecondaryEmail(secondaryEmail: string): Observable<SecondaryEmailResponse> {
+  setPersonalEmail(personalEmail: string): Observable<PersonalEmailResponse> {
     return this.http
-      .post<SecondaryEmailResponse>(`${this.base}/secondary-email`, {
-        secondaryEmail,
+      .post<PersonalEmailResponse>(`${this.base}/personal-email`, {
+        personalEmail,
       })
       .pipe(tap((response) => this.currentUser.set(response.user)));
   }
 
-  resendSecondaryEmailVerification(): Observable<ResendSecondaryEmailResponse> {
-    return this.http.post<ResendSecondaryEmailResponse>(
-      `${this.base}/secondary-email/resend`,
+  resendPersonalEmailVerification(): Observable<ResendPersonalEmailResponse> {
+    return this.http.post<ResendPersonalEmailResponse>(
+      `${this.base}/personal-email/resend`,
       {},
     );
   }
 
-  removeSecondaryEmail(): Observable<User> {
+  // --- Institutional address --------------------------------------------------
+
+  /**
+   * Change the institutional address, which is how somebody changes institution.
+   * The institution they were at is kept as a past affiliation, so they do not lose
+   * access to its material.
+   */
+  changeInstitutionalEmail(
+    payload: ChangeInstitutionalEmailPayload,
+  ): Observable<ChangeInstitutionalEmailResponse> {
     return this.http
-      .delete<User>(`${this.base}/secondary-email`)
-      .pipe(tap((user) => this.currentUser.set(user)));
+      .post<ChangeInstitutionalEmailResponse>(
+        `${this.base}/institutional-email`,
+        payload,
+      )
+      .pipe(tap((response) => this.currentUser.set(response.user)));
   }
 
   /**
@@ -178,12 +201,12 @@ export class AuthService {
    * then re-read from /me, which also covers the case where the link was opened in a
    * browser signed in as somebody else: that person's own record comes back unchanged.
    */
-  verifySecondaryEmail(
+  verifyPersonalEmail(
     token: string,
-  ): Observable<VerifySecondaryEmailResponse> {
+  ): Observable<VerifyPersonalEmailResponse> {
     return this.http
-      .post<VerifySecondaryEmailResponse>(
-        `${this.base}/verify-secondary-email`,
+      .post<VerifyPersonalEmailResponse>(
+        `${this.base}/verify-personal-email`,
         { token },
       )
       .pipe(

@@ -20,7 +20,7 @@ const PUBLIC_PATHS = [
   // spelling it out keeps the intent readable: confirming a personal address is also
   // token-authenticated, so a 401 from a stale link must surface rather than kick off
   // a pointless refresh and rotate the refresh token on the way.
-  '/auth/verify-secondary-email',
+  '/auth/verify-personal-email',
   '/auth/resend-verification',
   '/institutions/public',
 ];
