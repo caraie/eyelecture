@@ -70,8 +70,35 @@
     </div>
   </div>
 } @else {
+  <div class="el-toolbar-row filter-row">
+    <mat-form-field appearance="outline" class="search" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <input
+        matInput
+        type="search"
+        placeholder="Filter by name or email domain"
+        [ngModel]="filter()"
+        (ngModelChange)="filter.set($event)"
+      />
+    </mat-form-field>
+    <span class="el-spacer"></span>
+    <span class="count-label">
+      {{ visibleInstitutions().length }} of {{ institutions().length }}
+    </span>
+  </div>
+
+  @if (visibleInstitutions().length === 0) {
+    <div class="el-card">
+      <div class="el-empty">
+        <div class="ico"><mat-icon>search_off</mat-icon></div>
+        <h4>Nothing matches “{{ filter() }}”</h4>
+        <p>Try part of the institution's name, or one of its email domains.</p>
+      </div>
+    </div>
+  }
+
   <div class="list">
-    @for (institution of institutions(); track institution.id) {
+    @for (institution of visibleInstitutions(); track institution.id) {
       <article class="el-card item" [class.paused]="!institution.isActive">
         <header class="item-head">
           <div class="titles">

@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,6 +27,7 @@ const normalizeDomain = (value: string): string =>
   selector: 'el-institutions',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    FormsModule,
     ReactiveFormsModule,
     MatIconModule,
     MatButtonModule,
@@ -42,6 +50,26 @@ export class InstitutionsComponent {
   readonly saving = signal(false);
   readonly institutions = signal<Institution[]>([]);
   readonly showCreate = signal(false);
+
+  /**
+   * Filtered in the browser rather than on the server. The whole list is already
+   * loaded in one request, so a round trip per keystroke would make it slower, not
+   * faster. When this list outgrows a single page the filter moves to the API and
+   * this signal becomes the query parameter.
+   */
+  readonly filter = signal('');
+  readonly visibleInstitutions = computed(() => {
+    const needle = this.filter().trim().toLowerCase();
+    if (!needle) return this.institutions();
+    return this.institutions().filter(
+      (institution) =>
+        institution.name.toLowerCase().includes(needle) ||
+        institution.slug.toLowerCase().includes(needle) ||
+        institution.domains.some(({ domain }) =>
+          domain.toLowerCase().includes(needle),
+        ),
+    );
+  });
   /** Per-institution scratch value for the "add a domain" input. */
   readonly domainDrafts = signal<Record<string, string>>({});
   readonly busyId = signal<string | null>(null);
