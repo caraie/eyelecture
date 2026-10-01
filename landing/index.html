@@ -99,7 +99,7 @@
                rounded tiles at different heights, the middle one dropped so the
                rows never line up. Stock images — see landing/README.md. -->
           <div class="mosaic" aria-hidden="true">
-            <div class="mosaic-col">
+            <div class="mosaic-col" data-drift="-0.10">
               <span class="tile tile-tall">
                 <img
                   src="https://images.unsplash.com/photo-1637059824899-a441006a6875?auto=format&fit=crop&w=600&q=70"
@@ -116,7 +116,7 @@
               </span>
             </div>
 
-            <div class="mosaic-col mosaic-col-drop">
+            <div class="mosaic-col mosaic-col-drop" data-drift="0.14">
               <span class="tile tile-short">
                 <img
                   src="https://images.unsplash.com/photo-1677773382668-8a84321836e9?auto=format&fit=crop&w=600&q=70"
@@ -133,7 +133,7 @@
               </span>
             </div>
 
-            <div class="mosaic-col">
+            <div class="mosaic-col" data-drift="-0.07">
               <span class="tile tile-mid">
                 <img
                   src="https://images.unsplash.com/photo-1530695440407-21fef47230b1?auto=format&fit=crop&w=600&q=70"
@@ -181,7 +181,7 @@
           </header>
 
           <div class="grid g3 feature-grid">
-            <article class="card">
+            <article class="card card-soft tint-blue">
               <span class="tile-ico acc-blue" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="22" height="22">
                   <path d="M17 20h5v-2a3 3 0 0 0-5.36-1.86M17 20H7m10 0v-2c0-.66-.13-1.3-.36-1.86m0 0A5 5 0 0 0 7.36 16.14M7 20H2v-2a3 3 0 0 1 5.36-1.86M7 20v-2c0-.66.13-1.3.36-1.86m0 0A5 5 0 0 1 12 13a5 5 0 0 1 4.64 3.14M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -194,7 +194,7 @@
               </p>
             </article>
 
-            <article class="card">
+            <article class="card card-soft tint-violet">
               <span class="tile-ico acc-violet" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="22" height="22">
                   <path d="M12 6.5 3 4v13l9 2.5L21 17V4l-9 2.5Zm0 0V19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -207,7 +207,7 @@
               </p>
             </article>
 
-            <article class="card">
+            <article class="card card-soft tint-emerald">
               <span class="tile-ico acc-emerald" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="22" height="22">
                   <path d="M4 20V10m5 10V4m5 16v-7m5 7V8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
@@ -219,7 +219,7 @@
               </p>
             </article>
 
-            <article class="card">
+            <article class="card card-soft tint-amber">
               <span class="tile-ico acc-amber" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="22" height="22">
                   <path d="M12 3v2m0 14v2M5.6 5.6l1.4 1.4m10 10 1.4 1.4M3 12h2m14 0h2M5.6 18.4 7 17m10-10 1.4-1.4M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -232,7 +232,7 @@
               </p>
             </article>
 
-            <article class="card">
+            <article class="card card-soft tint-blue">
               <span class="tile-ico acc-blue" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="22" height="22">
                   <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -245,7 +245,7 @@
               </p>
             </article>
 
-            <article class="card">
+            <article class="card card-soft tint-emerald">
               <span class="tile-ico acc-emerald" aria-hidden="true">
                 <svg viewBox="0 0 24 24" width="22" height="22">
                   <path d="M9 12.5 11 14.5 15.5 10M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -262,29 +262,60 @@
       </section>
 
       <!-- ==========================================================
-           Inside the portal — the real screens, as they are today.
+           Inside the portal — the real screens, as they are today, in a coverflow
+           carousel: the centre slide faces you, the ones beside it turn away and
+           shrink. Every image is 1400×875, so no slide is a different shape.
            ========================================================== -->
       <section class="section" id="screens">
         <div class="wrap">
-          <header class="section-head">
+          <header class="section-head center section-head-center">
             <p class="overline">Inside the portal</p>
             <h2 class="headline">What it looks like</h2>
             <p class="lede">
-              Sign up once, and your institution's email domain does the rest. Program
-              directors review everybody it does not.
+              Sign up once, and your institution's email domain does the rest.
+              <strong>Program directors review everybody it does not.</strong>
             </p>
           </header>
+        </div>
 
-          <div class="shots">
-            <figure class="shot">
-              <img src="img/portal-signup.jpg" alt="Signing up: the form recognises the institutional email domain and confirms the institution straight away" loading="lazy" />
-              <figcaption class="muted">Signing up — a recognised domain confirms you on the spot.</figcaption>
+        <div
+          class="coverflow"
+          role="group"
+          aria-roledescription="carousel"
+          aria-label="Screens from the portal"
+        >
+          <div class="coverflow-stage">
+            <div class="coverflow-track" data-cf="track">
+            <figure class="slide" data-caption="Signing up — a recognised domain confirms you on the spot">
+              <img src="img/shot-1-signup.jpg" alt="Signing up: the form recognises the institutional email domain and confirms the institution straight away" width="1400" height="875" loading="lazy" />
             </figure>
-            <figure class="shot">
-              <img src="img/portal-dashboard.jpg" alt="The portal dashboard, showing the review queue, institutions and people" loading="lazy" />
-              <figcaption class="muted">The dashboard — what is waiting, and who is in.</figcaption>
+            <figure class="slide" data-caption="The dashboard — what is waiting, and who is in">
+              <img src="img/shot-2-dashboard.jpg" alt="The dashboard, showing how many people are waiting for review, how many institutions auto-validate and how many accounts exist" width="1400" height="875" loading="lazy" />
             </figure>
+            <figure class="slide" data-caption="The review queue — two buttons, and both are final">
+              <img src="img/shot-3-queue.jpg" alt="The review queue, listing everybody waiting with the institution they named" width="1400" height="875" loading="lazy" />
+            </figure>
+            <figure class="slide" data-caption="Institutions — a line each, until you open one">
+              <img src="img/shot-4-institutions.jpg" alt="The institutions screen with one row opened, showing its email domains and the people invited to administer it" width="1400" height="875" loading="lazy" />
+            </figure>
+            </div>
           </div>
+
+          <div class="coverflow-bar wrap">
+            <button class="round-btn" type="button" data-cf="prev" aria-label="Previous screen">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <p class="coverflow-caption" data-cf="caption" aria-live="polite"></p>
+            <button class="round-btn" type="button" data-cf="next" aria-label="Next screen">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                <path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="coverflow-dots" data-cf="dots"></div>
         </div>
       </section>
 
@@ -335,27 +366,73 @@
             <h2 class="headline">How EyeLecture started</h2>
           </header>
 
-          <div class="prose">
-            <p>
-              EyeLecture was conceptualised by Dr. Anurag Shrivastava in 2017, while
-              serving as the Residency Program Director for the Ophthalmology Program
-              at the Montefiore Medical Center, Albert Einstein College of Medicine in
-              the Bronx, NY. Initial funding for the development of the educational
-              resource was provided by the Allergan Foundation, whose mission is to
-              promote access to quality healthcare and improve patient diagnosis,
-              treatment, care and quality of life. An alignment of the Montefiore
-              educational mission, with recognition of the impact of resident training
-              on patient care, has driven the development of this not-for-profit
-              resource.
-            </p>
-            <p>
-              With the next2.ai team, the current beta version of EyeLecture was
-              developed in multiple phases over the past two years. Sally Park,
-              research fellow and MSIII at the Albert Einstein College of Medicine,
-              joined the team in 2019 and has been quintessential in the
-              implementation of the current version. Sally will be a member of future
-              launches as the portal continues the next phase of development.
-            </p>
+          <div class="about-grid">
+            <div class="prose">
+              <p>
+                EyeLecture was conceptualised by Dr. Anurag Shrivastava in
+                <strong>2017</strong>, while serving as the Residency Program Director
+                for the Ophthalmology Program at the
+                <strong>Montefiore Medical Center, Albert Einstein College of
+                Medicine</strong> in the Bronx, NY. Initial funding for the
+                development of the educational resource was provided by the
+                <strong>Allergan Foundation</strong>, whose mission is to promote
+                access to quality healthcare and improve patient diagnosis, treatment,
+                care and quality of life. An alignment of the Montefiore educational
+                mission, with recognition of the impact of resident training on
+                patient care, has driven the development of this
+                <strong>not-for-profit resource</strong>.
+              </p>
+              <p>
+                With the <strong>next2.ai</strong> team, the current beta version of
+                EyeLecture was developed in multiple phases. Sally Park, research
+                fellow and MSIII at the Albert Einstein College of Medicine, joined in
+                <strong>2019</strong> and has been quintessential in the
+                implementation of the current version. Sally will be a member of
+                future launches as the portal continues the next phase of development.
+              </p>
+            </div>
+
+            <!-- The dates here are the ones we actually have. The last two are
+                 deliberately soft — see landing/README.md. -->
+            <ol class="roadmap" aria-label="How EyeLecture developed">
+              <li class="milestone">
+                <span class="milestone-dot milestone-dot-open" aria-hidden="true"></span>
+                <p class="milestone-date">2017</p>
+                <p class="milestone-text">
+                  Conceptualised at Montefiore and the Albert Einstein College of
+                  Medicine.
+                </p>
+              </li>
+              <li class="milestone">
+                <span class="milestone-dot" aria-hidden="true"></span>
+                <p class="milestone-date">Funding</p>
+                <p class="milestone-text">
+                  The Allergan Foundation funds the first development of the resource.
+                </p>
+              </li>
+              <li class="milestone">
+                <span class="milestone-dot" aria-hidden="true"></span>
+                <p class="milestone-date">2019</p>
+                <p class="milestone-text">
+                  A research fellow joins and the current version takes shape.
+                </p>
+              </li>
+              <li class="milestone">
+                <span class="milestone-dot" aria-hidden="true"></span>
+                <p class="milestone-date">2026</p>
+                <p class="milestone-text">
+                  Rebuilding the app with the next2.ai team — accounts, institutions
+                  and access first.
+                </p>
+              </li>
+              <li class="milestone">
+                <span class="milestone-dot milestone-dot-next" aria-hidden="true"></span>
+                <p class="milestone-date">2027</p>
+                <p class="milestone-text">
+                  Core curriculum, institutional content and performance analytics.
+                </p>
+              </li>
+            </ol>
           </div>
 
           <h3 class="title team-head">Meet our team</h3>
@@ -367,7 +444,7 @@
                 loading="lazy"
               />
               <figcaption>
-                <strong>Dr. Shrivastava</strong>
+                <strong>Dr. Elena Ruiz</strong>
                 <span class="body">
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
                   eiusmod tempor incididunt ut labore.
@@ -382,7 +459,7 @@
                 loading="lazy"
               />
               <figcaption>
-                <strong>Daniel</strong>
+                <strong>Marcus Hale</strong>
                 <span class="body">
                   Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
                   nisi ut aliquip ex ea commodo.
@@ -397,7 +474,7 @@
                 loading="lazy"
               />
               <figcaption>
-                <strong>Zara</strong>
+                <strong>Priya Nair</strong>
                 <span class="body">
                   Duis aute irure dolor in reprehenderit in voluptate velit esse
                   cillum dolore eu fugiat nulla.
@@ -412,7 +489,7 @@
                 loading="lazy"
               />
               <figcaption>
-                <strong>Diego</strong>
+                <strong>Tomás Vidal</strong>
                 <span class="body">
                   Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
                   officia deserunt mollit anim.
@@ -427,7 +504,7 @@
                 loading="lazy"
               />
               <figcaption>
-                <strong>Carlos</strong>
+                <strong>Hannah Brooks</strong>
                 <span class="body">
                   Sed ut perspiciatis unde omnis iste natus error sit voluptatem
                   accusantium doloremque laudantium.
@@ -438,49 +515,103 @@
         </div>
       </section>
 
-      <!-- FAQ. -->
+      <!-- ==========================================================
+           FAQ — a centred accordion, built on <details>/<summary> so it opens
+           without a line of script and works with the keyboard for free.
+           ========================================================== -->
       <section class="section">
-        <div class="wrap">
-          <header class="section-head">
+        <div class="wrap faq">
+          <header class="section-head center section-head-center">
             <p class="overline">Questions</p>
             <h2 class="headline">Frequently asked</h2>
+            <p class="lede">
+              Everything people ask before bringing a program across.
+            </p>
           </header>
 
-          <div class="grid g2">
-            <article class="card">
-              <h3 class="title">Who can use EyeLecture?</h3>
-              <p class="body">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua.
-              </p>
-            </article>
-            <article class="card">
-              <h3 class="title">How does my institution join?</h3>
-              <p class="body">
-                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
-                nisi ut aliquip ex ea commodo consequat.
-              </p>
-            </article>
-            <article class="card">
-              <h3 class="title">What does it cost?</h3>
-              <p class="body">
-                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
-                dolore eu fugiat nulla pariatur.
-              </p>
-            </article>
-            <article class="card">
-              <h3 class="title">Who owns the content I upload?</h3>
-              <p class="body">
-                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
-                officia deserunt mollit anim id est laborum.
-              </p>
-            </article>
+          <div class="faq-list">
+            <details class="faq-item">
+              <summary>
+                <span>Who can use EyeLecture?</span>
+                <span class="faq-chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-answer">
+                <p class="body">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                  eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
+                  ad minim veniam, quis nostrud exercitation ullamco.
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-item">
+              <summary>
+                <span>How does my institution join?</span>
+                <span class="faq-chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-answer">
+                <p class="body">
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                  nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+                  reprehenderit in voluptate.
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-item">
+              <summary>
+                <span>What does it cost?</span>
+                <span class="faq-chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-answer">
+                <p class="body">
+                  Duis aute irure dolor in reprehenderit in voluptate velit esse
+                  cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+                  cupidatat non proident.
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-item">
+              <summary>
+                <span>Who owns the content I upload?</span>
+                <span class="faq-chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-answer">
+                <p class="body">
+                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+                  officia deserunt mollit anim id est laborum. Sed ut perspiciatis
+                  unde omnis iste natus error.
+                </p>
+              </div>
+            </details>
+
+            <details class="faq-item">
+              <summary>
+                <span>Does my institution need its own email domain?</span>
+                <span class="faq-chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="faq-answer">
+                <p class="body">
+                  Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut
+                  fugit, sed quia consequuntur magni dolores eos qui ratione.
+                </p>
+              </div>
+            </details>
+          </div>
+
+          <div class="faq-cta">
+            <p class="title">Still have a question?</p>
+            <p class="body">We read every one.</p>
+            <a class="btn btn-outline" href="#contact">Contact us</a>
           </div>
         </div>
       </section>
 
       <!-- Contact. -->
-      <section class="section section-dark" id="contact">
+      <!-- Blue rather than ink: the footer below is ink, and two dark bands
+           running together read as one very tall, very empty block. -->
+      <section class="section section-dark contact-band" id="contact">
         <div class="wrap contact">
           <div>
             <p class="overline">Contact us</p>
@@ -538,13 +669,114 @@
     </footer>
 
     <script>
-      // The top bar is transparent over the hero and solid once you leave it.
-      // Threshold rather than IntersectionObserver because there is one bar and one
-      // hero, and a scroll listener that sets a class is the whole feature.
-      const bar = document.querySelector('.topbar');
-      const onScroll = () => bar.classList.toggle('is-stuck', window.scrollY > 24);
-      onScroll();
-      addEventListener('scroll', onScroll, { passive: true });
+      (() => {
+        'use strict';
+
+        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        /* ---- Top bar ------------------------------------------------------
+           Transparent over the hero, solid once you leave it. */
+        const bar = document.querySelector('.topbar');
+
+        /* ---- Mosaic drift -------------------------------------------------
+           Each column moves at its own rate as the page scrolls — two up, one
+           down — so the stack separates instead of sliding as one block. The
+           factor is on the element as `data-drift`; sign decides direction.
+
+           Written against rAF rather than the scroll event directly: scroll
+           fires far more often than the screen repaints, and the whole job here
+           is one transform per column per frame. */
+        const cols = [...document.querySelectorAll('[data-drift]')].map((el) => ({
+          el,
+          rate: parseFloat(el.dataset.drift),
+        }));
+
+        let queued = false;
+
+        const frame = () => {
+          queued = false;
+          const y = window.scrollY;
+
+          bar.classList.toggle('is-stuck', y > 24);
+
+          if (reduced) return;
+          // Only while the hero is anywhere near the viewport. Past that the
+          // columns are off-screen and the transform is work nobody sees.
+          if (y < innerHeight * 1.4) {
+            for (const { el, rate } of cols) {
+              el.style.transform = `translate3d(0, ${(y * rate).toFixed(1)}px, 0)`;
+            }
+          }
+        };
+
+        const onScroll = () => {
+          if (queued) return;
+          queued = true;
+          requestAnimationFrame(frame);
+        };
+
+        frame();
+        addEventListener('scroll', onScroll, { passive: true });
+
+        /* ---- Coverflow ----------------------------------------------------
+           The centre slide faces you; the rest turn away and shrink. All the
+           CSS needs is each slide's distance to the centre, so that is all this
+           sets — `data-pos`, and `data-far` for anything past two steps out. */
+        const flow = document.querySelector('.coverflow');
+        if (!flow) return;
+
+        const track = flow.querySelector('[data-cf="track"]');
+        const slides = [...flow.querySelectorAll('.slide')];
+        const caption = flow.querySelector('[data-cf="caption"]');
+        const dotsWrap = flow.querySelector('[data-cf="dots"]');
+        let current = 0;
+
+        const dots = slides.map((slide, i) => {
+          const dot = document.createElement('button');
+          dot.type = 'button';
+          dot.setAttribute('aria-label', `Screen ${i + 1} of ${slides.length}`);
+          dot.addEventListener('click', () => go(i));
+          dotsWrap.append(dot);
+          return dot;
+        });
+
+        function go(next) {
+          current = (next + slides.length) % slides.length;
+
+          track.style.setProperty('--shift', (slides.length - 1) / 2 - current);
+
+          slides.forEach((slide, i) => {
+            const offset = i - current;
+            if (Math.abs(offset) > 2) {
+              slide.removeAttribute('data-pos');
+              slide.setAttribute('data-far', '');
+            } else {
+              slide.removeAttribute('data-far');
+              slide.dataset.pos = String(offset);
+            }
+            // The off-centre screens are decoration, and a screen reader
+            // walking four near-identical alt texts is noise.
+            slide.setAttribute('aria-hidden', offset === 0 ? 'false' : 'true');
+          });
+
+          dots.forEach((dot, i) =>
+            dot.setAttribute('aria-current', i === current ? 'true' : 'false'),
+          );
+
+          caption.textContent = slides[current].dataset.caption ?? '';
+        }
+
+        flow.querySelector('[data-cf="prev"]').addEventListener('click', () => go(current - 1));
+        flow.querySelector('[data-cf="next"]').addEventListener('click', () => go(current + 1));
+
+        // Clicking a side slide brings it to the front, which is what everybody
+        // tries first.
+        slides.forEach((slide, i) =>
+          slide.addEventListener('click', () => i !== current && go(i)),
+        );
+
+        go(0);
+      })();
     </script>
   </body>
 </html>

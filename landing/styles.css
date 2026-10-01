@@ -513,13 +513,17 @@ a:hover {
   color: #fff;
 }
 
+/* Full white and a touch heavier. At 0.8 alpha these read as disabled against
+   the gradient, which is the opposite of what a nav should look like. */
 .topbar-onblue nav a {
-  color: rgba(255, 255, 255, 0.92);
+  color: #fff;
   font-weight: 500;
 }
 
 .topbar-onblue nav a:hover {
   color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 6px;
 }
 
 .topbar-onblue.is-stuck {
@@ -796,35 +800,176 @@ a:hover {
 }
 
 /* ============================================================
-   Screenshots
+   Coverflow carousel
+
+   The centre slide faces you; the ones beside it turn away on the Y axis and
+   shrink, so the stack reads as depth rather than as a row. Every image is the
+   same 1400×875, which is what keeps the turn even on both sides.
+
+   No library: a flex row that is translated by one slide width per step, with
+   each slide's own transform set from its distance to the centre.
    ============================================================ */
 
-.shots {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-6);
+.coverflow {
+  --slide-w: min(760px, 62vw);
 }
 
-@media (max-width: 760px) {
-  .shots {
-    grid-template-columns: 1fr;
-  }
+.coverflow-stage {
+  perspective: 1600px;
+  padding: var(--sp-6) 0 var(--sp-8);
+  /* The side slides run off both edges on purpose; nothing here scrolls. */
+  overflow: hidden;
 }
 
-.shot {
+/* The row is laid out once and then slid sideways so the active slide lands in
+   the middle. `--shift` is how many slides to move, set by the script; the
+   centre of a four-slide row sits between the second and third, which is why it
+   is a half-step for an even count. */
+.coverflow-track {
+  --gap: var(--sp-5);
+  --shift: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--gap);
+  transform: translateX(calc(var(--shift) * (var(--slide-w) + var(--gap))));
+  transition: transform var(--motion-slow, 420ms) var(--ease-standard);
+}
+
+.slide {
   margin: 0;
-}
-
-.shot img {
-  width: 100%;
+  flex: 0 0 var(--slide-w);
   border-radius: var(--md-sys-shape-corner-lg);
+  overflow: hidden;
   border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
   box-shadow: var(--md-sys-elevation-3);
+  transform-style: preserve-3d;
+  transition:
+    transform var(--motion-slow, 420ms) var(--ease-standard),
+    opacity var(--motion-slow, 420ms) var(--ease-standard),
+    box-shadow var(--motion-slow, 420ms) var(--ease-standard);
 }
 
-.shot figcaption {
-  margin-top: var(--sp-3);
-  font-size: 13.5px;
+.slide img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Set by the script from each slide's distance to the centre. */
+.slide[data-pos='0'] {
+  transform: none;
+  opacity: 1;
+  box-shadow: var(--md-sys-elevation-4);
+  z-index: 3;
+}
+
+.slide[data-pos='-1'] {
+  transform: translateX(22%) rotateY(26deg) scale(0.84);
+  opacity: 0.55;
+  z-index: 2;
+}
+
+.slide[data-pos='1'] {
+  transform: translateX(-22%) rotateY(-26deg) scale(0.84);
+  opacity: 0.55;
+  z-index: 2;
+}
+
+.slide[data-pos='-2'] {
+  transform: translateX(46%) rotateY(32deg) scale(0.7);
+  opacity: 0.22;
+  z-index: 1;
+}
+
+.slide[data-pos='2'] {
+  transform: translateX(-46%) rotateY(-32deg) scale(0.7);
+  opacity: 0.22;
+  z-index: 1;
+}
+
+.slide[data-far] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.coverflow-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-5);
+}
+
+.coverflow-caption {
+  margin: 0;
+  min-width: 0;
+  flex: 0 1 46ch;
+  text-align: center;
+  font-size: 14.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.round-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--md-sys-color-outline);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    transform var(--motion-fast) var(--ease-spring);
+}
+
+.round-btn:hover {
+  background: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.round-btn:active {
+  transform: scale(0.94);
+}
+
+.coverflow-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+
+.coverflow-dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--md-sys-color-outline);
+  cursor: pointer;
+  transition:
+    width var(--motion-base) var(--ease-standard),
+    background var(--motion-base);
+}
+
+.coverflow-dots button[aria-current='true'] {
+  width: 24px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+
+@media (max-width: 700px) {
+  .coverflow {
+    --slide-w: 86vw;
+  }
+  .coverflow-caption {
+    font-size: 13.5px;
+  }
 }
 
 /* ============================================================
@@ -907,6 +1052,34 @@ a:hover {
 .acc-violet {
   background: var(--acc-violet-surface);
   color: var(--acc-violet-on);
+}
+
+/* A soft tint on the feature cards. The surface is a few per cent of the accent
+   rather than the accent itself, so six of them in a grid read as one family
+   instead of six competing panels — and the body text stays on-surface ink. */
+.card-soft {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.tint-blue {
+  background: #f3f7fe;
+  border-color: #d9e4fd;
+}
+
+.tint-emerald {
+  background: #f1fbf6;
+  border-color: #c9f0de;
+}
+
+.tint-amber {
+  background: #fffaf0;
+  border-color: #fae3bd;
+}
+
+.tint-violet {
+  background: #f7f5fe;
+  border-color: #e0d8fb;
 }
 
 /* A whole card in an accent, for the three one-word promises. The border carries
@@ -997,6 +1170,115 @@ a:hover {
   line-height: 1.68;
 }
 
+/* Long paragraphs need something for the eye to land on. The bold is the ink
+   colour, not the accent — a paragraph with six blue words in it reads as six
+   broken links. */
+.prose strong {
+  color: var(--md-sys-color-on-surface);
+  font-weight: 600;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: var(--sp-12);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: var(--sp-10);
+  }
+}
+
+/* ============================================================
+   Roadmap
+
+   A rail with a dot per milestone. The rail is a gradient that fades out at the
+   bottom, so the last step reads as "and then onwards" rather than as a wall.
+   ============================================================ */
+
+.roadmap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.roadmap::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--md-sys-color-secondary) 0%,
+    var(--el-blue-400) 55%,
+    rgba(91, 130, 236, 0.18) 100%
+  );
+}
+
+.milestone {
+  position: relative;
+  padding: 0 0 var(--sp-8) var(--sp-8);
+}
+
+.milestone:last-child {
+  padding-bottom: 0;
+}
+
+.milestone-dot {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--el-blue-400);
+  border: 3px solid var(--md-sys-color-background);
+  box-shadow: 0 0 0 1px var(--el-blue-200);
+}
+
+/* The first one is hollow — it is where the line starts, not a step along it. */
+.milestone-dot-open {
+  background: var(--md-sys-color-background);
+  border-color: var(--md-sys-color-secondary);
+  border-width: 4px;
+  box-shadow: 0 0 0 1px var(--el-green-200);
+}
+
+.milestone-dot-next {
+  background: var(--md-sys-color-background);
+  border-style: dashed;
+  border-color: var(--el-blue-300);
+  box-shadow: none;
+}
+
+.milestone-date {
+  margin: 0 0 2px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-secondary);
+}
+
+.milestone:last-child .milestone-date {
+  color: var(--md-sys-color-on-surface-muted);
+}
+
+.milestone-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
 .team-head {
   margin: var(--sp-12) 0 var(--sp-5);
 }
@@ -1054,8 +1336,121 @@ a:hover {
 }
 
 /* ============================================================
+   FAQ — a centred accordion on <details>, which opens with no script and takes
+   the keyboard for free.
+   ============================================================ */
+
+.faq {
+  max-width: 760px;
+}
+
+.section-head-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.faq-item {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-lg);
+  background: var(--md-sys-color-surface);
+  transition:
+    border-color var(--motion-base),
+    box-shadow var(--motion-base);
+}
+
+.faq-item[open] {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.faq-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  list-style: none;
+}
+
+/* Safari draws its own triangle unless both of these are set. */
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::marker {
+  content: '';
+}
+
+.faq-chevron {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-right: 2px solid var(--md-sys-color-on-surface-muted);
+  border-bottom: 2px solid var(--md-sys-color-on-surface-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition:
+    transform var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base);
+}
+
+.faq-item[open] .faq-chevron {
+  transform: rotate(-135deg) translate(-3px, -3px);
+  border-color: var(--md-sys-color-primary);
+}
+
+.faq-answer {
+  padding: 0 var(--sp-6) var(--sp-5);
+  max-width: 62ch;
+}
+
+.faq-cta {
+  margin-top: var(--sp-10);
+  padding: var(--sp-8);
+  border-radius: var(--md-sys-shape-corner-xl);
+  background: var(--md-sys-color-background);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  text-align: center;
+}
+
+.faq-cta .body {
+  margin: var(--sp-1) 0 var(--sp-5);
+}
+
+/* ============================================================
    Contact
    ============================================================ */
+
+/* The closing call to action takes the brand gradient, mirrored against the hero
+   so the page opens and closes on the same blue without the two looking like the
+   same band. Ink is reserved for the footer underneath it. */
+.contact-band {
+  background: linear-gradient(
+    30deg,
+    var(--el-blue-800) 0%,
+    var(--el-blue-600) 60%,
+    var(--el-blue-500) 100%
+  );
+  padding: var(--sp-16) 0;
+}
+
+.contact-band .overline {
+  color: #a8c4fb;
+}
+
+.contact-band .lede {
+  color: rgba(255, 255, 255, 0.86);
+}
 
 .contact {
   display: flex;

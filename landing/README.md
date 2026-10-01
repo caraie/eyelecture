@@ -15,9 +15,10 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 
 | Not real yet | What it is today |
 | --- | --- |
-| Team photographs | Stock portraits from Unsplash, standing in for Dr. Shrivastava, Daniel, Zara, Diego and Carlos. **They are not those people.** Swap them before this is public. |
+| Team names and photographs | Invented names and stock portraits. **Nobody on that row is a real person.** |
 | Team descriptions | Lorem ipsum. |
-| FAQ | Four plausible questions, lorem ipsum answers. The questions are a guess at what gets asked; the answers are not written. |
+| FAQ | Five plausible questions, lorem ipsum answers. |
+| Roadmap dates | 2017, funding and 2019 come from the About copy. **2026 and 2027 are ours** — "rebuilding the app", then core curriculum and analytics. |
 | Sponsor wordmarks | Set in the brand typeface, not the real marks. The planning notes named the third one through a transcript as "ASCIARA" / "Ciara" — **ASCRS** is the assumption here, confirm it. |
 | Contact address | `info@eyelecture.com` is a guess. |
 
@@ -76,11 +77,25 @@ change the `src` attributes.
 The brandmark is the eyemark from the design system, inlined as SVG and taken
 verbatim from `frontend/src/app/shared/components/eye-logo.component.ts`.
 
-## The one script
+## The script
 
-Eight lines at the bottom of `index.html`. The top bar is transparent over the hero
-and solid once you scroll past it; a scroll listener that toggles a class is the
-whole feature.
+One block at the bottom of `index.html`, no dependencies. Three things:
+
+- **The top bar** is transparent over the hero and solid once you scroll past it.
+- **The mosaic drifts.** Each column carries a `data-drift` factor and moves at its
+  own rate as the page scrolls — two up, one down — so the stack separates instead
+  of sliding as one block. It runs on `requestAnimationFrame`, because scroll fires
+  far more often than the screen repaints, and it stops once the hero is well out of
+  view. `prefers-reduced-motion` turns it off.
+- **The carousel** sets each slide's distance from the centre; the CSS does the rest.
+
+Two patterns were picked from 21st.dev — a coverflow carousel and a centred
+accordion FAQ. Those components are React, and lean on Swiper and framer-motion;
+this page has no build step and no framework, so both are **written from scratch
+here**, matching the behaviour rather than the code. The carousel is a flex row
+translated by one slide per step with a `rotateY` and a scale on each side slide;
+the FAQ is `<details>`/`<summary>`, which opens with no script at all and takes the
+keyboard for free.
 
 ## Deploying
 
