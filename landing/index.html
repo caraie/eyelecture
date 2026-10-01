@@ -886,10 +886,77 @@
         flow.querySelector('[data-cf="next"]').addEventListener('click', () => go(current + 1));
 
         // Clicking a side slide brings it to the front, which is what everybody
-        // tries first.
+        // tries first. `dragged` is what stops the click that ends a swipe from
+        // also counting as a tap on whichever slide the finger landed on.
+        let dragged = false;
         slides.forEach((slide, i) =>
-          slide.addEventListener('click', () => i !== current && go(i)),
+          slide.addEventListener('click', () => {
+            if (dragged || i === current) return;
+            go(i);
+          }),
         );
+
+        /* Drag and swipe. Pointer events rather than separate mouse and touch
+           handlers: one code path covers a finger, a mouse and a pen, and
+           pointer capture means the gesture keeps working after the cursor
+           leaves the carousel. */
+        const stage = flow.querySelector('.coverflow-stage');
+        let startX = 0;
+        let delta = 0;
+        let dragging = false;
+
+        const slideStep = () => {
+          const first = slides[0].getBoundingClientRect().width;
+          // Falls back to the viewport if the slides have not been laid out yet.
+          return (first || stage.clientWidth) + 20;
+        };
+
+        stage.addEventListener('pointerdown', (e) => {
+          // Left button only; a right-click should open the context menu.
+          if (e.button !== 0) return;
+          dragging = true;
+          dragged = false;
+          startX = e.clientX;
+          delta = 0;
+          flow.classList.add('is-dragging');
+          stage.setPointerCapture(e.pointerId);
+        });
+
+        stage.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          delta = e.clientX - startX;
+          if (Math.abs(delta) > 4) dragged = true;
+          track.style.setProperty('--drag', `${delta}px`);
+        });
+
+        const endDrag = () => {
+          if (!dragging) return;
+          dragging = false;
+          flow.classList.remove('is-dragging');
+          track.style.setProperty('--drag', '0px');
+
+          // A fifth of a slide, or 60px on a narrow screen — enough that a
+          // stray twitch does not move anything, little enough that a short
+          // flick does.
+          const threshold = Math.min(slideStep() * 0.2, 90);
+          if (Math.abs(delta) > threshold) {
+            go(current + (delta < 0 ? 1 : -1));
+          }
+          delta = 0;
+        };
+
+        stage.addEventListener('pointerup', endDrag);
+        stage.addEventListener('pointercancel', endDrag);
+
+        // Arrow keys once the carousel has focus, for anybody not using a
+        // pointer at all.
+        flow.tabIndex = 0;
+        flow.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowLeft') go(current - 1);
+          else if (e.key === 'ArrowRight') go(current + 1);
+          else return;
+          e.preventDefault();
+        });
 
         go(0);
 

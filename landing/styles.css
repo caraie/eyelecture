@@ -993,6 +993,21 @@ a:hover {
   padding: var(--sp-6) 0 var(--sp-8);
   /* The side slides run off both edges on purpose; nothing here scrolls. */
   overflow: hidden;
+  cursor: grab;
+  /* Vertical swipes still scroll the page; horizontal ones are ours. Without
+     this the browser claims the gesture and the drag never fires. */
+  touch-action: pan-y;
+}
+
+.coverflow-stage:active {
+  cursor: grabbing;
+}
+
+/* A drag would otherwise start the browser's own image-drag, and text selection
+   turns a swipe into a highlight. */
+.coverflow-stage img {
+  -webkit-user-drag: none;
+  user-select: none;
 }
 
 /* The row is laid out once and then slid sideways so the active slide lands in
@@ -1002,12 +1017,23 @@ a:hover {
 .coverflow-track {
   --gap: var(--sp-5);
   --shift: 0;
+  /* How far the finger has moved, in px, while a drag is in progress. */
+  --drag: 0px;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: var(--gap);
-  transform: translateX(calc(var(--shift) * (var(--slide-w) + var(--gap))));
+  transform: translateX(
+    calc(var(--shift) * (var(--slide-w) + var(--gap)) + var(--drag))
+  );
   transition: transform var(--motion-slow, 420ms) var(--ease-standard);
+}
+
+/* While the finger is down the track has to track the finger, not ease toward
+   it. The slides lose their transition too, or they lag a frame behind. */
+.coverflow.is-dragging .coverflow-track,
+.coverflow.is-dragging .slide {
+  transition: none;
 }
 
 .slide {
