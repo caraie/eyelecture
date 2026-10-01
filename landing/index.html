@@ -21,24 +21,22 @@
   </head>
 
   <body>
-    <!-- ==========================================================
-         Top bar — the old site's five links, in the old order. Log In goes to
-         the platform that is already in production.
-         ========================================================== -->
-    <header class="topbar">
+    <!-- The top bar sits on the blue hero, so it is transparent until you scroll
+         past it — then it picks up the surface colour and a hairline. -->
+    <header class="topbar topbar-onblue">
       <div class="wrap">
         <a class="brand" href="#top" aria-label="EyeLecture, home">
           <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
             <path
               d="M2.6 16C6.2 10 10.9 7 16 7s9.8 3 13.4 9c-3.6 6-8.3 9-13.4 9S6.2 22 2.6 16Z"
               fill="none"
-              stroke="var(--md-sys-color-primary)"
+              stroke="currentColor"
               stroke-width="2.1"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
-            <circle cx="16" cy="16" r="5.4" fill="var(--md-sys-color-secondary)" />
-            <circle cx="16" cy="16" r="2.4" fill="var(--md-sys-color-primary)" />
+            <circle cx="16" cy="16" r="5.4" fill="#a8e8cb" />
+            <circle cx="16" cy="16" r="2.4" fill="currentColor" />
             <circle cx="18.1" cy="13.6" r="1.15" fill="#fff" opacity="0.9" />
           </svg>
           EyeLecture
@@ -51,19 +49,18 @@
           <a href="#contact">Contact us</a>
         </nav>
 
-        <a class="btn btn-primary" href="https://platform.eyelecture.com">Log in</a>
+        <a class="btn btn-onblue" href="https://platform.eyelecture.com">Log in</a>
       </div>
     </header>
 
     <main id="top">
       <!-- ==========================================================
-           Hero. The old site rotated three slides here; a static page keeps the
-           first as the headline and the other two as the points beneath it,
-           which says the same things without a carousel nobody waits through.
+           Hero. The brand gradient from the app's sign-in panel, so the first
+           thing anybody sees is the same blue the product opens with.
            ========================================================== -->
-      <section class="hero section">
+      <section class="hero">
         <div class="wrap hero-grid">
-          <div>
+          <div class="hero-copy">
             <p class="overline">Elevate your training</p>
             <h1 class="display">
               A learning management solution for
@@ -91,40 +88,78 @@
             </ul>
 
             <div class="btn-row hero-actions">
-              <a class="btn btn-primary" href="https://platform.eyelecture.com">
+              <a class="btn btn-onblue" href="https://platform.eyelecture.com">
                 Log in to the platform
               </a>
-              <a class="btn btn-outline" href="#features">See what it does</a>
+              <a class="btn btn-ghost" href="#features">See what it does</a>
             </div>
           </div>
 
-          <!-- Stock, from Unsplash — see landing/README.md for the source and how to
-               swap it. A photograph rather than a screenshot on purpose: the screens
-               that exist today are the account and administration ones, and a
-               half-filled dashboard at the top of a marketing page undersells the
-               product. The screenshots get their own section further down. -->
-          <figure class="hero-figure">
-            <img
-              src="https://images.unsplash.com/photo-1576210117723-cd06449a467d?auto=format&fit=crop&w=1100&q=80"
-              alt="An ophthalmologist examining a patient's eyes with a slit lamp"
-              width="1100"
-              height="1375"
-              loading="eager"
-            />
-          </figure>
+          <!-- A staggered mosaic rather than one photograph: three columns of
+               rounded tiles at different heights, the middle one dropped so the
+               rows never line up. Stock images — see landing/README.md. -->
+          <div class="mosaic" aria-hidden="true">
+            <div class="mosaic-col">
+              <span class="tile tile-tall">
+                <img
+                  src="https://images.unsplash.com/photo-1637059824899-a441006a6875?auto=format&fit=crop&w=600&q=70"
+                  alt=""
+                  loading="eager"
+                />
+              </span>
+              <span class="tile tile-short">
+                <img
+                  src="https://images.unsplash.com/photo-1501621667575-af81f1f0bacc?auto=format&fit=crop&w=600&q=70"
+                  alt=""
+                  loading="lazy"
+                />
+              </span>
+            </div>
+
+            <div class="mosaic-col mosaic-col-drop">
+              <span class="tile tile-short">
+                <img
+                  src="https://images.unsplash.com/photo-1677773382668-8a84321836e9?auto=format&fit=crop&w=600&q=70"
+                  alt=""
+                  loading="eager"
+                />
+              </span>
+              <span class="tile tile-tall">
+                <img
+                  src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=600&q=70"
+                  alt=""
+                  loading="eager"
+                />
+              </span>
+            </div>
+
+            <div class="mosaic-col">
+              <span class="tile tile-mid">
+                <img
+                  src="https://images.unsplash.com/photo-1530695440407-21fef47230b1?auto=format&fit=crop&w=600&q=70"
+                  alt=""
+                  loading="eager"
+                />
+              </span>
+              <span class="tile tile-mid">
+                <img
+                  src="https://images.unsplash.com/photo-1638957835514-224c57ffe617?auto=format&fit=crop&w=600&q=70"
+                  alt=""
+                  loading="lazy"
+                />
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- ==========================================================
-           Sponsors and institutions. Named in the planning call; the marks
-           themselves have not been supplied yet.
-           ========================================================== -->
-      <section class="section-tight section-alt" aria-label="Institutions and sponsors">
+      <!-- Institutions and sponsors. -->
+      <section class="section-tight" aria-label="Institutions and sponsors">
         <div class="wrap">
           <p class="overline center">Developed with</p>
-          <div class="logo-strip placeholder">
-            <span class="placeholder-tag">Placeholder</span>
+          <div class="logo-strip">
             <span class="logo-slot">Montefiore</span>
+            <span class="logo-slot">Albert Einstein College of Medicine</span>
             <span class="logo-slot">Duke</span>
             <span class="logo-slot">ASCRS</span>
           </div>
@@ -132,9 +167,10 @@
       </section>
 
       <!-- ==========================================================
-           Features — the old site's six, wording unchanged.
+           Features — the old site's six, wording unchanged, on the design
+           system's card with its tinted icon tile.
            ========================================================== -->
-      <section class="section" id="features">
+      <section class="section section-alt" id="features">
         <div class="wrap">
           <header class="section-head">
             <p class="overline">Features</p>
@@ -146,6 +182,11 @@
 
           <div class="grid g3 feature-grid">
             <article class="card">
+              <span class="tile-ico acc-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path d="M17 20h5v-2a3 3 0 0 0-5.36-1.86M17 20H7m10 0v-2c0-.66-.13-1.3-.36-1.86m0 0A5 5 0 0 0 7.36 16.14M7 20H2v-2a3 3 0 0 1 5.36-1.86M7 20v-2c0-.66.13-1.3.36-1.86m0 0A5 5 0 0 1 12 13a5 5 0 0 1 4.64 3.14M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0ZM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
               <h3 class="title">Collaborative</h3>
               <p class="body">
                 At eyelecture.com, we aim to create a portal where educators and
@@ -154,6 +195,11 @@
             </article>
 
             <article class="card">
+              <span class="tile-ico acc-violet" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path d="M12 6.5 3 4v13l9 2.5L21 17V4l-9 2.5Zm0 0V19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
               <h3 class="title">Blended learning</h3>
               <p class="body">
                 Allow your faculty to easily curate content and create flipped
@@ -162,6 +208,11 @@
             </article>
 
             <article class="card">
+              <span class="tile-ico acc-emerald" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path d="M4 20V10m5 10V4m5 16v-7m5 7V8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                </svg>
+              </span>
               <h3 class="title">Analytics</h3>
               <p class="body">
                 Users can benefit from detailed performance and engagement analytics.
@@ -169,6 +220,11 @@
             </article>
 
             <article class="card">
+              <span class="tile-ico acc-amber" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path d="M12 3v2m0 14v2M5.6 5.6l1.4 1.4m10 10 1.4 1.4M3 12h2m14 0h2M5.6 18.4 7 17m10-10 1.4-1.4M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
               <h3 class="title">Customisable</h3>
               <p class="body">
                 Program directors can create a customised learning experience — build
@@ -177,6 +233,11 @@
             </article>
 
             <article class="card">
+              <span class="tile-ico acc-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
               <h3 class="title">Perpetual</h3>
               <p class="body">
                 Our cloud-based platform allows teachers to update content directly in
@@ -185,6 +246,11 @@
             </article>
 
             <article class="card">
+              <span class="tile-ico acc-emerald" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22">
+                  <path d="M9 12.5 11 14.5 15.5 10M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
               <h3 class="title">Active learning</h3>
               <p class="body">
                 Students benefit from multimedia modules taken on their own schedule,
@@ -196,30 +262,33 @@
       </section>
 
       <!-- ==========================================================
-           Product screenshots — asked for in the planning call. The frame and the
-           caption are here; the images are not, because what exists today is the
-           account and administration surface and we have not agreed which of it
-           belongs on a public page.
+           Inside the portal — the real screens, as they are today.
            ========================================================== -->
-      <section class="section-tight section-alt" id="screens">
+      <section class="section" id="screens">
         <div class="wrap">
           <header class="section-head">
             <p class="overline">Inside the portal</p>
             <h2 class="headline">What it looks like</h2>
-          </header>
-          <div class="placeholder shots-slot">
-            <span class="placeholder-tag">Placeholder</span>
-            <p class="body">
-              Space for two or three screenshots of the portal. Tell us which screens
-              you want shown and they go straight in.
+            <p class="lede">
+              Sign up once, and your institution's email domain does the rest. Program
+              directors review everybody it does not.
             </p>
+          </header>
+
+          <div class="shots">
+            <figure class="shot">
+              <img src="img/portal-signup.jpg" alt="Signing up: the form recognises the institutional email domain and confirms the institution straight away" loading="lazy" />
+              <figcaption class="muted">Signing up — a recognised domain confirms you on the spot.</figcaption>
+            </figure>
+            <figure class="shot">
+              <img src="img/portal-dashboard.jpg" alt="The portal dashboard, showing the review queue, institutions and people" loading="lazy" />
+              <figcaption class="muted">The dashboard — what is waiting, and who is in.</figcaption>
+            </figure>
           </div>
         </div>
       </section>
 
-      <!-- ==========================================================
-           Mission. The photograph is stock — see landing/README.md.
-           ========================================================== -->
+      <!-- Mission. The photograph is stock — see landing/README.md. -->
       <section class="section section-dark mission-band">
         <img
           class="mission-bg"
@@ -238,23 +307,18 @@
         </div>
       </section>
 
-      <!-- ==========================================================
-           The three one-word promises from the old site.
-           ========================================================== -->
+      <!-- The three one-word promises, on the design system's tinted cards. -->
       <section class="section-tight">
         <div class="wrap grid g3">
-          <div class="pitch">
-            <span class="pitch-mark pitch-blue" aria-hidden="true"></span>
+          <div class="card card-acc acc-blue">
             <h3 class="title">Custom</h3>
             <p class="body">Build your curriculum to fit your needs.</p>
           </div>
-          <div class="pitch">
-            <span class="pitch-mark pitch-emerald" aria-hidden="true"></span>
+          <div class="card card-acc acc-emerald">
             <h3 class="title">Cloud</h3>
             <p class="body">Available anytime, anywhere.</p>
           </div>
-          <div class="pitch">
-            <span class="pitch-mark pitch-violet" aria-hidden="true"></span>
+          <div class="card card-acc acc-violet">
             <h3 class="title">Create</h3>
             <p class="body">Augment your lecture content online.</p>
           </div>
@@ -294,74 +358,128 @@
             </p>
           </div>
 
-          <!-- Names as given. The roles and photographs have not been supplied, so
-               neither is invented here. -->
           <h3 class="title team-head">Meet our team</h3>
-          <div class="team placeholder">
-            <span class="placeholder-tag">Roles and photos pending</span>
+          <div class="team">
             <figure class="person">
-              <span class="avatar" aria-hidden="true">AS</span>
+              <img
+                src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=facearea&facepad=2.6&w=320&h=320&q=70"
+                alt=""
+                loading="lazy"
+              />
               <figcaption>
                 <strong>Dr. Shrivastava</strong>
-                <span class="muted">Role</span>
+                <span class="body">
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                  eiusmod tempor incididunt ut labore.
+                </span>
               </figcaption>
             </figure>
+
             <figure class="person">
-              <span class="avatar" aria-hidden="true">D</span>
+              <img
+                src="https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=facearea&facepad=2.6&w=320&h=320&q=70"
+                alt=""
+                loading="lazy"
+              />
               <figcaption>
                 <strong>Daniel</strong>
-                <span class="muted">Role</span>
+                <span class="body">
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                  nisi ut aliquip ex ea commodo.
+                </span>
               </figcaption>
             </figure>
+
             <figure class="person">
-              <span class="avatar" aria-hidden="true">Z</span>
+              <img
+                src="https://images.unsplash.com/photo-1659353888906-adb3e0041693?auto=format&fit=facearea&facepad=2.6&w=320&h=320&q=70"
+                alt=""
+                loading="lazy"
+              />
               <figcaption>
                 <strong>Zara</strong>
-                <span class="muted">Role</span>
+                <span class="body">
+                  Duis aute irure dolor in reprehenderit in voluptate velit esse
+                  cillum dolore eu fugiat nulla.
+                </span>
               </figcaption>
             </figure>
+
             <figure class="person">
-              <span class="avatar" aria-hidden="true">D</span>
+              <img
+                src="https://images.unsplash.com/photo-1637059824899-a441006a6875?auto=format&fit=facearea&facepad=2.6&w=320&h=320&q=70"
+                alt=""
+                loading="lazy"
+              />
               <figcaption>
                 <strong>Diego</strong>
-                <span class="muted">Role</span>
+                <span class="body">
+                  Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+                  officia deserunt mollit anim.
+                </span>
               </figcaption>
             </figure>
+
             <figure class="person">
-              <span class="avatar" aria-hidden="true">C</span>
+              <img
+                src="https://images.unsplash.com/photo-1645066928295-2506defde470?auto=format&fit=facearea&facepad=2.6&w=320&h=320&q=70"
+                alt=""
+                loading="lazy"
+              />
               <figcaption>
                 <strong>Carlos</strong>
-                <span class="muted">Role</span>
+                <span class="body">
+                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+                  accusantium doloremque laudantium.
+                </span>
               </figcaption>
             </figure>
           </div>
         </div>
       </section>
 
-      <!-- ==========================================================
-           FAQ — asked for in the planning call. Questions and answers have not
-           been written, and inventing them on a clinical-education site is the
-           one thing worth not doing.
-           ========================================================== -->
-      <section class="section-tight">
+      <!-- FAQ. -->
+      <section class="section">
         <div class="wrap">
           <header class="section-head">
             <p class="overline">Questions</p>
             <h2 class="headline">Frequently asked</h2>
           </header>
-          <div class="placeholder faq-slot">
-            <span class="placeholder-tag">Placeholder</span>
-            <p class="body">
-              Space reserved for the FAQ. Send the questions and answers and they drop
-              straight in here.
-            </p>
+
+          <div class="grid g2">
+            <article class="card">
+              <h3 class="title">Who can use EyeLecture?</h3>
+              <p class="body">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua.
+              </p>
+            </article>
+            <article class="card">
+              <h3 class="title">How does my institution join?</h3>
+              <p class="body">
+                Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat.
+              </p>
+            </article>
+            <article class="card">
+              <h3 class="title">What does it cost?</h3>
+              <p class="body">
+                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
+                dolore eu fugiat nulla pariatur.
+              </p>
+            </article>
+            <article class="card">
+              <h3 class="title">Who owns the content I upload?</h3>
+              <p class="body">
+                Excepteur sint occaecat cupidatat non proident, sunt in culpa qui
+                officia deserunt mollit anim id est laborum.
+              </p>
+            </article>
           </div>
         </div>
       </section>
 
-      <!-- ==========================================================
-           Contact.
-           ========================================================== -->
+      <!-- Contact. -->
       <section class="section section-dark" id="contact">
         <div class="wrap contact">
           <div>
@@ -373,13 +491,8 @@
             </p>
           </div>
           <div class="btn-row">
-            <!-- Address not supplied yet — see the note in the README. -->
-            <a class="btn btn-primary placeholder-link" href="mailto:info@eyelecture.com">
-              Email us
-            </a>
-            <a class="btn btn-outline" href="https://platform.eyelecture.com">
-              Log in
-            </a>
+            <a class="btn btn-onblue" href="mailto:info@eyelecture.com">Email us</a>
+            <a class="btn btn-ghost" href="https://platform.eyelecture.com">Log in</a>
           </div>
         </div>
       </section>
@@ -423,5 +536,15 @@
         </div>
       </div>
     </footer>
+
+    <script>
+      // The top bar is transparent over the hero and solid once you leave it.
+      // Threshold rather than IntersectionObserver because there is one bar and one
+      // hero, and a scroll listener that sets a class is the whole feature.
+      const bar = document.querySelector('.topbar');
+      const onScroll = () => bar.classList.toggle('is-stuck', window.scrollY > 24);
+      onScroll();
+      addEventListener('scroll', onScroll, { passive: true });
+    </script>
   </body>
 </html>

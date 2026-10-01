@@ -389,17 +389,27 @@ a:hover {
   border-color: var(--md-sys-color-primary);
 }
 
-/* On the dark sections the outlined button has to carry its own contrast. */
-.section-dark .btn-outline,
-.topbar-dark .btn-outline {
-  color: var(--md-sys-color-on-inverse-surface);
-  border-color: #33405a;
+/* On blue or on ink, the filled button inverts: white plate, brand ink. A primary
+   blue button on a blue field is the one thing that definitely does not work. */
+.btn-onblue {
+  background: #fff;
+  color: var(--el-blue-700);
 }
 
-.section-dark .btn-outline:hover,
-.topbar-dark .btn-outline:hover {
-  background: #1c3462;
-  border-color: #4e7bee;
+.btn-onblue:hover {
+  background: var(--el-blue-50);
+  box-shadow: 0 6px 18px rgba(8, 21, 51, 0.25);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .btn-row {
@@ -485,6 +495,56 @@ a:hover {
   background: color-mix(in srgb, var(--md-sys-color-surface) 88%, transparent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  transition:
+    background var(--motion-base),
+    border-color var(--motion-base),
+    color var(--motion-base);
+}
+
+/* Transparent over the hero, solid once you leave it. The `.is-stuck` class is
+   set by the one script on the page. */
+.topbar-onblue {
+  position: fixed;
+  left: 0;
+  right: 0;
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+  color: #fff;
+}
+
+.topbar-onblue nav a {
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: 500;
+}
+
+.topbar-onblue nav a:hover {
+  color: #fff;
+}
+
+.topbar-onblue.is-stuck {
+  background: color-mix(in srgb, var(--md-sys-color-surface) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom-color: var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface);
+}
+
+.topbar-onblue.is-stuck nav a {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.topbar-onblue.is-stuck nav a:hover {
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Once the bar is on white, the inverted button has to invert back. */
+.topbar-onblue.is-stuck .btn-onblue {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.topbar-onblue.is-stuck .btn-onblue:hover {
+  background: var(--el-blue-700);
 }
 
 .topbar .wrap {
@@ -578,58 +638,25 @@ a:hover {
 }
 
 /* ============================================================
-   Placeholders
-
-   Loud on purpose. Everything on this page that is waiting for real content is
-   marked, so nobody publishes invented copy by accident — the failure mode of a
-   tidy placeholder is that it ships.
-   ============================================================ */
-
-.placeholder {
-  position: relative;
-  border: 1.5px dashed var(--el-amber-500);
-  border-radius: var(--md-sys-shape-corner-lg);
-  background: repeating-linear-gradient(
-    135deg,
-    transparent,
-    transparent 10px,
-    rgba(217, 138, 0, 0.05) 10px,
-    rgba(217, 138, 0, 0.05) 20px
-  );
-}
-
-.placeholder-tag {
-  position: absolute;
-  top: -11px;
-  left: var(--sp-5);
-  padding: 0 8px;
-  border-radius: var(--md-sys-shape-corner-full);
-  background: var(--acc-amber-surface);
-  color: var(--acc-amber-on);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 20px;
-}
-
-.placeholder-link {
-  position: relative;
-  outline: 2px dashed var(--el-amber-500);
-  outline-offset: 3px;
-}
-
-/* ============================================================
-   Hero
+   Hero — the brand gradient from the app's sign-in panel, so the first thing
+   anybody sees is the same blue the product opens with.
    ============================================================ */
 
 .hero {
-  padding-top: var(--sp-20);
+  background: linear-gradient(
+    150deg,
+    var(--el-blue-800) 0%,
+    var(--el-blue-600) 60%,
+    var(--el-blue-500) 100%
+  );
+  color: #fff;
+  padding: calc(68px + var(--sp-16)) 0 var(--sp-20);
+  overflow: hidden;
 }
 
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
   gap: var(--sp-12);
   align-items: center;
 }
@@ -637,13 +664,23 @@ a:hover {
 @media (max-width: 940px) {
   .hero-grid {
     grid-template-columns: 1fr;
-    gap: var(--sp-10);
+    gap: var(--sp-12);
   }
+}
+
+/* On the gradient the highlight is the mint the app uses, not the primary blue —
+   blue on blue disappears. Same rule as `.el-auth-aside .el-hl`. */
+.hero .hl {
+  color: #a8e8cb;
 }
 
 .hero .overline {
   margin-bottom: var(--sp-3);
-  color: var(--md-sys-color-primary);
+  color: #a8c4fb;
+}
+
+.hero .lede {
+  color: rgba(255, 255, 255, 0.86);
 }
 
 .hero-lede {
@@ -664,13 +701,13 @@ a:hover {
   display: flex;
   gap: var(--sp-3);
   align-items: flex-start;
-  color: var(--md-sys-color-on-surface-variant);
+  color: rgba(255, 255, 255, 0.84);
   font-size: 15.5px;
   line-height: 1.55;
 }
 
 .hero-points strong {
-  color: var(--md-sys-color-on-surface);
+  color: #fff;
   font-weight: 600;
 }
 
@@ -679,7 +716,7 @@ a:hover {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--md-sys-color-secondary);
+  background: #a8e8cb;
   margin-top: 9px;
 }
 
@@ -687,42 +724,107 @@ a:hover {
   margin-top: var(--sp-8);
 }
 
-.shot-frame {
+/* ============================================================
+   Hero mosaic
+
+   Three columns of rounded tiles at different heights, the middle one dropped
+   so the rows never line up. Columns rather than one grid: the stagger is the
+   point, and a grid would want to align them again.
+   ============================================================ */
+
+.mosaic {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-3);
+  align-items: start;
+}
+
+.mosaic-col {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-2);
-  min-height: 340px;
-  padding: var(--sp-8);
-  text-align: center;
+  gap: var(--sp-3);
 }
 
-/* The hero photograph. A fixed aspect ratio so the page does not jump while the
-   image loads — the reserved box is the right shape from the first paint. */
-.hero-figure {
-  margin: 0;
+.mosaic-col-drop {
+  margin-top: var(--sp-10);
+}
+
+.tile {
+  display: block;
   border-radius: var(--md-sys-shape-corner-2xl);
   overflow: hidden;
-  box-shadow: var(--md-sys-elevation-4);
-  aspect-ratio: 4 / 3.4;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 28px rgba(8, 21, 51, 0.28);
 }
 
-.hero-figure img {
+.tile img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
+/* Aspect ratios rather than heights, so the reserved box is the right shape from
+   the first paint and nothing jumps while the photographs load. */
+.tile-tall {
+  aspect-ratio: 3 / 4.4;
+}
+
+.tile-mid {
+  aspect-ratio: 3 / 3.4;
+}
+
+.tile-short {
+  aspect-ratio: 3 / 2.4;
+}
+
 @media (max-width: 940px) {
-  .hero-figure {
-    aspect-ratio: 16 / 10;
+  .mosaic {
+    max-width: 560px;
+  }
+  .mosaic-col-drop {
+    margin-top: var(--sp-6);
   }
 }
 
-.shots-slot {
-  padding: var(--sp-16) var(--sp-6);
-  text-align: center;
+@media (max-width: 520px) {
+  .mosaic {
+    gap: var(--sp-2);
+  }
+  .tile {
+    border-radius: var(--md-sys-shape-corner-xl);
+  }
+}
+
+/* ============================================================
+   Screenshots
+   ============================================================ */
+
+.shots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-6);
+}
+
+@media (max-width: 760px) {
+  .shots {
+    grid-template-columns: 1fr;
+  }
+}
+
+.shot {
+  margin: 0;
+}
+
+.shot img {
+  width: 100%;
+  border-radius: var(--md-sys-shape-corner-lg);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  box-shadow: var(--md-sys-elevation-3);
+}
+
+.shot figcaption {
+  margin-top: var(--sp-3);
+  font-size: 13.5px;
 }
 
 /* ============================================================
@@ -748,20 +850,22 @@ a:hover {
 
 .logo-strip {
   margin-top: var(--sp-5);
-  padding: var(--sp-8) var(--sp-6);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: var(--sp-10);
+  gap: var(--sp-6) var(--sp-10);
 }
 
+/* Wordmarks until the real marks arrive. Muted and evenly weighted so no one
+   institution reads as the headline act. */
 .logo-slot {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--md-sys-color-on-surface-muted);
+  text-align: center;
 }
 
 /* ============================================================
@@ -772,6 +876,66 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: var(--sp-2);
+}
+
+/* The design system's tinted icon tile, the one the dashboard uses above each
+   number. Four accents, rotated across the grid so no column is one colour. */
+.tile-ico {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--md-sys-shape-corner-md);
+  margin-bottom: var(--sp-3);
+}
+
+.acc-blue {
+  background: var(--acc-blue-surface);
+  color: var(--acc-blue-on);
+}
+
+.acc-emerald {
+  background: var(--acc-emerald-surface);
+  color: var(--acc-emerald-on);
+}
+
+.acc-amber {
+  background: var(--acc-amber-surface);
+  color: var(--acc-amber-on);
+}
+
+.acc-violet {
+  background: var(--acc-violet-surface);
+  color: var(--acc-violet-on);
+}
+
+/* A whole card in an accent, for the three one-word promises. The border carries
+   the emphasis as well as the fill — a single tinted edge reads as a leftover
+   list divider, which is the design system's own note on this. */
+.card-acc {
+  border-width: 1.5px;
+  border-style: solid;
+}
+
+.card-acc.acc-blue {
+  border-color: #b4c8fa;
+}
+
+.card-acc.acc-emerald {
+  border-color: #97e3c0;
+}
+
+.card-acc.acc-violet {
+  border-color: #c3b4f9;
+}
+
+.card-acc .title {
+  color: inherit;
+}
+
+.card-acc .body {
+  color: inherit;
+  opacity: 0.82;
 }
 
 /* ============================================================
@@ -816,34 +980,6 @@ a:hover {
 }
 
 /* ============================================================
-   The three promises
-   ============================================================ */
-
-.pitch .title {
-  margin-bottom: var(--sp-2);
-}
-
-.pitch-mark {
-  display: block;
-  width: 40px;
-  height: 4px;
-  border-radius: var(--md-sys-shape-corner-full);
-  margin-bottom: var(--sp-4);
-}
-
-.pitch-blue {
-  background: var(--md-sys-color-primary);
-}
-
-.pitch-emerald {
-  background: var(--md-sys-color-secondary);
-}
-
-.pitch-violet {
-  background: var(--el-violet-500);
-}
-
-/* ============================================================
    About
    ============================================================ */
 
@@ -866,55 +1002,55 @@ a:hover {
 }
 
 .team {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--sp-6);
-  padding: var(--sp-8) var(--sp-6);
+}
+
+@media (max-width: 1000px) {
+  .team {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .team {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .person {
   margin: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
+  text-align: center;
+}
+
+/* Circular, and square at the source: `fit=facearea` on the image URL crops to
+   the face, so the circle never lands on somebody's forehead. */
+.person img {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto var(--sp-4);
+  background: var(--md-sys-color-surface-container-high);
 }
 
 .person figcaption {
   display: flex;
   flex-direction: column;
-  line-height: 1.35;
+  gap: 6px;
 }
 
 .person figcaption strong {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.person figcaption .muted {
-  font-size: 13px;
-}
-
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--md-sys-color-primary-container);
-  color: var(--md-sys-color-on-primary-container);
   font-family: var(--font-display);
-  font-weight: 600;
   font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-/* ============================================================
-   FAQ slot
-   ============================================================ */
-
-.faq-slot {
-  padding: var(--sp-10) var(--sp-6);
-  text-align: center;
+.person figcaption .body {
+  font-size: 13.5px;
+  line-height: 1.55;
 }
 
 /* ============================================================

@@ -1,18 +1,48 @@
 # Landing page
 
-A static page for **eyelecture.com**. Two files, no build step, no framework:
-open `index.html` and it works.
+A static page for **eyelecture.com**. Three files and a folder of images, no build
+step, no framework: open `index.html` and it works.
 
 It is deliberately outside the Angular app. The app lives on
 `platform.eyelecture.com` and the landing links to it — that is what every "Log in"
 on the page points at.
 
+## Everything here is provisional
+
+There are no placeholder frames on the page any more, by request: the whole first
+cut is a draft, and marking parts of it was drawing a line that does not exist. What
+that means in practice is below, so nobody mistakes a draft for a decision.
+
+| Not real yet | What it is today |
+| --- | --- |
+| Team photographs | Stock portraits from Unsplash, standing in for Dr. Shrivastava, Daniel, Zara, Diego and Carlos. **They are not those people.** Swap them before this is public. |
+| Team descriptions | Lorem ipsum. |
+| FAQ | Four plausible questions, lorem ipsum answers. The questions are a guess at what gets asked; the answers are not written. |
+| Sponsor wordmarks | Set in the brand typeface, not the real marks. The planning notes named the third one through a transcript as "ASCIARA" / "Ciara" — **ASCRS** is the assumption here, confirm it. |
+| Contact address | `info@eyelecture.com` is a guess. |
+
+Everything else — the hero, the six features, the mission line, the About section
+and the Custom/Cloud/Create trio — is the old eyelecture.com copy as supplied.
+
+The one thing **not** carried over is the rotating hero. The old site cycled three
+slides; here the first is the headline and the other two are the points under it.
+Same words, no carousel.
+
 ## Why a copy of the design tokens
 
 `styles.css` carries the tokens from `frontend/src/styles/_tokens.scss`, copied
-verbatim. The landing does not go through the Angular build, so it cannot import
-the SCSS; what it can do is carry the same values, which is what keeps the two from
+verbatim. The landing does not go through the Angular build, so it cannot import the
+SCSS; what it can do is carry the same values, which is what keeps the two from
 reading as different products.
+
+Borrowed from the design system on purpose:
+
+- the **hero gradient** is `.el-auth-aside`, the app's sign-in panel, so the first
+  thing anybody sees is the same blue the product opens with — and `.hl` goes mint
+  there, because blue on blue disappears;
+- the **tinted icon tiles** on the feature cards are the dashboard's;
+- the **accent cards** behind Custom / Cloud / Create are `.el-card` with the
+  `--acc-*` surfaces.
 
 Two deliberate differences:
 
@@ -20,52 +50,40 @@ Two deliberate differences:
 - **`display` is 56px against the app's 44.** A page headline carries further than
   an in-app one. Everything below it is the app's scale unchanged.
 
-If a token changes in the app, change it here too. There is no mechanism that will
-notice for you.
+If a token changes in the app, change it here too. Nothing will notice for you.
 
-## Where the copy came from
+## Images
 
-The text is the old eyelecture.com, as supplied — the hero, the six features, the
-mission line, the About section and the Custom/Cloud/Create trio. Nothing on the
-page is invented marketing.
+Screenshots in `img/` are real, taken from the deployed test environment. They show
+the sign-up step confirming an institution by email domain, and the dashboard.
 
-The one thing that is **not** carried over is the rotating hero. The old site cycled
-three slides; here the first is the headline and the other two are the points under
-it. Same words, no carousel.
+Photographs are hot-linked from [Unsplash](https://unsplash.com) under the Unsplash
+licence:
 
-## Placeholders
-
-Everything still waiting on real content is wrapped in `.placeholder` and carries a
-dashed amber border with a tag. That is on purpose and it is ugly on purpose — a tidy
-placeholder is one that ships.
-
-| Slot | What is needed |
+| Where | Photo |
 | --- | --- |
-| Sponsor logos | The actual marks for Montefiore, Duke and ASCRS. The names in the planning notes came through a transcript as "ASCIARA" / "Ciara"; **ASCRS** is the assumption — confirm it. |
-| Product screenshots | Which screens go on a public page. What exists today is the account and administration surface. |
-| Team roles and photos | Names are as given: Dr. Shrivastava, Daniel, Zara, Diego, Carlos. No role or photograph has been supplied, and none is invented. |
-| FAQ | Questions and answers. |
-| Contact address | `mailto:info@eyelecture.com` is a guess and is marked as one. |
+| Hero mosaic | `photo-1637059824899-a441006a6875`, `photo-1501621667575-af81f1f0bacc`, `photo-1677773382668-8a84321836e9`, `photo-1622253692010-333f2da6031d`, `photo-1530695440407-21fef47230b1`, `photo-1638957835514-224c57ffe617` |
+| Mission band | `photo-1524178232363-1fb2b075b655` |
+| Team | `photo-1622253692010-333f2da6031d`, `photo-1612349317150-e413f6a5b16d`, `photo-1659353888906-adb3e0041693`, `photo-1637059824899-a441006a6875`, `photo-1645066928295-2506defde470` |
 
-## Photographs
+All of them take Unsplash's own resizing parameters, so the page never downloads a
+4000px original. The team ones use `fit=facearea`, which crops to the face — that is
+what keeps a circular mask off somebody's forehead.
 
-Two stock images from [Unsplash](https://unsplash.com), used under the Unsplash
-licence and hot-linked from `images.unsplash.com`:
-
-| Where | Photo | URL |
-| --- | --- | --- |
-| Hero | Eye examination | `images.unsplash.com/photo-1576210117723-cd06449a467d` |
-| Mission band | Lecture room | `images.unsplash.com/photo-1524178232363-1fb2b075b655` |
-
-They are placeholders in spirit even though they are not marked as such: swap them
-for real photographs of the programs when there are any. If the page should not
-depend on a third-party CDN, download both and serve them from this folder.
+If the page should not depend on a third-party CDN, download them into `img/` and
+change the `src` attributes.
 
 The brandmark is the eyemark from the design system, inlined as SVG and taken
 verbatim from `frontend/src/app/shared/components/eye-logo.component.ts`.
 
+## The one script
+
+Eight lines at the bottom of `index.html`. The top bar is transparent over the hero
+and solid once you scroll past it; a scroll listener that toggles a class is the
+whole feature.
+
 ## Deploying
 
-Nothing here is wired up yet. It is two static files, so any host will do —
-Cloud Storage behind the existing load balancer, Cloud Run with a static server, or
-whatever `eyelecture.com` points at today.
+Nothing here is wired up yet. Static files, so any host will do — Cloud Storage
+behind the existing load balancer, Cloud Run with a static server, or whatever
+`eyelecture.com` points at today.
