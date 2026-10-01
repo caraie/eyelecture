@@ -21,6 +21,7 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 | Roadmap dates | 2017, funding and 2019 come from the About copy. **2026 and 2027 are ours** — "rebuilding the app", then core curriculum and analytics. |
 | Sponsor wordmarks | Set in the brand typeface, not the real marks. The planning notes named the third one through a transcript as "ASCIARA" / "Ciara" — **ASCRS** is the assumption here, confirm it. |
 | Contact address | `info@eyelecture.com` is a guess. |
+| The contact form | Has nowhere to post. See below. |
 
 Everything else — the hero, the six features, the mission line, the About section
 and the Custom/Cloud/Create trio — is the old eyelecture.com copy as supplied.
@@ -55,8 +56,16 @@ If a token changes in the app, change it here too. Nothing will notice for you.
 
 ## Images
 
-Screenshots in `img/` are real, taken from the deployed test environment. They show
-the sign-up step confirming an institution by email domain, and the dashboard.
+Screenshots in `img/` are real, taken from the deployed test environment, and all
+four are **what somebody signing up sees**: creating an account, the institution
+being confirmed by email domain, their dashboard, and their profile. The
+administration screens — the review queue, institutions, the super user's dashboard
+— are deliberately not here. A public page should show the product from the side the
+public is on.
+
+They are cropped to a common 16:10 rather than letterboxed. The bars that padding
+left were the thing that looked wrong; the crop is anchored top-left, so what goes
+is whitespace at the bottom and never the side navigation's rounded edge.
 
 Photographs are hot-linked from [Unsplash](https://unsplash.com) under the Unsplash
 licence:
@@ -102,3 +111,18 @@ keyboard for free.
 Nothing here is wired up yet. Static files, so any host will do — Cloud Storage
 behind the existing load balancer, Cloud Run with a static server, or whatever
 `eyelecture.com` points at today.
+
+## The contact form
+
+There is no backend. Rather than a Send button that quietly does nothing, submitting
+opens the visitor's own mail client with every field already written into the
+message. That works today, needs nothing, and loses no information.
+
+When there is somewhere to post it, put the URL on the form:
+
+```html
+<form class="contact-form" data-contact data-endpoint="https://…">
+```
+
+It then POSTs the fields as JSON and reports success or failure in place. No other
+change is needed.

@@ -1550,13 +1550,138 @@ a:hover {
 }
 
 .contact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-8);
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: var(--sp-12);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .contact {
+    grid-template-columns: 1fr;
+    gap: var(--sp-8);
+  }
 }
 
 .contact .headline {
   margin: var(--sp-3) 0 var(--sp-4);
+}
+
+.contact-copy {
+  padding-top: var(--sp-2);
+}
+
+.contact-mail {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-6);
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--md-sys-shape-corner-full);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.contact-mail:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+}
+
+/* ---- The form -------------------------------------------------------------
+   A white card on the blue, so the fields keep the app's own look rather than
+   inventing a set of controls that only exist here. */
+
+.contact-form {
+  background: var(--md-sys-color-surface);
+  border-radius: var(--md-sys-shape-corner-xl);
+  padding: var(--sp-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  box-shadow: 0 18px 40px rgba(8, 21, 51, 0.3);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+@media (max-width: 520px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field > span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--md-sys-shape-corner-md);
+  padding: 11px 13px;
+  transition:
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--md-sys-color-primary);
+  box-shadow: 0 0 0 3px var(--md-sys-color-primary-container);
+}
+
+/* The browser's own invalid styling fires before anybody has typed. This only
+   shows once the field has been touched and left. */
+.field input:user-invalid {
+  border-color: var(--md-sys-color-error);
+}
+
+.contact-send {
+  align-self: flex-start;
+}
+
+.field-note {
+  margin: 0;
+  min-height: 1.4em;
+  font-size: 13px;
+  color: var(--md-sys-color-on-surface-muted);
+}
+
+.field-note[data-state='ok'] {
+  color: var(--md-sys-color-secondary);
+}
+
+.field-note[data-state='bad'] {
+  color: var(--md-sys-color-error);
 }
