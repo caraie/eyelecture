@@ -50,7 +50,30 @@
         </nav>
 
         <a class="btn btn-onblue" href="https://platform.eyelecture.com">Log in</a>
+
+        <!-- Narrow screens only. The Log in pill stays visible beside it: it is
+             the one thing somebody arriving on a phone is most likely to want,
+             and burying it behind a tap helps nobody. -->
+        <button
+          class="burger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="menu"
+          aria-label="Open menu"
+        >
+          <span class="burger-box" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+        </button>
       </div>
+
+      <nav class="menu" id="menu" aria-label="Main, small screens">
+        <a href="#top">Home</a>
+        <a href="#features">Features</a>
+        <a href="#screens">Inside the portal</a>
+        <a href="#about">About us</a>
+        <a href="#contact">Contact us</a>
+      </nav>
     </header>
 
     <main id="top">
@@ -723,6 +746,53 @@
         /* ---- Top bar ------------------------------------------------------
            Transparent over the hero, solid once you leave it. */
         const bar = document.querySelector('.topbar');
+
+        /* ---- Small-screen menu --------------------------------------------
+           The panel stays in the layout when closed so both the open and the
+           close animate; `inert` is what keeps its links off the tab order and
+           away from screen readers while it is invisible. */
+        const burger = document.querySelector('.burger');
+        const menu = document.querySelector('.menu');
+
+        const setMenu = (open) => {
+          menu.classList.toggle('is-open', open);
+          burger.setAttribute('aria-expanded', String(open));
+          burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+          menu.inert = !open;
+        };
+
+        setMenu(false);
+
+        burger.addEventListener('click', () => {
+          const open = burger.getAttribute('aria-expanded') === 'true';
+          setMenu(!open);
+          if (!open) menu.querySelector('a')?.focus();
+        });
+
+        // Tapping a link navigates within the page, so the panel has to get out
+        // of the way itself — there is no page load to do it.
+        menu.addEventListener('click', (e) => {
+          if (e.target.closest('a')) setMenu(false);
+        });
+
+        addEventListener('keydown', (e) => {
+          if (e.key !== 'Escape') return;
+          if (burger.getAttribute('aria-expanded') !== 'true') return;
+          setMenu(false);
+          burger.focus();
+        });
+
+        addEventListener('click', (e) => {
+          if (burger.getAttribute('aria-expanded') !== 'true') return;
+          if (e.target.closest('.topbar')) return;
+          setMenu(false);
+        });
+
+        // Rotating a phone can cross the breakpoint with the panel still open,
+        // which would leave it stranded over a desktop layout.
+        matchMedia('(min-width: 761px)').addEventListener('change', (e) => {
+          if (e.matches) setMenu(false);
+        });
 
         /* ---- Mosaic drift -------------------------------------------------
            Each column moves at its own rate as the page scrolls — two up, one

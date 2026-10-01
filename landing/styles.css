@@ -581,12 +581,123 @@ a:hover {
   font-size: 14.5px;
 }
 
+/* ============================================================
+   Small screens: the links go behind a burger
+
+   The bar itself keeps its two jobs — brand on the left, Log in on the right —
+   and only the four section links move. The panel is a sibling of `.wrap`, not
+   a child, so it can span the full width of the bar without fighting the
+   container's padding.
+   ============================================================ */
+
+.burger {
+  display: none;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-md);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.burger-box {
+  display: grid;
+  gap: 5px;
+  width: 22px;
+  margin: 0 auto;
+}
+
+.burger-box span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition:
+    transform var(--motion-base) var(--ease-standard),
+    opacity var(--motion-fast);
+}
+
+/* Top and bottom bars cross; the middle one goes. The 7px is the gap plus a
+   bar — how far each has to travel to meet in the centre. */
+.burger[aria-expanded='true'] .burger-box span:first-child {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burger[aria-expanded='true'] .burger-box span:nth-child(2) {
+  opacity: 0;
+}
+
+.burger[aria-expanded='true'] .burger-box span:last-child {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: none;
+  flex-direction: column;
+  padding: var(--sp-2) var(--sp-6) var(--sp-5);
+  background: var(--md-sys-color-surface);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  box-shadow: var(--md-sys-elevation-3);
+  /* Closed: present in the layout but inert and invisible, so the open and
+     close both animate instead of the panel snapping in from `display: none`. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition:
+    opacity var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-standard),
+    visibility var(--motion-base);
+}
+
+.menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.menu a {
+  padding: var(--sp-4) 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.menu a:last-child {
+  border-bottom: 0;
+}
+
+.menu a:hover {
+  color: var(--md-sys-color-primary);
+  text-decoration: none;
+}
+
 @media (max-width: 760px) {
-  .topbar nav {
+  .topbar nav:not(.menu) {
     display: none;
   }
   .topbar .btn {
     margin-left: auto;
+  }
+  .burger {
+    display: block;
+  }
+  .menu {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .burger-box span {
+    transition: none;
   }
 }
 
