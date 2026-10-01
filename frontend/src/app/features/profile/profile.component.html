@@ -214,14 +214,25 @@
             {{ currentUser.personalEmail ?? '—' }}
           </dd>
 
-          <dt>Current institution</dt>
-          <dd>{{ currentUser.institution?.name ?? 'Unaffiliated' }}</dd>
+          <!-- A super user administers every institution, so naming one here would
+               be false and "Unaffiliated" reads like something is missing. -->
+          @if (!isSuperUser()) {
+            <dt>Current institution</dt>
+            <dd>{{ currentUser.institution?.name ?? 'Unaffiliated' }}</dd>
+          }
 
           <dt>Member since</dt>
           <dd>{{ currentUser.createdAt | date: 'mediumDate' }}</dd>
         </dl>
 
-        @if (editingInstitutional()) {
+        @if (isSuperUser()) {
+          <!-- Nothing to move between. Said once, rather than leaving a button that
+               opens a form with no sensible answer. -->
+          <p class="el-lede small no-institution">
+            Super users administer the whole platform, so this account is not tied to
+            an institution.
+          </p>
+        } @else if (editingInstitutional()) {
           <form
             [formGroup]="institutionalForm"
             (ngSubmit)="saveInstitutional()"

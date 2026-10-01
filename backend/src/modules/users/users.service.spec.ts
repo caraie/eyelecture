@@ -569,6 +569,81 @@ describe('UsersService', () => {
     });
   });
 
+  describe('a super user belongs to no institution', () => {
+    it('detaches the account when somebody is promoted', async () => {
+      target = makeUser({ id: 'other', institutionId: STANFORD });
+
+      await service.setRole('other', UserRole.SUPER_USER, 'admin-1');
+
+      expect(repo.update).toHaveBeenCalledWith(
+        { id: 'other' },
+        {
+          role: UserRole.SUPER_USER,
+          institutionId: null,
+          requestedInstitutionId: null,
+        },
+      );
+    });
+
+    it('ends the affiliation rather than deleting it', async () => {
+      // They really were there. The dates are part of the record, and a past
+      // affiliation still grants access to that institution's material.
+      target = makeUser({ id: 'other', institutionId: STANFORD });
+      const open = { id: 'aff-1', institutionId: STANFORD, endedAt: null };
+      affiliationRepo.find.mockResolvedValue([open]);
+
+      await service.setRole('other', UserRole.SUPER_USER, 'admin-1');
+
+      expect(affiliationRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'aff-1', endedAt: expect.any(Date) }),
+      );
+    });
+
+    it('leaves affiliations alone for any other rank', async () => {
+      target = makeUser({ id: 'other', institutionId: STANFORD });
+
+      await service.setRole('other', UserRole.FELLOW, 'admin-1');
+
+      expect(affiliationRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('refuses to assign one an institution', async () => {
+      target = makeUser({ id: 'su', role: UserRole.SUPER_USER });
+
+      await expect(service.assignInstitution('su', STANFORD)).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(repo.update).not.toHaveBeenCalled();
+    });
+
+    it('still lets one be detached explicitly', async () => {
+      target = makeUser({ id: 'su', role: UserRole.SUPER_USER });
+
+      await service.assignInstitution('su', null);
+
+      expect(repo.update).toHaveBeenCalledWith(
+        { id: 'su' },
+        { institutionId: null },
+      );
+    });
+
+    it('refuses to validate one into an institution', async () => {
+      // Validation decides whether somebody belongs to an institution, and this
+      // rank does not belong to one. There is nothing to approve.
+      const admin = makeUser({ id: 'admin-1', role: UserRole.SUPER_USER });
+      target = makeUser({
+        id: 'su-2',
+        role: UserRole.SUPER_USER,
+        institutionId: STANFORD,
+      });
+
+      await expect(service.validate('su-2', admin, {})).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(repo.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe('countPendingValidation', () => {
     it('counts everything for an admin', async () => {
       const admin = makeUser({ id: 'a', role: UserRole.SUPER_USER });

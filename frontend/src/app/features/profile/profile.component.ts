@@ -42,6 +42,13 @@ export class ProfileComponent {
   readonly user = this.auth.user;
   readonly saving = signal(false);
 
+  /**
+   * Platform staff administer every institution, so this account belongs to none.
+   * The Membership card drops the institution row and the move-institution form
+   * rather than offering a question with no answer.
+   */
+  readonly isSuperUser = this.auth.isSuperUser;
+
   readonly roleLabel = computed(() => {
     const role = this.user()?.role;
     return role ? ROLE_LABELS[role] : '';

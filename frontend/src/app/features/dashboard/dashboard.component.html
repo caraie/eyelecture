@@ -106,10 +106,14 @@
           <dt>Role</dt>
           <dd>{{ roleLabel() }}</dd>
         </div>
-        <div>
-          <dt>Institution</dt>
-          <dd>{{ currentUser.institution?.name ?? 'Not linked' }}</dd>
-        </div>
+        <!-- Omitted for platform staff, who administer all of them: "Not linked"
+             reads like a missing value rather than a deliberate one. -->
+        @if (!isSuperUser()) {
+          <div>
+            <dt>Institution</dt>
+            <dd>{{ currentUser.institution?.name ?? 'Not linked' }}</dd>
+          </div>
+        }
         <!-- The badge used to sit up in the page header and this row spelled the same
              fact out in a sentence beside it. One of them had to go; the badge is the
              one people recognise, so it took the row rather than the corner. -->

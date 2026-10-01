@@ -653,6 +653,14 @@ export class UsersService {
       throw new BadRequestException('This user is already validated');
     }
 
+    // Validation is a decision about belonging to an institution, and a super user
+    // does not belong to one. There is nothing here to approve.
+    if (target.role === UserRole.SUPER_USER) {
+      throw new BadRequestException(
+        'A super user administers the whole platform and does not belong to an institution',
+      );
+    }
+
     let institutionId: string | null;
     if (reviewer.role === UserRole.PROGRAM_ADMINISTRATOR) {
       if (dto.institutionId && dto.institutionId !== reviewer.institutionId) {
@@ -723,6 +731,17 @@ export class UsersService {
     return this.findByIdOrFail(targetId);
   }
 
+  /**
+   * Change somebody's rank.
+   *
+   * Becoming a super user detaches the account from its institution. Platform staff
+   * administer everything, so belonging to one institution says nothing true about
+   * them — and left in place it would quietly scope screens that read that column.
+   *
+   * The affiliation is *ended*, not deleted: they really were there, the dates are
+   * part of the record, and a past affiliation still grants access to that
+   * institution's material. Only the shortcut column is cleared.
+   */
   async setRole(
     id: string,
     role: UserRole,
@@ -732,7 +751,17 @@ export class UsersService {
       throw new BadRequestException('You cannot change your own role');
     }
     await this.findByIdOrFail(id);
-    await this.users.update({ id }, { role });
+
+    if (role === UserRole.SUPER_USER) {
+      await this.users.update(
+        { id },
+        { role, institutionId: null, requestedInstitutionId: null },
+      );
+      await this.endOtherAffiliations(id, null);
+    } else {
+      await this.users.update({ id }, { role });
+    }
+
     return this.findByIdOrFail(id);
   }
 
@@ -796,7 +825,17 @@ export class UsersService {
     id: string,
     institutionId: string | null,
   ): Promise<User> {
-    await this.findByIdOrFail(id);
+    const user = await this.findByIdOrFail(id);
+
+    // Refused rather than ignored. Platform staff administer every institution, so
+    // picking one out and attaching them to it is either a mistake or a sign that
+    // the account should not have been a super user — and both are worth saying.
+    if (user.role === UserRole.SUPER_USER && institutionId !== null) {
+      throw new BadRequestException(
+        'A super user administers the whole platform and does not belong to an institution',
+      );
+    }
+
     await this.users.update({ id }, { institutionId });
     return this.findByIdOrFail(id);
   }
