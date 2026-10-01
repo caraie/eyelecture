@@ -559,18 +559,18 @@ a:hover {
   gap: var(--sp-5);
 }
 
-.topbar nav {
+.topbar nav:not(.menu) {
   display: flex;
   gap: var(--sp-5);
   margin-left: auto;
   font-size: 15px;
 }
 
-.topbar nav a {
+.topbar nav:not(.menu) a {
   color: var(--md-sys-color-on-surface-variant);
 }
 
-.topbar nav a:hover {
+.topbar nav:not(.menu) a:hover {
   color: var(--md-sys-color-on-surface);
   text-decoration: none;
 }
@@ -704,10 +704,14 @@ a:hover {
 /* ============================================================
    Top bar over the hero
 
-   Declared after the base `.topbar nav a`, not before it. Both selectors
-   have the same specificity, so the one further down wins — and with this
-   block above, the links on the gradient were taking the grey meant for the
-   white bar.
+   Declared after the base `.topbar nav:not(.menu) a`, not before it. Both
+   selectors have the same specificity, so the one further down wins — and with
+   this block above, the links on the gradient were taking the grey meant for
+   the white bar.
+
+   The `:not(.menu)` is the other half of that lesson. The small-screen panel is
+   a <nav> inside this same bar, so a bare `.topbar nav a` reached it too and
+   painted its links white — on a white panel.
    ============================================================ */
 
 .topbar-onblue {
@@ -722,12 +726,12 @@ a:hover {
 
 /* Full white and a touch heavier. At 0.8 alpha these read as disabled against
    the gradient, which is the opposite of what a nav should look like. */
-.topbar-onblue nav a {
+.topbar-onblue nav:not(.menu) a {
   color: #fff;
   font-weight: 500;
 }
 
-.topbar-onblue nav a:hover {
+.topbar-onblue nav:not(.menu) a:hover {
   color: #fff;
   text-decoration: underline;
   text-underline-offset: 6px;
@@ -740,11 +744,11 @@ a:hover {
   color: var(--md-sys-color-on-surface);
 }
 
-.topbar-onblue.is-stuck nav a {
+.topbar-onblue.is-stuck nav:not(.menu) a {
   color: var(--md-sys-color-on-surface-variant);
 }
 
-.topbar-onblue.is-stuck nav a:hover {
+.topbar-onblue.is-stuck nav:not(.menu) a:hover {
   color: var(--md-sys-color-on-surface);
 }
 
