@@ -5,13 +5,18 @@
       <h1 class="el-headline">
         {{ greeting() }}, <span class="el-hl">{{ currentUser.firstName }}</span>
       </h1>
-      <p class="el-lede">
-        @if (currentUser.institution) {
-          {{ currentUser.institution.name }}
-        } @else {
-          Unaffiliated
-        }
-      </p>
+      <!-- Dropped entirely for a super user. "Unaffiliated" describes somebody who
+           has not been placed yet; platform staff administer every institution, so
+           for them the line answers a question nobody asked. -->
+      @if (!isSuperUser()) {
+        <p class="el-lede">
+          @if (currentUser.institution) {
+            {{ currentUser.institution.name }}
+          } @else {
+            Unaffiliated
+          }
+        </p>
+      }
     </div>
   </header>
 
