@@ -11,34 +11,24 @@
   grid-template-columns: minmax(0, 1.4fr) minmax(260px, 0.85fr);
   gap: var(--sp-5);
   align-items: start;
-
-  /* Both cards belong in the left column and the aside owns the right one, whole.
-     Said explicitly because auto-placement does not know that: with two sections
-     and an aside it fills row 1 across both columns and drops the aside into the
-     second row of column one, which is what left a column of empty space under
-     "Your details". */
-  > section {
-    grid-column: 1;
-  }
-
-  > aside {
-    grid-column: 2;
-    grid-row: 1 / -1;
-  }
 }
 
 @media (max-width: 900px) {
   .cols {
     grid-template-columns: 1fr;
-
-    /* One column, so the placement above has to be undone rather than just
-       ignored — a `grid-column: 2` in a one-column grid creates a second one. */
-    > section,
-    > aside {
-      grid-column: 1;
-      grid-row: auto;
-    }
   }
+}
+
+/* The left column is one grid child holding two cards, not two children. Grid
+   auto-placement would otherwise fill row 1 across both columns and drop the aside
+   into row 2 of column one — a column of empty space under "Your details". Forcing
+   the columns in CSS instead does not work either: an aside spanning both rows
+   stretches them, which just moves the gap. */
+.main-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  min-width: 0;
 }
 
 .el-title {

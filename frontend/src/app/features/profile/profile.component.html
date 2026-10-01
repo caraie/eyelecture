@@ -7,176 +7,182 @@
   </header>
 
   <div class="cols">
-    <section class="el-card">
-      <h2 class="el-title">Your details</h2>
-      <p class="el-lede small">
-        Your <span class="el-hl-em">username</span> is permanent. Everything else
-        here can change as you move.
-      </p>
+    <!-- One grid child, not two: the left column is a stack of cards. Loose,
+         grid auto-placement fills row 1 across both columns and drops the aside
+         into row 2 of column one — which is what left a column of empty space
+         under "Your details". -->
+    <div class="main-col">
+      <section class="el-card">
+        <h2 class="el-title">Your details</h2>
+        <p class="el-lede small">
+          Your <span class="el-hl-em">username</span> is permanent. Everything else
+          here can change as you move.
+        </p>
 
-      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
-        <div class="row">
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>First name</mat-label>
-            <input matInput formControlName="firstName" />
-            @if (form.controls.firstName.hasError('required')) {
-              <mat-error>Required</mat-error>
-            }
-          </mat-form-field>
+        <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+          <div class="row">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>First name</mat-label>
+              <input matInput formControlName="firstName" />
+              @if (form.controls.firstName.hasError('required')) {
+                <mat-error>Required</mat-error>
+              }
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>Last name</mat-label>
-            <input matInput formControlName="lastName" />
-            @if (form.controls.lastName.hasError('required')) {
-              <mat-error>Required</mat-error>
-            }
-          </mat-form-field>
-        </div>
-
-        <div class="form-actions">
-          <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
-            @if (saving()) {
-              <mat-spinner diameter="20" />
-            } @else {
-              Save changes
-            }
-          </button>
-        </div>
-      </form>
-    </section>
-
-    <section class="el-card">
-      <h2 class="el-title">Personal email</h2>
-      <p class="el-lede small">
-        A private address, outside any institution. It does not sign you in — your
-        <span class="el-hl-em">username</span> does that — but it is what keeps your
-        account reachable if you change institutions.
-      </p>
-
-      @if (currentUser.personalEmail) {
-        <div class="personal-current">
-          <div class="addr">
-            <mat-icon>{{
-              currentUser.personalEmailVerified ? 'verified' : 'mark_email_unread'
-            }}</mat-icon>
-            <div>
-              <strong>{{ currentUser.personalEmail }}</strong>
-              <span
-                class="el-badge"
-                [class.el-badge-success]="currentUser.personalEmailVerified"
-                [class.el-badge-warning]="!currentUser.personalEmailVerified"
-              >
-                {{ currentUser.personalEmailVerified ? 'Confirmed' : 'Not confirmed' }}
-              </span>
-            </div>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Last name</mat-label>
+              <input matInput formControlName="lastName" />
+              @if (form.controls.lastName.hasError('required')) {
+                <mat-error>Required</mat-error>
+              }
+            </mat-form-field>
           </div>
 
-          @if (!currentUser.personalEmailVerified) {
-            <!-- Deliberately not framed as a problem. The address already works for
-                 signing in; confirming it is what lets us actually write to it. -->
-            <div class="el-alert el-alert-info">
-              <mat-icon>info</mat-icon>
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+              @if (saving()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                Save changes
+              }
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="el-card">
+        <h2 class="el-title">Personal email</h2>
+        <p class="el-lede small">
+          A private address, outside any institution. It does not sign you in — your
+          <span class="el-hl-em">username</span> does that — but it is what keeps your
+          account reachable if you change institutions.
+        </p>
+
+        @if (currentUser.personalEmail) {
+          <div class="personal-current">
+            <div class="addr">
+              <mat-icon>{{
+                currentUser.personalEmailVerified ? 'verified' : 'mark_email_unread'
+              }}</mat-icon>
               <div>
-                <strong>This address is already on your account</strong>
-                Confirming it just proves you can read that mailbox, which is what
-                lets us use it to reach you. You can do it whenever you like.
+                <strong>{{ currentUser.personalEmail }}</strong>
+                <span
+                  class="el-badge"
+                  [class.el-badge-success]="currentUser.personalEmailVerified"
+                  [class.el-badge-warning]="!currentUser.personalEmailVerified"
+                >
+                  {{ currentUser.personalEmailVerified ? 'Confirmed' : 'Not confirmed' }}
+                </span>
               </div>
             </div>
+
+            @if (!currentUser.personalEmailVerified) {
+              <!-- Deliberately not framed as a problem. The address already works for
+                   signing in; confirming it is what lets us actually write to it. -->
+              <div class="el-alert el-alert-info">
+                <mat-icon>info</mat-icon>
+                <div>
+                  <strong>This address is already on your account</strong>
+                  Confirming it just proves you can read that mailbox, which is what
+                  lets us use it to reach you. You can do it whenever you like.
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="resendConfirmation()"
+                >
+                  <!-- One node per branch, and the label outside them both. Angular
+                       cannot project a node out of a control-flow block that holds
+                       more than one root, so the icon used to land in the label slot
+                       instead of the icon slot — which is what put it out of line
+                       with the words. -->
+                  @if (busy()) {
+                    <mat-spinner diameter="20" />
+                  } @else {
+                    <mat-icon>send</mat-icon>
+                  }
+                  Send a confirmation link
+                </button>
+              </div>
+
+              @if (devConfirmLink(); as link) {
+                <div class="dev-token">
+                  <div class="lbl">Development only — no mail server configured</div>
+                  <a [href]="link">Open the confirmation link</a>
+                </div>
+              }
+            }
+
+            <div class="form-actions">
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="busy()"
+                (click)="startEditingPersonal()"
+              >
+                <mat-icon>edit</mat-icon>
+                Change
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (!currentUser.personalEmail || editingPersonal()) {
+          <form [formGroup]="personalForm" (ngSubmit)="savePersonal()" novalidate>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Personal email</mat-label>
+              <input
+                matInput
+                type="email"
+                formControlName="personalEmail"
+                autocomplete="email"
+                placeholder="you@gmail.com"
+              />
+              <mat-icon matPrefix>alternate_email</mat-icon>
+              <mat-hint>
+                Has to be personal — an address on a known institution domain is not
+                accepted here.
+              </mat-hint>
+              @if (personalForm.controls.personalEmail.hasError('required')) {
+                <mat-error>Enter an address</mat-error>
+              } @else if (personalForm.controls.personalEmail.hasError('email')) {
+                <mat-error>That does not look like an email address</mat-error>
+              }
+            </mat-form-field>
 
             <div class="form-actions">
               <button
                 mat-flat-button
                 color="primary"
-                type="button"
+                type="submit"
                 [disabled]="busy()"
-                (click)="resendConfirmation()"
               >
-                <!-- One node per branch, and the label outside them both. Angular
-                     cannot project a node out of a control-flow block that holds
-                     more than one root, so the icon used to land in the label slot
-                     instead of the icon slot — which is what put it out of line
-                     with the words. -->
                 @if (busy()) {
                   <mat-spinner diameter="20" />
                 } @else {
-                  <mat-icon>send</mat-icon>
+                  Save and send a link
                 }
-                Send a confirmation link
               </button>
-            </div>
-
-            @if (devConfirmLink(); as link) {
-              <div class="dev-token">
-                <div class="lbl">Development only — no mail server configured</div>
-                <a [href]="link">Open the confirmation link</a>
-              </div>
-            }
-          }
-
-          <div class="form-actions">
-            <button
-              mat-stroked-button
-              type="button"
-              [disabled]="busy()"
-              (click)="startEditingPersonal()"
-            >
-              <mat-icon>edit</mat-icon>
-              Change
-            </button>
-          </div>
-        </div>
-      }
-
-      @if (!currentUser.personalEmail || editingPersonal()) {
-        <form [formGroup]="personalForm" (ngSubmit)="savePersonal()" novalidate>
-          <mat-form-field appearance="outline" subscriptSizing="dynamic">
-            <mat-label>Personal email</mat-label>
-            <input
-              matInput
-              type="email"
-              formControlName="personalEmail"
-              autocomplete="email"
-              placeholder="you@gmail.com"
-            />
-            <mat-icon matPrefix>alternate_email</mat-icon>
-            <mat-hint>
-              Has to be personal — an address on a known institution domain is not
-              accepted here.
-            </mat-hint>
-            @if (personalForm.controls.personalEmail.hasError('required')) {
-              <mat-error>Enter an address</mat-error>
-            } @else if (personalForm.controls.personalEmail.hasError('email')) {
-              <mat-error>That does not look like an email address</mat-error>
-            }
-          </mat-form-field>
-
-          <div class="form-actions">
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              [disabled]="busy()"
-            >
-              @if (busy()) {
-                <mat-spinner diameter="20" />
-              } @else {
-                Save and send a link
+              @if (editingPersonal()) {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="cancelEditingPersonal()"
+                >
+                  Cancel
+                </button>
               }
-            </button>
-            @if (editingPersonal()) {
-              <button
-                mat-stroked-button
-                type="button"
-                [disabled]="busy()"
-                (click)="cancelEditingPersonal()"
-              >
-                Cancel
-              </button>
-            }
-          </div>
-        </form>
-      }
-    </section>
+            </div>
+          </form>
+        }
+      </section>
+    </div>
 
     <aside class="el-stack">
       <section class="el-card identity">
