@@ -1594,17 +1594,14 @@ a:hover {
 }
 
 /* ---- The form -------------------------------------------------------------
-   A white card on the blue, so the fields keep the app's own look rather than
-   inventing a set of controls that only exist here. */
+   Straight on the blue, no plate under it. The fields keep the app's shape and
+   spacing but are drawn in light-on-dark: a translucent fill and a white-ish
+   border, which is what the band already does for its buttons. */
 
 .contact-form {
-  background: var(--md-sys-color-surface);
-  border-radius: var(--md-sys-shape-corner-xl);
-  padding: var(--sp-6);
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  box-shadow: 0 18px 40px rgba(8, 21, 51, 0.3);
 }
 
 .field-row {
@@ -1629,7 +1626,7 @@ a:hover {
 .field > span {
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--md-sys-color-on-surface-variant);
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .field input,
@@ -1638,14 +1635,22 @@ a:hover {
   width: 100%;
   font-family: var(--font-body);
   font-size: 15px;
-  color: var(--md-sys-color-on-surface);
-  background: var(--md-sys-color-surface);
-  border: 1px solid var(--md-sys-color-outline);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.34);
   border-radius: var(--md-sys-shape-corner-md);
   padding: 11px 13px;
   transition:
+    background var(--motion-fast),
     border-color var(--motion-fast),
     box-shadow var(--motion-fast);
+}
+
+/* The dropdown list itself is drawn by the operating system, on white. Without
+   this the options inherit the white text and come out invisible. */
+.field select option {
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface);
 }
 
 .field textarea {
@@ -1653,18 +1658,25 @@ a:hover {
   min-height: 92px;
 }
 
+.field input:hover,
+.field select:hover,
+.field textarea:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
   outline: none;
-  border-color: var(--md-sys-color-primary);
-  box-shadow: 0 0 0 3px var(--md-sys-color-primary-container);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
 }
 
-/* The browser's own invalid styling fires before anybody has typed. This only
-   shows once the field has been touched and left. */
+/* The browser's own invalid styling fires before anybody has typed. `:user-invalid`
+   only shows once the field has been touched and left. */
 .field input:user-invalid {
-  border-color: var(--md-sys-color-error);
+  border-color: #ffb4ab;
 }
 
 .contact-send {
@@ -1675,13 +1687,13 @@ a:hover {
   margin: 0;
   min-height: 1.4em;
   font-size: 13px;
-  color: var(--md-sys-color-on-surface-muted);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .field-note[data-state='ok'] {
-  color: var(--md-sys-color-secondary);
+  color: #a8e8cb;
 }
 
 .field-note[data-state='bad'] {
-  color: var(--md-sys-color-error);
+  color: #ffb4ab;
 }
