@@ -422,15 +422,56 @@ a:hover {
    Cards and badges — the app's `.el-card` and `.el-badge`.
    ============================================================ */
 
+/* The design system's card, with its hover: the whole thing lifts, the shadow
+   deepens and the border takes on the primary. Transitions are declared on the
+   resting state so leaving animates as well as arriving — a card that eases up
+   and snaps back is worse than one that never moved. */
 .card {
   background: var(--md-sys-color-surface);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--md-sys-shape-corner-lg);
   padding: var(--sp-6);
+  transition:
+    box-shadow var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base),
+    transform var(--motion-base) var(--ease-spring);
+}
+
+.card:hover {
+  box-shadow: var(--md-sys-elevation-3);
+  border-color: color-mix(
+    in srgb,
+    var(--md-sys-color-primary) 45%,
+    var(--md-sys-color-outline)
+  );
+  transform: translateY(-4px);
+}
+
+.card:active {
+  transform: translateY(-1px) scale(0.99);
+  transition-duration: var(--motion-fast);
 }
 
 .card .title {
   margin-bottom: var(--sp-2);
+}
+
+/* The icon tile picks up the lift a beat later than the card, which is what
+   makes the two read as one object rather than two. */
+.card .tile-ico {
+  transition: transform var(--motion-base) var(--ease-spring);
+}
+
+.card:hover .tile-ico {
+  transform: translateY(-2px) scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover,
+  .card:active,
+  .card:hover .tile-ico {
+    transform: none;
+  }
 }
 
 .badge {
@@ -503,6 +544,52 @@ a:hover {
 
 /* Transparent over the hero, solid once you leave it. The `.is-stuck` class is
    set by the one script on the page. */
+.topbar .wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.topbar nav {
+  display: flex;
+  gap: var(--sp-5);
+  margin-left: auto;
+  font-size: 15px;
+}
+
+.topbar nav a {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.topbar nav a:hover {
+  color: var(--md-sys-color-on-surface);
+  text-decoration: none;
+}
+
+.topbar .btn {
+  height: 40px;
+  padding: 0 var(--sp-5);
+  font-size: 14.5px;
+}
+
+@media (max-width: 760px) {
+  .topbar nav {
+    display: none;
+  }
+  .topbar .btn {
+    margin-left: auto;
+  }
+}
+
+/* ============================================================
+   Top bar over the hero
+
+   Declared after the base `.topbar nav a`, not before it. Both selectors
+   have the same specificity, so the one further down wins — and with this
+   block above, the links on the gradient were taking the grey meant for the
+   white bar.
+   ============================================================ */
+
 .topbar-onblue {
   position: fixed;
   left: 0;
@@ -549,43 +636,6 @@ a:hover {
 
 .topbar-onblue.is-stuck .btn-onblue:hover {
   background: var(--el-blue-700);
-}
-
-.topbar .wrap {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-5);
-}
-
-.topbar nav {
-  display: flex;
-  gap: var(--sp-5);
-  margin-left: auto;
-  font-size: 15px;
-}
-
-.topbar nav a {
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.topbar nav a:hover {
-  color: var(--md-sys-color-on-surface);
-  text-decoration: none;
-}
-
-.topbar .btn {
-  height: 40px;
-  padding: 0 var(--sp-5);
-  font-size: 14.5px;
-}
-
-@media (max-width: 760px) {
-  .topbar nav {
-    display: none;
-  }
-  .topbar .btn {
-    margin-left: auto;
-  }
 }
 
 /* ============================================================
@@ -851,9 +901,19 @@ a:hover {
     box-shadow var(--motion-slow, 420ms) var(--ease-standard);
 }
 
+/* Every slide is the same 16:10 box and the image fills it. The images are
+   already cropped to that ratio, so nothing is lost here — `cover` is the belt
+   to the braces, anchored top-left so any rounding goes to the bottom edge
+   rather than slicing the side navigation's rounded corner. */
+.slide {
+  aspect-ratio: 16 / 10;
+}
+
 .slide img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
   display: block;
 }
 
@@ -1414,17 +1474,54 @@ a:hover {
   max-width: 62ch;
 }
 
+/* One wide tinted panel: the ask on the left, the action on the right. A pill
+   button against a pale blue plate, which is the shape the app uses for its own
+   "there is one thing left to do" banners. */
 .faq-cta {
   margin-top: var(--sp-10);
-  padding: var(--sp-8);
-  border-radius: var(--md-sys-shape-corner-xl);
-  background: var(--md-sys-color-background);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  text-align: center;
+  padding: var(--sp-6) var(--sp-6) var(--sp-6) var(--sp-8);
+  border-radius: var(--md-sys-shape-corner-2xl);
+  background: var(--acc-blue-surface);
+  border: 1.5px solid var(--md-sys-color-primary);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  text-align: left;
+}
+
+.faq-cta .title {
+  color: var(--acc-blue-on);
+  margin: 0;
 }
 
 .faq-cta .body {
-  margin: var(--sp-1) 0 var(--sp-5);
+  margin: 2px 0 0;
+  color: color-mix(in srgb, var(--acc-blue-on) 72%, transparent);
+}
+
+.faq-cta .btn {
+  flex: none;
+}
+
+/* The arrow leans forward on hover. Its own transition, so it moves against the
+   button rather than with it. */
+.btn .arrow {
+  transition: transform var(--motion-base) var(--ease-spring);
+}
+
+.btn:hover .arrow {
+  transform: translateX(3px);
+}
+
+@media (max-width: 560px) {
+  .faq-cta {
+    padding: var(--sp-6);
+  }
+  .faq-cta .btn {
+    width: 100%;
+  }
 }
 
 /* ============================================================
