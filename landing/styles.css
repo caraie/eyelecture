@@ -83,7 +83,12 @@
   --md-sys-shape-corner-2xl: 32px;
   --md-sys-shape-corner-full: 999px;
 
-  /* ---- System: accent surfaces ---- */
+  /* ---- System: accent surfaces ----
+     The app ships four. Six feature cards need six, so the last two extend the
+     set using the design system's own categorical scale — the one it already
+     defines for data visualisation, where `--viz-5` is teal and `--viz-6` is the
+     neutral. Same hues, given the surface-and-ink treatment the other four have,
+     rather than two colours invented for this page. */
   --acc-blue-surface: #dce7fc;
   --acc-blue-on: #12327f;
   --acc-emerald-surface: #cfefe0;
@@ -92,6 +97,10 @@
   --acc-amber-on: #7a4e00;
   --acc-violet-surface: #e5ddfc;
   --acc-violet-on: #4930b8;
+  --acc-teal-surface: #cfeaf0;
+  --acc-teal-on: #0a5c69;
+  --acc-slate-surface: #dfe5ee;
+  --acc-slate-on: #343d4c;
 
   /* ---- System: elevation (flatter than stock MD3, border-led) ---- */
   --md-sys-elevation-1: 0 1px 2px rgba(15, 23, 42, 0.06);
@@ -1114,6 +1123,16 @@ a:hover {
   color: var(--acc-violet-on);
 }
 
+.acc-teal {
+  background: var(--acc-teal-surface);
+  color: var(--acc-teal-on);
+}
+
+.acc-slate {
+  background: var(--acc-slate-surface);
+  color: var(--acc-slate-on);
+}
+
 /* A soft tint on the feature cards. The surface is a few per cent of the accent
    rather than the accent itself, so six of them in a grid read as one family
    instead of six competing panels — and the body text stays on-surface ink. */
@@ -1140,6 +1159,16 @@ a:hover {
 .tint-violet {
   background: #f7f5fe;
   border-color: #e0d8fb;
+}
+
+.tint-teal {
+  background: #f0fafb;
+  border-color: #c7e6ec;
+}
+
+.tint-slate {
+  background: #f5f7fa;
+  border-color: #dfe5ee;
 }
 
 /* A whole card in an accent, for the three one-word promises. The border carries
