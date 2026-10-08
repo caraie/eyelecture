@@ -51,7 +51,10 @@ Borrowed from the design system on purpose:
   sits a wash of the card's own accent: two ellipses, offset from each other and
   then blurred, because one circle reads as a circle — a shape somebody placed —
   and two overlapping ovals read as light. It runs off the top and right edges
-  and is clipped by the card, so no edge of it is ever visible. All the colour lives in the **icon ring** — a
+  and is clipped by the card, so no edge of it is ever visible. At rest it sits
+  at 0.4 and slightly contracted; hovering brings it to full. Opacity is what
+  animates — a `color-mix` inside a gradient cannot be transitioned without
+  registering the custom property, and fading the layer gets there in one line. All the colour lives in the **icon ring** — a
   disc in the accent with the glyph in a light tint of the same hue, mixed from
   the one `--tone-solid` each card sets, so a second hand-picked light value per
   accent is not six more tokens to keep in step with the app. The feature cards

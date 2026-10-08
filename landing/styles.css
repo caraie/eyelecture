@@ -1443,6 +1443,21 @@ a:hover {
     );
   filter: blur(30px);
   pointer-events: none;
+  /* Barely there at rest, full strength under the pointer. Opacity is what
+     animates here: a color-mix inside a gradient cannot be transitioned
+     without registering the property, and fading the whole layer gets the
+     same result for one line. */
+  opacity: 0.4;
+  transform: scale(0.96);
+  transform-origin: 70% 30%;
+  transition:
+    opacity var(--motion-slow) var(--ease-standard),
+    transform var(--motion-slow) var(--ease-emphasized);
+}
+
+.card-paper:hover::after {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .card-paper:hover {
