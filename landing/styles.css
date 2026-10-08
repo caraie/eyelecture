@@ -1437,6 +1437,61 @@ a:hover {
   transform: translateY(-2px) scale(1.08) rotate(-6deg);
 }
 
+/* ============================================================
+   Figure cards
+
+   The feature cards, given the shape of a numbered plate: the mark in the top
+   corner, a big ghosted numeral behind, and the words sitting on the floor of
+   the card. The numeral is one step off the surface — not a grey wash, which
+   would read as a stain on a coloured card — so it registers as texture and
+   never competes with the heading.
+
+   The numeral is aria-hidden and the counting means nothing: it is there to
+   give the card a horizon. Everything that carries meaning sits above it.
+   ============================================================ */
+
+.card-figure {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 250px;
+  padding-top: var(--sp-16);
+  overflow: hidden;
+}
+
+.card-num {
+  position: absolute;
+  right: var(--sp-4);
+  top: 50%;
+  transform: translateY(-58%);
+  font-family: var(--font-display);
+  font-size: clamp(58px, 7vw, 86px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: color-mix(in srgb, var(--tone-ink) 17%, var(--tone-surface));
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The mark moves to the opposite corner from the numeral — the two are the
+   same ink, and side by side they would read as one lockup. */
+.card-figure .card-ico {
+  right: auto;
+  left: var(--sp-6);
+  z-index: 1;
+}
+
+.card-figure .title,
+.card-figure .body {
+  position: relative;
+  z-index: 1;
+}
+
+.card-figure .title {
+  padding-right: 0;
+}
+
 /* ---- The six tones -------------------------------------------------------
    Four filled, two tinted. All six filled would be a wall; the light ones
    give the grid somewhere to breathe, which is what the reference set does

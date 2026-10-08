@@ -57,6 +57,12 @@ Borrowed from the design system on purpose:
   The landing's token copy also carries the `--acc-*-solid` values, which the
   first copy left out, plus teal and slate solids to complete the set.
 
+  The six feature cards go one step further: a big bracketed numeral ghosted
+  behind the words, one step off the surface rather than a grey wash, which on a
+  coloured card would read as a stain. It is `aria-hidden` and the counting means
+  nothing — it is there to give the card a horizon, and everything that carries
+  meaning sits above it.
+
 Two deliberate differences:
 
 - **Only the light theme.** A marketing page has no theme switch.
