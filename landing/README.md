@@ -15,8 +15,8 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 
 | Not real yet | What it is today |
 | --- | --- |
-| Team names and photographs | Invented names and stock portraits. **Nobody on that row is a real person.** |
-| Team descriptions | Lorem ipsum. |
+| Team photographs | None yet. Each card shows the person's initials on a disc in their accent; dropping an `<img>` into `.person-avatar` later changes nothing else. |
+| Team bios | "Short bio to come." Every card is a `<details>` that already opens — the bio is one line to replace per person. |
 | FAQ | Five plausible questions, lorem ipsum answers. |
 | Roadmap dates | 2017, funding, 2019 and 2023 come from the About copy. **2026 and 2027 are ours** — "rebuilding the app", then core curriculum and analytics. |
 | Sponsor wordmarks | Real marks now, normalised — see below. The planning notes had named one through a transcript as "ASCIARA" / "Ciara"; the team's About copy names the **ASCRS Foundation**, which settles it. |
@@ -105,7 +105,6 @@ licence:
 | --- | --- |
 | Hero mosaic | `photo-1501621667575-af81f1f0bacc`, `photo-1530695440407-21fef47230b1`, `photo-1677773382668-8a84321836e9` |
 | Mission band | `photo-1524178232363-1fb2b075b655` |
-| Team | `photo-1622253692010-333f2da6031d`, `photo-1612349317150-e413f6a5b16d`, `photo-1659353888906-adb3e0041693`, `photo-1637059824899-a441006a6875`, `photo-1645066928295-2506defde470` |
 
 All of them take Unsplash's own resizing parameters, so the page never downloads a
 4000px original. The team ones use `fit=facearea`, which crops to the face — that is

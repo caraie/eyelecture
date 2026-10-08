@@ -1916,59 +1916,113 @@ a:hover {
 }
 
 .team-head {
-  margin: var(--sp-12) 0 var(--sp-5);
+  margin-top: var(--sp-16);
 }
 
 .team {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: var(--sp-6);
+  margin-top: var(--sp-8);
 }
 
-@media (max-width: 1000px) {
-  .team {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 620px) {
-  .team {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
+/* ---- One person ----
+   A <details>, so the row is a toggle with no script and the keyboard works
+   for free. The card is the whole element; the summary is its face. */
 
 .person {
-  margin: 0;
-  text-align: center;
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-lg);
+  padding: var(--sp-5);
+  transition:
+    box-shadow var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base);
 }
 
-/* Circular, and square at the source: `fit=facearea` on the image URL crops to
-   the face, so the circle never lands on somebody's forehead. */
-.person img {
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin: 0 auto var(--sp-4);
-  background: var(--md-sys-color-surface-container-high);
+.person:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--tone-solid) 45%,
+    var(--md-sys-color-outline)
+  );
+  box-shadow: var(--md-sys-elevation-2);
 }
 
-.person figcaption {
+.person-head {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: var(--sp-4);
+  cursor: pointer;
+  list-style: none;
 }
 
-.person figcaption strong {
+/* Safari still draws its own triangle without this. */
+.person-head::-webkit-details-marker {
+  display: none;
+}
+
+.person-head:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 4px;
+  border-radius: var(--md-sys-shape-corner-sm);
+}
+
+/* Initials until there are photographs: a disc in the person's accent, the
+   letters in the accent itself. Swapping in an <img> later changes nothing
+   else — the circle is already the right size and shape. */
+.person-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: color-mix(in srgb, var(--tone-solid) 15%, #ffffff);
+  color: var(--tone-solid);
   font-family: var(--font-display);
   font-size: 16px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
 }
 
-.person figcaption .body {
-  font-size: 13.5px;
-  line-height: 1.55;
+.person-id {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.person-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--md-sys-color-on-surface);
+}
+
+.person-role {
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.person-chev {
+  flex: none;
+  margin-left: auto;
+  color: var(--md-sys-color-on-surface-muted);
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+
+.person[open] .person-chev {
+  transform: rotate(180deg);
+}
+
+.person-bio {
+  margin: var(--sp-4) 0 0;
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-muted);
 }
 
 /* ============================================================
