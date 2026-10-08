@@ -1,0 +1,1869 @@
+/* ============================================================
+   EYELECTURE — landing page stylesheet
+
+   Standalone on purpose. The landing is a static page for eyelecture.com and
+   does not go through the Angular build, so it cannot import the app's SCSS.
+   What it can do is carry the same tokens, verbatim, and build its own
+   primitives on top of them — which is why every value below is a copy of
+   frontend/src/styles/_tokens.scss rather than a new decision.
+
+   Only the light theme is here. A marketing page has no theme switch, and
+   shipping the dark half would be 60 lines nothing reads.
+   ============================================================ */
+
+:root {
+  /* ---- Reference: Ocular Blue (primary) ---- */
+  --el-blue-50: #eef3fe;
+  --el-blue-100: #d9e4fd;
+  --el-blue-200: #b4c8fa;
+  --el-blue-300: #8aa8f5;
+  --el-blue-400: #5b82ec;
+  --el-blue-500: #2e5fdd;
+  --el-blue-600: #1b4fd1;
+  --el-blue-700: #163fa8;
+  --el-blue-800: #12327f;
+  --el-blue-900: #0e2557;
+  --el-blue-950: #081533;
+
+  /* ---- Reference: Retina Emerald (secondary) ---- */
+  --el-green-50: #e8f9f0;
+  --el-green-100: #c9f0de;
+  --el-green-200: #97e3c0;
+  --el-green-300: #5fd09e;
+  --el-green-500: #0fa968;
+  --el-green-600: #0a7d4c;
+  --el-green-800: #075334;
+
+  /* ---- Reference: neutral (cool grey, 2% blue) ---- */
+  --el-n-0: #ffffff;
+  --el-n-25: #fbfcfe;
+  --el-n-50: #f6f8fb;
+  --el-n-100: #edf1f7;
+  --el-n-200: #dfe5ee;
+  --el-n-300: #c7d0de;
+  --el-n-400: #97a3b6;
+  --el-n-500: #6b7789;
+  --el-n-600: #4b5566;
+  --el-n-700: #343d4c;
+  --el-n-800: #1f2836;
+  --el-n-900: #0f172a;
+  --el-n-950: #060b14;
+
+  /* ---- Reference: functional ---- */
+  --el-amber-500: #d98a00;
+  --el-violet-500: #6e4bef;
+  --el-teal-500: #0e93a6;
+
+  /* ---- System: colour roles ---- */
+  --md-sys-color-primary: var(--el-blue-600);
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: var(--el-blue-50);
+  --md-sys-color-on-primary-container: var(--el-blue-800);
+  --md-sys-color-secondary: var(--el-green-600);
+  --md-sys-color-secondary-container: var(--el-green-50);
+  --md-sys-color-on-secondary-container: var(--el-green-800);
+  --md-sys-color-background: var(--el-n-50);
+  --md-sys-color-surface: var(--el-n-0);
+  --md-sys-color-surface-container: var(--el-n-50);
+  --md-sys-color-surface-container-high: var(--el-n-100);
+  --md-sys-color-on-surface: var(--el-n-900);
+  --md-sys-color-on-surface-variant: var(--el-n-600);
+  --md-sys-color-on-surface-muted: var(--el-n-500);
+  --md-sys-color-outline: var(--el-n-300);
+  --md-sys-color-outline-variant: var(--el-n-200);
+  --md-sys-color-inverse-surface: var(--el-n-900);
+  --md-sys-color-on-inverse-surface: var(--el-n-25);
+
+  /* ---- System: shape (rounder than stock MD3) ---- */
+  --md-sys-shape-corner-xs: 4px;
+  --md-sys-shape-corner-sm: 8px;
+  --md-sys-shape-corner-md: 12px;
+  --md-sys-shape-corner-lg: 16px;
+  --md-sys-shape-corner-xl: 24px;
+  --md-sys-shape-corner-2xl: 32px;
+  --md-sys-shape-corner-full: 999px;
+
+  /* ---- System: accent surfaces ----
+     The app ships four. Six feature cards need six, so the last two extend the
+     set using the design system's own categorical scale — the one it already
+     defines for data visualisation, where `--viz-5` is teal and `--viz-6` is the
+     neutral. Same hues, given the surface-and-ink treatment the other four have,
+     rather than two colours invented for this page. */
+  --acc-blue-surface: #dce7fc;
+  --acc-blue-on: #12327f;
+  --acc-emerald-surface: #cfefe0;
+  --acc-emerald-on: #075334;
+  --acc-amber-surface: #fce9c4;
+  --acc-amber-on: #7a4e00;
+  --acc-violet-surface: #e5ddfc;
+  --acc-violet-on: #4930b8;
+  --acc-teal-surface: #cfeaf0;
+  --acc-teal-on: #0a5c69;
+  --acc-slate-surface: #dfe5ee;
+  --acc-slate-on: #343d4c;
+
+  /* ---- System: elevation (flatter than stock MD3, border-led) ---- */
+  --md-sys-elevation-1: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --md-sys-elevation-2: 0 2px 6px rgba(15, 23, 42, 0.08);
+  --md-sys-elevation-3: 0 6px 16px rgba(15, 23, 42, 0.1);
+  --md-sys-elevation-4: 0 12px 28px rgba(15, 23, 42, 0.12);
+
+  /* ---- System: spacing (4pt grid) ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-20: 80px;
+  --sp-24: 96px;
+
+  /* ---- System: typography ---- */
+  --font-display: 'Instrument Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* ---- System: motion ---- */
+  --motion-fast: 120ms;
+  --motion-base: 220ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface);
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: var(--md-sys-color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* A visible focus ring everywhere, because a marketing page is the first thing
+   anybody tabs through and the browser default disappears against the blue. */
+:focus-visible {
+  outline: 3px solid var(--el-blue-400);
+  outline-offset: 3px;
+  border-radius: var(--md-sys-shape-corner-xs);
+}
+
+/* ============================================================
+   Layout
+   ============================================================ */
+
+.wrap {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 var(--sp-6);
+}
+
+.section {
+  padding: var(--sp-24) 0;
+}
+
+.section-tight {
+  padding: var(--sp-16) 0;
+}
+
+.section-alt {
+  background: var(--md-sys-color-background);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.section-dark {
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-on-inverse-surface);
+}
+
+.grid {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+.g2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.g3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .g3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .g2,
+  .g3 {
+    grid-template-columns: 1fr;
+  }
+  .section {
+    padding: var(--sp-16) 0;
+  }
+}
+
+/* ============================================================
+   Typography — the app's scale, one step larger at the top.
+
+   A landing headline carries further than an in-app one, so `.display` is 56px
+   against the app's 44. Everything below it is the app's scale unchanged, so the
+   two never look like different products side by side.
+   ============================================================ */
+
+.display {
+  font-family: var(--font-display);
+  font-size: clamp(38px, 5.2vw, 56px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.06;
+  margin: 0;
+}
+
+.headline {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3.2vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.overline {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-muted);
+  margin: 0;
+}
+
+.lede {
+  color: var(--md-sys-color-on-surface-variant);
+  max-width: 62ch;
+  font-size: 17px;
+  line-height: 1.62;
+  margin: 0;
+}
+
+.body {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 15.5px;
+  margin: 0;
+}
+
+.muted {
+  color: var(--md-sys-color-on-surface-muted);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+/* Emphasis inside a heading: same family, italic 600, colour shift. One per
+   heading — the app's rule, and the reason the brand reads as one voice. */
+.hl {
+  font-style: italic;
+  color: var(--md-sys-color-primary);
+}
+
+.hl-em {
+  font-style: italic;
+  color: var(--md-sys-color-secondary);
+}
+
+.section-dark .lede,
+.section-dark .body {
+  color: #a7b2c6;
+}
+
+.section-dark .overline {
+  color: var(--el-blue-300);
+}
+
+.section-dark .hl {
+  color: var(--el-blue-300);
+}
+
+/* ============================================================
+   Buttons — Material's filled and outlined shapes, hand-built.
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  height: 48px;
+  padding: 0 var(--sp-6);
+  border-radius: var(--md-sys-shape-corner-full);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--motion-fast),
+    box-shadow var(--motion-base) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-spring);
+}
+
+.btn:hover {
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.985);
+}
+
+.btn-primary {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.btn-primary:hover {
+  background: var(--el-blue-700);
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--md-sys-color-primary);
+  border-color: var(--md-sys-color-outline);
+}
+
+.btn-outline:hover {
+  background: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+}
+
+/* On blue or on ink, the filled button inverts: white plate, brand ink. A primary
+   blue button on a blue field is the one thing that definitely does not work. */
+.btn-onblue {
+  background: #fff;
+  color: var(--el-blue-700);
+}
+
+.btn-onblue:hover {
+  background: var(--el-blue-50);
+  box-shadow: 0 6px 18px rgba(8, 21, 51, 0.25);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+/* ============================================================
+   Cards and badges — the app's `.el-card` and `.el-badge`.
+   ============================================================ */
+
+/* The design system's card, with its hover: the whole thing lifts, the shadow
+   deepens and the border takes on the primary. Transitions are declared on the
+   resting state so leaving animates as well as arriving — a card that eases up
+   and snaps back is worse than one that never moved. */
+.card {
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-lg);
+  padding: var(--sp-6);
+  transition:
+    box-shadow var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base),
+    transform var(--motion-base) var(--ease-spring);
+}
+
+.card:hover {
+  box-shadow: var(--md-sys-elevation-3);
+  border-color: color-mix(
+    in srgb,
+    var(--md-sys-color-primary) 45%,
+    var(--md-sys-color-outline)
+  );
+  transform: translateY(-4px);
+}
+
+.card:active {
+  transform: translateY(-1px) scale(0.99);
+  transition-duration: var(--motion-fast);
+}
+
+.card .title {
+  margin-bottom: var(--sp-2);
+}
+
+/* The icon tile picks up the lift a beat later than the card, which is what
+   makes the two read as one object rather than two. */
+.card .tile-ico {
+  transition: transform var(--motion-base) var(--ease-spring);
+}
+
+.card:hover .tile-ico {
+  transform: translateY(-2px) scale(1.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover,
+  .card:active,
+  .card:hover .tile-ico {
+    transform: none;
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: var(--md-sys-shape-corner-full);
+  font-size: 12.5px;
+  font-weight: 500;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.badge-primary {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.badge-success {
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+/* ============================================================
+   Brand
+   ============================================================ */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: -0.03em;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand svg {
+  flex: none;
+}
+
+/* ============================================================
+   Top bar
+   ============================================================ */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+  height: 68px;
+  background: color-mix(in srgb, var(--md-sys-color-surface) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  transition:
+    background var(--motion-base),
+    border-color var(--motion-base),
+    color var(--motion-base);
+}
+
+/* Transparent over the hero, solid once you leave it. The `.is-stuck` class is
+   set by the one script on the page. */
+.topbar .wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-5);
+}
+
+.topbar nav:not(.menu) {
+  display: flex;
+  gap: var(--sp-5);
+  margin-left: auto;
+  font-size: 15px;
+}
+
+.topbar nav:not(.menu) a {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.topbar nav:not(.menu) a:hover {
+  color: var(--md-sys-color-on-surface);
+  text-decoration: none;
+}
+
+.topbar .btn {
+  height: 40px;
+  padding: 0 var(--sp-5);
+  font-size: 14.5px;
+}
+
+/* ============================================================
+   Small screens: the links go behind a burger
+
+   The bar itself keeps its two jobs — brand on the left, Log in on the right —
+   and only the four section links move. The panel is a sibling of `.wrap`, not
+   a child, so it can span the full width of the bar without fighting the
+   container's padding.
+   ============================================================ */
+
+.burger {
+  display: none;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--md-sys-shape-corner-md);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.burger-box {
+  display: grid;
+  gap: 5px;
+  width: 22px;
+  margin: 0 auto;
+}
+
+.burger-box span {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition:
+    transform var(--motion-base) var(--ease-standard),
+    opacity var(--motion-fast);
+}
+
+/* Top and bottom bars cross; the middle one goes. The 7px is the gap plus a
+   bar — how far each has to travel to meet in the centre. */
+.burger[aria-expanded='true'] .burger-box span:first-child {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.burger[aria-expanded='true'] .burger-box span:nth-child(2) {
+  opacity: 0;
+}
+
+.burger[aria-expanded='true'] .burger-box span:last-child {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  display: none;
+  flex-direction: column;
+  padding: var(--sp-2) var(--sp-6) var(--sp-5);
+  background: var(--md-sys-color-surface);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  box-shadow: var(--md-sys-elevation-3);
+  /* Closed: present in the layout but inert and invisible, so the open and
+     close both animate instead of the panel snapping in from `display: none`. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition:
+    opacity var(--motion-base) var(--ease-standard),
+    transform var(--motion-base) var(--ease-standard),
+    visibility var(--motion-base);
+}
+
+.menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+
+.menu a {
+  padding: var(--sp-4) 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.menu a:last-child {
+  border-bottom: 0;
+}
+
+.menu a:hover {
+  color: var(--md-sys-color-primary);
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .topbar nav:not(.menu) {
+    display: none;
+  }
+  .topbar .btn {
+    margin-left: auto;
+  }
+  .burger {
+    display: block;
+  }
+  .menu {
+    display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu,
+  .burger-box span {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   Top bar over the hero
+
+   Declared after the base `.topbar nav:not(.menu) a`, not before it. Both
+   selectors have the same specificity, so the one further down wins — and with
+   this block above, the links on the gradient were taking the grey meant for
+   the white bar.
+
+   The `:not(.menu)` is the other half of that lesson. The small-screen panel is
+   a <nav> inside this same bar, so a bare `.topbar nav a` reached it too and
+   painted its links white — on a white panel.
+   ============================================================ */
+
+.topbar-onblue {
+  position: fixed;
+  left: 0;
+  right: 0;
+  background: transparent;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+  color: #fff;
+}
+
+/* Full white and a touch heavier. At 0.8 alpha these read as disabled against
+   the gradient, which is the opposite of what a nav should look like. */
+.topbar-onblue nav:not(.menu) a {
+  color: #fff;
+  font-weight: 500;
+}
+
+.topbar-onblue nav:not(.menu) a:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+
+.topbar-onblue.is-stuck {
+  background: color-mix(in srgb, var(--md-sys-color-surface) 90%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom-color: var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface);
+}
+
+.topbar-onblue.is-stuck nav:not(.menu) a {
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.topbar-onblue.is-stuck nav:not(.menu) a:hover {
+  color: var(--md-sys-color-on-surface);
+}
+
+/* Once the bar is on white, the inverted button has to invert back. */
+.topbar-onblue.is-stuck .btn-onblue {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.topbar-onblue.is-stuck .btn-onblue:hover {
+  background: var(--el-blue-700);
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+
+.footer {
+  background: var(--md-sys-color-inverse-surface);
+  color: var(--md-sys-color-on-inverse-surface);
+  padding: var(--sp-16) 0 var(--sp-10);
+}
+
+.footer a {
+  color: #a7b2c6;
+}
+
+.footer a:hover {
+  color: var(--md-sys-color-on-inverse-surface);
+}
+
+.footer-bottom {
+  margin-top: var(--sp-10);
+  padding-top: var(--sp-6);
+  border-top: 1px solid #26314a;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  align-items: center;
+  font-size: 13.5px;
+  color: #7e8ca3;
+}
+
+.footer-brand {
+  color: #fff;
+  margin-bottom: var(--sp-3);
+}
+
+.footer-blurb {
+  color: #a7b2c6;
+  max-width: 40ch;
+}
+
+.footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: 15px;
+}
+
+@media (min-width: 681px) {
+  .footer-nav {
+    align-items: flex-end;
+  }
+}
+
+/* ============================================================
+   Hero — the brand gradient from the app's sign-in panel, so the first thing
+   anybody sees is the same blue the product opens with.
+   ============================================================ */
+
+.hero {
+  background: linear-gradient(
+    150deg,
+    var(--el-blue-800) 0%,
+    var(--el-blue-600) 60%,
+    var(--el-blue-500) 100%
+  );
+  color: #fff;
+  padding: calc(68px + var(--sp-16)) 0 var(--sp-20);
+  overflow: hidden;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  gap: var(--sp-12);
+  align-items: center;
+}
+
+@media (max-width: 940px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: var(--sp-12);
+  }
+}
+
+/* On the gradient the highlight is the mint the app uses, not the primary blue —
+   blue on blue disappears. Same rule as `.el-auth-aside .el-hl`. */
+.hero .hl {
+  color: #a8e8cb;
+}
+
+.hero .overline {
+  margin-bottom: var(--sp-3);
+  color: #a8c4fb;
+}
+
+.hero .lede {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.hero-lede {
+  margin-top: var(--sp-5);
+}
+
+.hero-points {
+  list-style: none;
+  margin: var(--sp-6) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-width: 56ch;
+}
+
+.hero-points li {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-start;
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 15.5px;
+  line-height: 1.55;
+}
+
+.hero-points strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+.hero-points .dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a8e8cb;
+  margin-top: 9px;
+}
+
+.hero-actions {
+  margin-top: var(--sp-8);
+}
+
+/* ============================================================
+   Hero mosaic
+
+   Three columns of rounded tiles at different heights, the middle one dropped
+   so the rows never line up. Columns rather than one grid: the stagger is the
+   point, and a grid would want to align them again.
+   ============================================================ */
+
+.mosaic {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-3);
+  align-items: start;
+}
+
+.mosaic-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.mosaic-col-drop {
+  margin-top: var(--sp-10);
+}
+
+.tile {
+  display: block;
+  border-radius: var(--md-sys-shape-corner-2xl);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 28px rgba(8, 21, 51, 0.28);
+}
+
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Aspect ratios rather than heights, so the reserved box is the right shape from
+   the first paint and nothing jumps while the photographs load. */
+.tile-tall {
+  aspect-ratio: 3 / 4.4;
+}
+
+.tile-mid {
+  aspect-ratio: 3 / 3.4;
+}
+
+.tile-short {
+  aspect-ratio: 3 / 2.4;
+}
+
+@media (max-width: 940px) {
+  .mosaic {
+    max-width: 560px;
+  }
+  .mosaic-col-drop {
+    margin-top: var(--sp-6);
+  }
+}
+
+@media (max-width: 520px) {
+  .mosaic {
+    gap: var(--sp-2);
+  }
+  .tile {
+    border-radius: var(--md-sys-shape-corner-xl);
+  }
+}
+
+/* ============================================================
+   Coverflow carousel
+
+   The centre slide faces you; the ones beside it turn away on the Y axis and
+   shrink, so the stack reads as depth rather than as a row. Every image is the
+   same 1400×875, which is what keeps the turn even on both sides.
+
+   No library: a flex row that is translated by one slide width per step, with
+   each slide's own transform set from its distance to the centre.
+   ============================================================ */
+
+.coverflow {
+  --slide-w: min(760px, 62vw);
+}
+
+.coverflow-stage {
+  perspective: 1600px;
+  padding: var(--sp-6) 0 var(--sp-8);
+  /* The side slides run off both edges on purpose; nothing here scrolls. */
+  overflow: hidden;
+  cursor: grab;
+  /* Vertical swipes still scroll the page; horizontal ones are ours. Without
+     this the browser claims the gesture and the drag never fires. */
+  touch-action: pan-y;
+}
+
+.coverflow-stage:active {
+  cursor: grabbing;
+}
+
+/* A drag would otherwise start the browser's own image-drag, and text selection
+   turns a swipe into a highlight. */
+.coverflow-stage img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* The row is laid out once and then slid sideways so the active slide lands in
+   the middle. `--shift` is how many slides to move, set by the script; the
+   centre of a four-slide row sits between the second and third, which is why it
+   is a half-step for an even count. */
+.coverflow-track {
+  --gap: var(--sp-5);
+  --shift: 0;
+  /* How far the finger has moved, in px, while a drag is in progress. */
+  --drag: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--gap);
+  transform: translateX(
+    calc(var(--shift) * (var(--slide-w) + var(--gap)) + var(--drag))
+  );
+  transition: transform var(--motion-slow, 420ms) var(--ease-standard);
+}
+
+/* While the finger is down the track has to track the finger, not ease toward
+   it. The slides lose their transition too, or they lag a frame behind. */
+.coverflow.is-dragging .coverflow-track,
+.coverflow.is-dragging .slide {
+  transition: none;
+}
+
+.slide {
+  margin: 0;
+  flex: 0 0 var(--slide-w);
+  border-radius: var(--md-sys-shape-corner-lg);
+  overflow: hidden;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--md-sys-elevation-3);
+  transform-style: preserve-3d;
+  transition:
+    transform var(--motion-slow, 420ms) var(--ease-standard),
+    opacity var(--motion-slow, 420ms) var(--ease-standard),
+    box-shadow var(--motion-slow, 420ms) var(--ease-standard);
+}
+
+/* Every slide is the same 16:10 box and the image fills it. The images are
+   already cropped to that ratio, so nothing is lost here — `cover` is the belt
+   to the braces, anchored top-left so any rounding goes to the bottom edge
+   rather than slicing the side navigation's rounded corner. */
+.slide {
+  aspect-ratio: 16 / 10;
+}
+
+.slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+  display: block;
+}
+
+/* Set by the script from each slide's distance to the centre. */
+.slide[data-pos='0'] {
+  transform: none;
+  opacity: 1;
+  box-shadow: var(--md-sys-elevation-4);
+  z-index: 3;
+}
+
+.slide[data-pos='-1'] {
+  transform: translateX(22%) rotateY(26deg) scale(0.84);
+  opacity: 0.55;
+  z-index: 2;
+}
+
+.slide[data-pos='1'] {
+  transform: translateX(-22%) rotateY(-26deg) scale(0.84);
+  opacity: 0.55;
+  z-index: 2;
+}
+
+.slide[data-pos='-2'] {
+  transform: translateX(46%) rotateY(32deg) scale(0.7);
+  opacity: 0.22;
+  z-index: 1;
+}
+
+.slide[data-pos='2'] {
+  transform: translateX(-46%) rotateY(-32deg) scale(0.7);
+  opacity: 0.22;
+  z-index: 1;
+}
+
+.slide[data-far] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.coverflow-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-5);
+}
+
+.coverflow-caption {
+  margin: 0;
+  min-width: 0;
+  flex: 0 1 46ch;
+  text-align: center;
+  font-size: 14.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.round-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--md-sys-color-outline);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    transform var(--motion-fast) var(--ease-spring);
+}
+
+.round-btn:hover {
+  background: var(--md-sys-color-primary-container);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.round-btn:active {
+  transform: scale(0.94);
+}
+
+.coverflow-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+
+.coverflow-dots button {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--md-sys-color-outline);
+  cursor: pointer;
+  transition:
+    width var(--motion-base) var(--ease-standard),
+    background var(--motion-base);
+}
+
+.coverflow-dots button[aria-current='true'] {
+  width: 24px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-primary);
+}
+
+@media (max-width: 700px) {
+  .coverflow {
+    --slide-w: 86vw;
+  }
+  .coverflow-caption {
+    font-size: 13.5px;
+  }
+}
+
+/* ============================================================
+   Section heads
+   ============================================================ */
+
+.section-head {
+  max-width: 62ch;
+  margin-bottom: var(--sp-10);
+}
+
+.section-head .overline {
+  margin-bottom: var(--sp-3);
+}
+
+.center {
+  text-align: center;
+}
+
+/* ============================================================
+   Logo strip
+   ============================================================ */
+
+.logo-strip {
+  margin-top: var(--sp-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-6) var(--sp-10);
+}
+
+/* Wordmarks until the real marks arrive. Muted and evenly weighted so no one
+   institution reads as the headline act. */
+.logo-slot {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--md-sys-color-on-surface-muted);
+  text-align: center;
+}
+
+/* ============================================================
+   Features
+   ============================================================ */
+
+.feature-grid .card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* The design system's tinted icon tile, the one the dashboard uses above each
+   number. Four accents, rotated across the grid so no column is one colour. */
+.tile-ico {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--md-sys-shape-corner-md);
+  margin-bottom: var(--sp-3);
+}
+
+.acc-blue {
+  background: var(--acc-blue-surface);
+  color: var(--acc-blue-on);
+}
+
+.acc-emerald {
+  background: var(--acc-emerald-surface);
+  color: var(--acc-emerald-on);
+}
+
+.acc-amber {
+  background: var(--acc-amber-surface);
+  color: var(--acc-amber-on);
+}
+
+.acc-violet {
+  background: var(--acc-violet-surface);
+  color: var(--acc-violet-on);
+}
+
+.acc-teal {
+  background: var(--acc-teal-surface);
+  color: var(--acc-teal-on);
+}
+
+.acc-slate {
+  background: var(--acc-slate-surface);
+  color: var(--acc-slate-on);
+}
+
+/* A soft tint on the feature cards. The surface is a few per cent of the accent
+   rather than the accent itself, so six of them in a grid read as one family
+   instead of six competing panels — and the body text stays on-surface ink. */
+.card-soft {
+  border-width: 1px;
+  border-style: solid;
+}
+
+.tint-blue {
+  background: #f3f7fe;
+  border-color: #d9e4fd;
+}
+
+.tint-emerald {
+  background: #f1fbf6;
+  border-color: #c9f0de;
+}
+
+.tint-amber {
+  background: #fffaf0;
+  border-color: #fae3bd;
+}
+
+.tint-violet {
+  background: #f7f5fe;
+  border-color: #e0d8fb;
+}
+
+.tint-teal {
+  background: #f0fafb;
+  border-color: #c7e6ec;
+}
+
+.tint-slate {
+  background: #f5f7fa;
+  border-color: #dfe5ee;
+}
+
+/* A whole card in an accent, for the three one-word promises. The border carries
+   the emphasis as well as the fill — a single tinted edge reads as a leftover
+   list divider, which is the design system's own note on this. */
+.card-acc {
+  border-width: 1.5px;
+  border-style: solid;
+}
+
+.card-acc.acc-blue {
+  border-color: #b4c8fa;
+}
+
+.card-acc.acc-emerald {
+  border-color: #97e3c0;
+}
+
+.card-acc.acc-violet {
+  border-color: #c3b4f9;
+}
+
+.card-acc .title {
+  color: inherit;
+}
+
+.card-acc .body {
+  color: inherit;
+  opacity: 0.82;
+}
+
+/* ============================================================
+   Mission
+   ============================================================ */
+
+/* The mission band sits on a photograph. The image is pushed well down in
+   opacity and the ink stays the dark surface colour underneath, so the quote
+   keeps its contrast without a scrim fighting the brand palette. */
+.mission-band {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mission-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.17;
+  z-index: -1;
+}
+
+.mission {
+  position: relative;
+  max-width: 48ch;
+}
+
+.mission .overline {
+  margin-bottom: var(--sp-4);
+}
+
+.mission-quote {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+
+/* ============================================================
+   About
+   ============================================================ */
+
+.prose {
+  max-width: 72ch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.prose p {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 16px;
+  line-height: 1.68;
+}
+
+/* Long paragraphs need something for the eye to land on. The bold is the ink
+   colour, not the accent — a paragraph with six blue words in it reads as six
+   broken links. */
+.prose strong {
+  color: var(--md-sys-color-on-surface);
+  font-weight: 600;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: var(--sp-12);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: var(--sp-10);
+  }
+}
+
+/* ============================================================
+   Roadmap
+
+   A rail with a dot per milestone. The rail is a gradient that fades out at the
+   bottom, so the last step reads as "and then onwards" rather than as a wall.
+   ============================================================ */
+
+.roadmap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.roadmap::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--md-sys-color-secondary) 0%,
+    var(--el-blue-400) 55%,
+    rgba(91, 130, 236, 0.18) 100%
+  );
+}
+
+.milestone {
+  position: relative;
+  padding: 0 0 var(--sp-8) var(--sp-8);
+}
+
+.milestone:last-child {
+  padding-bottom: 0;
+}
+
+.milestone-dot {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--el-blue-400);
+  border: 3px solid var(--md-sys-color-background);
+  box-shadow: 0 0 0 1px var(--el-blue-200);
+}
+
+/* The first one is hollow — it is where the line starts, not a step along it. */
+.milestone-dot-open {
+  background: var(--md-sys-color-background);
+  border-color: var(--md-sys-color-secondary);
+  border-width: 4px;
+  box-shadow: 0 0 0 1px var(--el-green-200);
+}
+
+.milestone-dot-next {
+  background: var(--md-sys-color-background);
+  border-style: dashed;
+  border-color: var(--el-blue-300);
+  box-shadow: none;
+}
+
+.milestone-date {
+  margin: 0 0 2px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-secondary);
+}
+
+.milestone:last-child .milestone-date {
+  color: var(--md-sys-color-on-surface-muted);
+}
+
+.milestone-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.team-head {
+  margin: var(--sp-12) 0 var(--sp-5);
+}
+
+.team {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--sp-6);
+}
+
+@media (max-width: 1000px) {
+  .team {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .team {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.person {
+  margin: 0;
+  text-align: center;
+}
+
+/* Circular, and square at the source: `fit=facearea` on the image URL crops to
+   the face, so the circle never lands on somebody's forehead. */
+.person img {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto var(--sp-4);
+  background: var(--md-sys-color-surface-container-high);
+}
+
+.person figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.person figcaption strong {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.person figcaption .body {
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+/* ============================================================
+   FAQ — a centred accordion on <details>, which opens with no script and takes
+   the keyboard for free.
+   ============================================================ */
+
+.faq {
+  max-width: 760px;
+}
+
+.section-head-center {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.faq-item {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-lg);
+  background: var(--md-sys-color-surface);
+  transition:
+    border-color var(--motion-base),
+    box-shadow var(--motion-base);
+}
+
+.faq-item[open] {
+  border-color: var(--md-sys-color-primary);
+  box-shadow: var(--md-sys-elevation-2);
+}
+
+.faq-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-5) var(--sp-6);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  list-style: none;
+}
+
+/* Safari draws its own triangle unless both of these are set. */
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::marker {
+  content: '';
+}
+
+.faq-chevron {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-right: 2px solid var(--md-sys-color-on-surface-muted);
+  border-bottom: 2px solid var(--md-sys-color-on-surface-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition:
+    transform var(--motion-base) var(--ease-standard),
+    border-color var(--motion-base);
+}
+
+.faq-item[open] .faq-chevron {
+  transform: rotate(-135deg) translate(-3px, -3px);
+  border-color: var(--md-sys-color-primary);
+}
+
+.faq-answer {
+  padding: 0 var(--sp-6) var(--sp-5);
+  max-width: 62ch;
+}
+
+/* One wide tinted panel: the ask on the left, the action on the right. A pill
+   button against a pale blue plate, which is the shape the app uses for its own
+   "there is one thing left to do" banners. */
+.faq-cta {
+  margin-top: var(--sp-10);
+  padding: var(--sp-6) var(--sp-6) var(--sp-6) var(--sp-8);
+  border-radius: var(--md-sys-shape-corner-2xl);
+  background: var(--acc-blue-surface);
+  border: 1.5px solid var(--md-sys-color-primary);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-5);
+  text-align: left;
+}
+
+.faq-cta .title {
+  color: var(--acc-blue-on);
+  margin: 0;
+}
+
+.faq-cta .body {
+  margin: 2px 0 0;
+  color: color-mix(in srgb, var(--acc-blue-on) 72%, transparent);
+}
+
+.faq-cta .btn {
+  flex: none;
+}
+
+/* The arrow leans forward on hover. Its own transition, so it moves against the
+   button rather than with it. */
+.btn .arrow {
+  transition: transform var(--motion-base) var(--ease-spring);
+}
+
+.btn:hover .arrow {
+  transform: translateX(3px);
+}
+
+@media (max-width: 560px) {
+  .faq-cta {
+    padding: var(--sp-6);
+  }
+  .faq-cta .btn {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   Contact
+   ============================================================ */
+
+/* The closing call to action takes the brand gradient, mirrored against the hero
+   so the page opens and closes on the same blue without the two looking like the
+   same band. Ink is reserved for the footer underneath it. */
+.contact-band {
+  background: linear-gradient(
+    30deg,
+    var(--el-blue-800) 0%,
+    var(--el-blue-600) 60%,
+    var(--el-blue-500) 100%
+  );
+  padding: var(--sp-16) 0;
+}
+
+.contact-band .overline {
+  color: #a8c4fb;
+}
+
+.contact-band .lede {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.contact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: var(--sp-12);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .contact {
+    grid-template-columns: 1fr;
+    gap: var(--sp-8);
+  }
+}
+
+.contact .headline {
+  margin: var(--sp-3) 0 var(--sp-4);
+}
+
+.contact-copy {
+  padding-top: var(--sp-2);
+}
+
+.contact-mail {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-top: var(--sp-6);
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--md-sys-shape-corner-full);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast);
+}
+
+.contact-mail:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+}
+
+/* ---- The form -------------------------------------------------------------
+   Straight on the blue, no plate under it. The fields keep the app's shape and
+   spacing but are drawn in light-on-dark: a translucent fill and a white-ish
+   border, which is what the band already does for its buttons. */
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+@media (max-width: 520px) {
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field > span {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: var(--md-sys-shape-corner-md);
+  padding: 11px 13px;
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+
+/* The dropdown list itself is drawn by the operating system, on white. Without
+   this the options inherit the white text and come out invisible. */
+.field select option {
+  color: var(--md-sys-color-on-surface);
+  background: var(--md-sys-color-surface);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 92px;
+}
+
+.field input:hover,
+.field select:hover,
+.field textarea:hover {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+}
+
+/* The browser's own invalid styling fires before anybody has typed. `:user-invalid`
+   only shows once the field has been touched and left. */
+.field input:user-invalid {
+  border-color: #ffb4ab;
+}
+
+.contact-send {
+  align-self: flex-start;
+}
+
+.field-note {
+  margin: 0;
+  min-height: 1.4em;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.field-note[data-state='ok'] {
+  color: #a8e8cb;
+}
+
+.field-note[data-state='bad'] {
+  color: #ffb4ab;
+}
