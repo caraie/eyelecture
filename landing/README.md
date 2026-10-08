@@ -58,8 +58,8 @@ Borrowed from the design system on purpose:
   disc in the accent with the glyph in a light tint of the same hue, mixed from
   the one `--tone-solid` each card sets, so a second hand-picked light value per
   accent is not six more tokens to keep in step with the app. The feature cards
-  put the ring at the top and the words on the floor, so six of them line up
-  along two edges; the program cards put it beside them. The phrase carrying
+  stack ring, heading and paragraph tight together and let the slack fall to the
+  bottom of the card; the program cards put the ring beside the words. The phrase carrying
   each promise is lifted to the full ink in `<strong>`.
 
   Earlier passes filled the whole card with the accent — first the tinted panels,

@@ -1510,26 +1510,23 @@ a:hover {
 /* ============================================================
    Figure cards
 
-   The feature cards: ring at the top, words on the floor, so six of them in a
-   grid line up along two edges instead of drifting with the text length.
+   The feature cards: ring, then heading, then paragraph, stacked tight. The
+   slack that used to sit between the ring and the words goes to the bottom of
+   the card instead — the grid still gives every card in a row the same height,
+   so nothing drifts.
    ============================================================ */
 
 .card-figure {
   display: flex;
   flex-direction: column;
-  min-height: 236px;
-}
-
-/* Pushes the ring up and the words down, with the slack between them. */
-.card-figure .card-ring {
-  margin-bottom: auto;
+  min-height: 220px;
 }
 
 .card-figure .title {
   padding-right: 0;
   font-size: clamp(21px, 2.1vw, 25px);
   line-height: 1.15;
-  margin: var(--sp-8) 0 var(--sp-2);
+  margin: var(--sp-5) 0 var(--sp-2);
 }
 
 /* ---- The six accents ----
