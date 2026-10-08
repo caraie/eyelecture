@@ -900,22 +900,25 @@ a:hover {
 
 /* The one claim that stands on its own line. A tinted pill rather than another
    sentence, because it is a fact about the thing, not a thing it does. */
-.hero-badge {
+/* A note, not a control: no pill, no border, no fill. It sits below the
+   buttons, separated by a hairline rule, so nothing about it reads as
+   clickable. The mint carries over from .hl — it is the same voice. */
+.hero-note {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
-  margin: var(--sp-6) 0 0;
-  padding: 7px 14px 7px 12px;
-  border-radius: var(--md-sys-shape-corner-full);
-  background: rgba(168, 232, 203, 0.16);
-  border: 1px solid rgba(168, 232, 203, 0.45);
+  margin: var(--sp-8) 0 0;
+  padding-top: var(--sp-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
   color: #a8e8cb;
   font-size: 14px;
   font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
-.hero-badge svg {
+.hero-note svg {
   flex: none;
+  opacity: 0.9;
 }
 
 .hero-actions {

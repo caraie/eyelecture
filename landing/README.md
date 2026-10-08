@@ -67,12 +67,18 @@ They are cropped to a common 16:10 rather than letterboxed. The bars that paddin
 left were the thing that looked wrong; the crop is anchored top-left, so what goes
 is whitespace at the bottom and never the side navigation's rounded edge.
 
-Photographs are hot-linked from [Unsplash](https://unsplash.com) under the Unsplash
+Three of the six hero tiles are **supplied images**, not stock: `hero-team.jpg` (a
+group of clinicians), `hero-app.jpg` (the app on a tablet) and `hero-slitlamp.jpg`
+(a slit lamp). They replaced two stock portraits and the phoropter. Originals are in
+`img/_raw-hero/`; the files on the page are resized to ~1000px and saved as
+progressive JPEG, which is what took them from 4.3 MB to 270 kB together.
+
+The rest are hot-linked from [Unsplash](https://unsplash.com) under the Unsplash
 licence:
 
 | Where | Photo |
 | --- | --- |
-| Hero mosaic | `photo-1637059824899-a441006a6875`, `photo-1501621667575-af81f1f0bacc`, `photo-1677773382668-8a84321836e9`, `photo-1622253692010-333f2da6031d`, `photo-1530695440407-21fef47230b1`, `photo-1638957835514-224c57ffe617` |
+| Hero mosaic | `photo-1501621667575-af81f1f0bacc`, `photo-1530695440407-21fef47230b1`, `photo-1677773382668-8a84321836e9` |
 | Mission band | `photo-1524178232363-1fb2b075b655` |
 | Team | `photo-1622253692010-333f2da6031d`, `photo-1612349317150-e413f6a5b16d`, `photo-1659353888906-adb3e0041693`, `photo-1637059824899-a441006a6875`, `photo-1645066928295-2506defde470` |
 
