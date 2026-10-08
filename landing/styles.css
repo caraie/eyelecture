@@ -1261,26 +1261,16 @@ a:hover {
   min-height: 56px;
 }
 
-/* A common height and `contain` is what keeps a tall stacked mark and a long
-   horizontal one looking like the same size on the row. The greyscale comes off
-   on hover, which is the usual way to let a wall of brand colours sit quietly
-   without stripping it of its identity. */
+/* Full colour, as each institution publishes it. The files are already trimmed
+   of their own padding and normalised to one height, so the row lines up
+   without a filter faking it — and nothing here recolours a mark, which most
+   brand guidelines forbid outright. */
 .logo img {
   max-width: 100%;
   max-height: 56px;
   width: auto;
   height: auto;
   object-fit: contain;
-  filter: grayscale(1);
-  opacity: 0.75;
-  transition:
-    filter var(--motion-base),
-    opacity var(--motion-base);
-}
-
-.logo:hover img {
-  filter: none;
-  opacity: 1;
 }
 
 /* Until a file exists the browser renders the alt text in its place. This makes

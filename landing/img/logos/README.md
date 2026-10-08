@@ -1,41 +1,55 @@
 # Institution and sponsor logos
 
-Eleven files are referenced by `index.html` and none of them is here yet:
+Ten of the eleven marks are in place, supplied by the team. The eleventh is not:
 
-| File | Organisation |
-| --- | --- |
-| `einstein.svg` | Albert Einstein College of Medicine |
-| `montefiore.svg` | Montefiore |
-| `ascrs-foundation.svg` | ASCRS Foundation |
-| `allergan-foundation.svg` | The Allergan Foundation |
-| `duke.svg` | Duke Medicine |
-| `nyu-langone.svg` | NYU Langone School of Medicine |
-| `weill-cornell.svg` | Weill Cornell Medicine |
-| `ucsf.svg` | UCSF |
-| `toronto.svg` | University of Toronto |
-| `bascom-palmer.svg` | Bascom Palmer Eye Institute |
-| `houston-methodist.svg` | Houston Methodist |
+| File | Organisation | Status |
+| --- | --- | --- |
+| `einstein.png` | Albert Einstein College of Medicine | in |
+| `montefiore.svg` | Montefiore | in (vector) |
+| `ascrs-foundation.png` | ASCRS Foundation | in |
+| `allergan-foundation.png` | The Allergan Foundation | in |
+| `duke.png` | Duke Medicine | in |
+| `nyu-langone.png` | NYU Langone School of Medicine | in |
+| `weill-cornell.png` | Weill Cornell Medicine | in |
+| `ucsf.svg` | UCSF | in (vector) |
+| `toronto.png` | University of Toronto | in |
+| `bascom-palmer.png` | Bascom Palmer Eye Institute | in |
+| `houston-methodist.svg` | Houston Methodist | **missing** |
 
 Until a file exists the browser falls back to the `alt` text, which `.logo img`
-styles as a wordmark — a missing logo reads as a name rather than as a broken
-image, so the page is presentable in the meantime.
+styles as a wordmark — a missing logo reads as a name, not as a broken image.
 
-## Where they have to come from
+## How they were standardised
 
-These are the organisations' own trademarks. Each one has to come from the
-organisation — through whoever holds the relationship, or from the brand or
-press page they publish for that purpose — together with permission to show it
-on this site. Pulling a file off a search result is both the wrong-quality asset
-and the wrong way to get it.
+The originals are in `_raw/`, exactly as supplied: SVG, PNG, JPEG and WEBP, from
+220px to 2300px wide, each with a different amount of its own padding baked in.
+That padding is what makes a row of logos look uneven — a mark with a generous
+margin renders smaller than its neighbour at the same nominal size.
 
-Most of them publish brand guidelines that say how the mark may be used: usually
-a minimum size, clear space around it, and a rule against recolouring. The
-greyscale treatment in `styles.css` lifts on hover; if a guideline forbids
-altering the colour, drop the `filter` on `.logo img`.
+So each raster file was:
 
-## What to supply
+1. **Trimmed** to its own content. Files with real transparency are cropped on
+   the alpha channel; files on a flat white background are cropped on the
+   difference from white.
+2. **Resized to fit a 440 × 112 box**, preserving its ratio. Every one of them
+   ended up height-limited, so they all now render at the same height — which is
+   the thing that makes a row look deliberate.
+3. **Saved as PNG**, lossless, alpha preserved.
 
-SVG where possible, PNG at 2× otherwise. Horizontal lockups look best in the
-row. Transparent background. The row sizes everything to a 56px cap and centres
-it, so the files do not need to match each other in size — only to be trimmed of
-their own padding, or they will look smaller than their neighbours.
+The row renders them at a 56px cap, so the files are 2× for a retina screen.
+
+**The two vector files were left as vector** — rasterising them would be a
+downgrade. The standard here is the box they render in, not the container they
+arrive in. UCSF needed one fix: it carried `width`/`height` in pixels and no
+`viewBox`, which means a browser has no coordinate space to scale it into. It
+now has the `viewBox` its own dimensions imply and no fixed size, so CSS
+controls it like every other logo in the row.
+
+Nothing is recoloured and nothing is redrawn. Most brand guidelines forbid both,
+and a greyscale treatment was dropped for exactly that reason.
+
+## Adding the missing one
+
+Drop `houston-methodist.svg` (or `.png`, and change the extension in
+`index.html`) into this folder. If it is a raster file, run it through the same
+trim-and-fit so it matches the rest: trimmed of padding, fitted inside 440 × 112.
