@@ -1714,6 +1714,35 @@ a:hover {
    About
    ============================================================ */
 
+.prose {
+  max-width: 72ch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.prose p {
+  margin: 0;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 16px;
+  line-height: 1.68;
+}
+
+/* Long paragraphs need something for the eye to land on. The bold is the ink
+   colour, not the accent — a paragraph with six blue words in it reads as six
+   broken links. */
+.prose strong {
+  color: var(--md-sys-color-on-surface);
+  font-weight: 600;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: var(--sp-12);
+  align-items: start;
+}
+
 /* The history, on the same paper as the feature cards. Two paragraphs with
    room between them rather than a wall of text. */
 .story {
@@ -1771,6 +1800,156 @@ a:hover {
   .mission-card {
     padding: var(--sp-6);
   }
+}
+
+@media (max-width: 900px) {
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: var(--sp-10);
+  }
+}
+
+/* ============================================================
+   Roadmap
+
+   A rail with a dot per milestone. The rail is a gradient that fades out at the
+   bottom, so the last step reads as "and then onwards" rather than as a wall.
+   ============================================================ */
+
+.roadmap {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.roadmap::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--md-sys-color-secondary) 0%,
+    var(--el-blue-400) 55%,
+    rgba(91, 130, 236, 0.18) 100%
+  );
+}
+
+.milestone {
+  position: relative;
+  padding: 0 0 var(--sp-8) var(--sp-8);
+}
+
+.milestone:last-child {
+  padding-bottom: 0;
+}
+
+.milestone-dot {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--el-blue-400);
+  border: 3px solid var(--md-sys-color-background);
+  box-shadow: 0 0 0 1px var(--el-blue-200);
+}
+
+/* The first one is hollow — it is where the line starts, not a step along it. */
+.milestone-dot-open {
+  background: var(--md-sys-color-background);
+  border-color: var(--md-sys-color-secondary);
+  border-width: 4px;
+  box-shadow: 0 0 0 1px var(--el-green-200);
+}
+
+.milestone-dot-next {
+  background: var(--md-sys-color-background);
+  border-style: dashed;
+  border-color: var(--el-blue-300);
+  box-shadow: none;
+}
+
+.milestone-date {
+  margin: 0 0 2px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-secondary);
+}
+
+.milestone:last-child .milestone-date {
+  color: var(--md-sys-color-on-surface-muted);
+}
+
+.milestone-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.team-head {
+  margin: var(--sp-12) 0 var(--sp-5);
+}
+
+.team {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--sp-6);
+}
+
+@media (max-width: 1000px) {
+  .team {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .team {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.person {
+  margin: 0;
+  text-align: center;
+}
+
+/* Circular, and square at the source: `fit=facearea` on the image URL crops to
+   the face, so the circle never lands on somebody's forehead. */
+.person img {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto var(--sp-4);
+  background: var(--md-sys-color-surface-container-high);
+}
+
+.person figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.person figcaption strong {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.person figcaption .body {
+  font-size: 13.5px;
+  line-height: 1.55;
 }
 
 /* ============================================================
