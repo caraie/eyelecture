@@ -125,7 +125,7 @@
                in a short tile and the two eyes in the tall ones, because that
                is the crop each survives. -->
           <div class="mosaic" aria-hidden="true">
-            <div class="mosaic-col" data-drift="-0.10">
+            <div class="mosaic-col" data-drift="0.10">
               <span class="tile tile-tall">
                 <img
                   src="https://images.unsplash.com/photo-1501621667575-af81f1f0bacc?auto=format&fit=crop&w=600&q=70"
@@ -138,7 +138,7 @@
               </span>
             </div>
 
-            <div class="mosaic-col mosaic-col-drop" data-drift="0.14">
+            <div class="mosaic-col mosaic-col-drop" data-drift="-0.14">
               <span class="tile tile-short">
                 <img src="img/hero-team.jpg" alt="" loading="eager" />
               </span>
@@ -151,7 +151,7 @@
               </span>
             </div>
 
-            <div class="mosaic-col" data-drift="-0.07">
+            <div class="mosaic-col" data-drift="0.07">
               <span class="tile tile-mid">
                 <img
                   src="https://images.unsplash.com/photo-1677773382668-8a84321836e9?auto=format&fit=crop&w=600&q=70"
@@ -845,9 +845,14 @@
         });
 
         /* ---- Mosaic drift -------------------------------------------------
-           Each column moves at its own rate as the page scrolls — two up, one
-           down — so the stack separates instead of sliding as one block. The
-           factor is on the element as `data-drift`; sign decides direction.
+           Each column moves at its own rate as the page scrolls, so the stack
+           separates instead of sliding as one block. The factor is on the
+           element as `data-drift`; a positive one moves the column down.
+
+           The two outer columns start high and drift down; the dropped middle
+           one starts low and drifts up. They close on each other rather than
+           running the same way the stagger already leans, which is what makes
+           the mosaic look like it is breathing instead of sliding.
 
            Written against rAF rather than the scroll event directly: scroll
            fires far more often than the screen repaints, and the whole job here
