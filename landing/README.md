@@ -18,13 +18,15 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 | Team names and photographs | Invented names and stock portraits. **Nobody on that row is a real person.** |
 | Team descriptions | Lorem ipsum. |
 | FAQ | Five plausible questions, lorem ipsum answers. |
-| Roadmap dates | 2017, funding and 2019 come from the About copy. **2026 and 2027 are ours** — "rebuilding the app", then core curriculum and analytics. |
-| Sponsor wordmarks | Set in the brand typeface, not the real marks. The planning notes named the third one through a transcript as "ASCIARA" / "Ciara" — **ASCRS** is the assumption here, confirm it. |
+| Roadmap dates | 2017, funding, 2019 and 2023 come from the About copy. **2026 and 2027 are ours** — "rebuilding the app", then core curriculum and analytics. |
+| Sponsor wordmarks | Real marks now, normalised — see below. The planning notes had named one through a transcript as "ASCIARA" / "Ciara"; the team's About copy names the **ASCRS Foundation**, which settles it. |
 | Contact address | `info@eyelecture.com` is a guess. |
 | The contact form | Has nowhere to post. See below. |
 
-Everything else — the six features and the About section — is the old
-eyelecture.com copy as supplied. The hero lede, the mission line above the
+Everything else — the six features — is the old eyelecture.com copy as
+supplied. **The About section is not**: its heading, the two history paragraphs
+and the mission statement are the team's newer copy, which names Daniel Wisotsky
+and the ASCRS Foundation and supersedes the old site. The hero lede, the mission line above the
 screens and the whole "How EyeLecture works" section are **newer copy from the
 team**, and supersede the old site wherever the two disagree.
 
