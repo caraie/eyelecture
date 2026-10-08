@@ -91,16 +91,22 @@
      rather than two colours invented for this page. */
   --acc-blue-surface: #dce7fc;
   --acc-blue-on: #12327f;
+  --acc-blue-solid: #1b4fd1;
   --acc-emerald-surface: #cfefe0;
   --acc-emerald-on: #075334;
+  --acc-emerald-solid: #0a7d4c;
   --acc-amber-surface: #fce9c4;
   --acc-amber-on: #7a4e00;
+  --acc-amber-solid: #c77e00;
   --acc-violet-surface: #e5ddfc;
   --acc-violet-on: #4930b8;
+  --acc-violet-solid: #6e4bef;
   --acc-teal-surface: #cfeaf0;
   --acc-teal-on: #0a5c69;
+  --acc-teal-solid: #0e93a6;
   --acc-slate-surface: #dfe5ee;
   --acc-slate-on: #343d4c;
+  --acc-slate-solid: #343d4c;
 
   /* ---- System: elevation (flatter than stock MD3, border-led) ---- */
   --md-sys-elevation-1: 0 1px 2px rgba(15, 23, 42, 0.06);
@@ -1368,7 +1374,11 @@ a:hover {
 /* The stacked cards above need the gap under the tile; here the grid gap is
    already doing that job. */
 .card-row .card-ico {
-  margin-bottom: 0;
+  position: static;
+}
+
+.card-row .title {
+  padding-right: 0;
 }
 
 .card-row .title {
@@ -1390,54 +1400,67 @@ a:hover {
    ============================================================ */
 
 .card-tone {
+  position: relative;
   background: var(--tone-surface);
-  border-color: color-mix(in srgb, var(--tone-ink) 20%, transparent);
+  border-color: color-mix(in srgb, var(--tone-ink) 22%, transparent);
 }
 
 .card-tone:hover {
-  border-color: color-mix(in srgb, var(--tone-ink) 45%, transparent);
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--tone-ink) 16%, transparent);
+  border-color: color-mix(in srgb, var(--tone-ink) 50%, transparent);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--tone-surface) 55%, transparent);
 }
 
 .card-tone .title {
   color: var(--tone-ink);
+  /* Room for the mark in the corner. Without it a two-line heading runs
+     underneath the glyph. */
+  padding-right: var(--sp-10);
 }
 
-/* Not opacity: a faded ink over a tinted panel goes grey. Mixing toward the
+/* Not opacity: a faded ink over a filled panel goes grey. Mixing toward the
    surface keeps the body in the same hue as the heading, just quieter. */
 .card-tone .body {
-  color: color-mix(in srgb, var(--tone-ink) 88%, var(--tone-surface));
+  color: color-mix(in srgb, var(--tone-ink) 86%, var(--tone-surface));
 }
 
+/* The mark sits in the top corner, out of the reading order of the words,
+   the way a stamp does. Same ink as the heading, no chip. */
 .card-ico {
-  display: block;
+  position: absolute;
+  top: var(--sp-5);
+  right: var(--sp-5);
   color: var(--tone-ink);
-  margin-bottom: var(--sp-4);
   line-height: 0;
 }
 
 .card:hover .card-ico {
-  transform: translateY(-2px) scale(1.06);
+  transform: translateY(-2px) scale(1.08) rotate(-6deg);
 }
 
+/* ---- The six tones -------------------------------------------------------
+   Four filled, two tinted. All six filled would be a wall; the light ones
+   give the grid somewhere to breathe, which is what the reference set does
+   too. Ink is picked per tone for contrast, not by rule: white carries on
+   the deep fills, near-black on amber, where white would be unreadable. */
+
 .tone-blue {
-  --tone-surface: var(--acc-blue-surface);
-  --tone-ink: var(--acc-blue-on);
+  --tone-surface: var(--acc-blue-solid);
+  --tone-ink: #ffffff;
 }
 
 .tone-emerald {
-  --tone-surface: var(--acc-emerald-surface);
-  --tone-ink: var(--acc-emerald-on);
-}
-
-.tone-amber {
-  --tone-surface: var(--acc-amber-surface);
-  --tone-ink: var(--acc-amber-on);
+  --tone-surface: var(--acc-emerald-solid);
+  --tone-ink: #ffffff;
 }
 
 .tone-violet {
-  --tone-surface: var(--acc-violet-surface);
-  --tone-ink: var(--acc-violet-on);
+  --tone-surface: var(--acc-violet-solid);
+  --tone-ink: #ffffff;
+}
+
+.tone-amber {
+  --tone-surface: var(--el-amber-500);
+  --tone-ink: var(--el-n-950);
 }
 
 .tone-teal {
@@ -1446,8 +1469,8 @@ a:hover {
 }
 
 .tone-slate {
-  --tone-surface: var(--acc-slate-surface);
-  --tone-ink: var(--acc-slate-on);
+  --tone-surface: var(--el-n-800);
+  --tone-ink: #ffffff;
 }
 
 /* A whole card in an accent, for the three one-word promises. The border carries

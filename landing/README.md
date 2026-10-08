@@ -45,11 +45,17 @@ Borrowed from the design system on purpose:
   thing anybody sees is the same blue the product opens with — and `.hl` goes mint
   there, because blue on blue disappears;
 - the **toned cards** — features and programs alike — are `.el-card` filled with
-  the design system's `--acc-*-surface` panels. Each card is one accent the whole
-  way through: surface, heading and icon. The icon carries no chip, because a
-  mark in a box next to text reads as two objects; in the card's own ink it reads
-  as one. Only `--tone-surface` and `--tone-ink` are set per card — the body
-  colour is mixed from the ink toward the surface, so a new accent is two lines.
+  the design system's accents. Each card is one accent the whole way through:
+  surface, heading and the mark in its corner, no chip around it, because a glyph
+  in a box beside text reads as two objects and in the card's own ink it reads as
+  one. Four of the six take `--acc-*-solid` with white ink; amber takes the solid
+  with near-black, where white would be unreadable; teal keeps the light
+  `--acc-teal-surface`, so the grid has somewhere to breathe. Per card it is two
+  custom properties, `--tone-surface` and `--tone-ink` — the body colour is mixed
+  from the ink toward the surface, so a new accent is two lines.
+
+  The landing's token copy also carries the `--acc-*-solid` values, which the
+  first copy left out, plus teal and slate solids to complete the set.
 
 Two deliberate differences:
 
