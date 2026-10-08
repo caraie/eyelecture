@@ -115,18 +115,26 @@
 
           <!-- A staggered mosaic rather than one photograph: three columns of
                rounded tiles at different heights, the middle one dropped so the
-               rows never line up. Stock images — see landing/README.md. -->
+               rows never line up. Stock images — see landing/README.md.
+
+               The six fall into three subjects — people, equipment, eyes — and
+               they are dealt one of each per column, never the same subject
+               twice in a column or side by side. Two eyes or two machines
+               touching read as one repeated picture; alternating them is what
+               makes the stack look like a set. The landscape group photo goes
+               in a short tile and the two eyes in the tall ones, because that
+               is the crop each survives. -->
           <div class="mosaic" aria-hidden="true">
             <div class="mosaic-col" data-drift="-0.10">
               <span class="tile tile-tall">
-                <img src="img/hero-app.jpg" alt="" loading="eager" />
-              </span>
-              <span class="tile tile-short">
                 <img
                   src="https://images.unsplash.com/photo-1501621667575-af81f1f0bacc?auto=format&fit=crop&w=600&q=70"
                   alt=""
-                  loading="lazy"
+                  loading="eager"
                 />
+              </span>
+              <span class="tile tile-short">
+                <img src="img/hero-slitlamp.jpg" alt="" loading="lazy" />
               </span>
             </div>
 
@@ -145,14 +153,14 @@
 
             <div class="mosaic-col" data-drift="-0.07">
               <span class="tile tile-mid">
-                <img src="img/hero-slitlamp.jpg" alt="" loading="eager" />
-              </span>
-              <span class="tile tile-mid">
                 <img
                   src="https://images.unsplash.com/photo-1677773382668-8a84321836e9?auto=format&fit=crop&w=600&q=70"
                   alt=""
-                  loading="lazy"
+                  loading="eager"
                 />
+              </span>
+              <span class="tile tile-mid">
+                <img src="img/hero-app.jpg" alt="" loading="lazy" />
               </span>
             </div>
           </div>
