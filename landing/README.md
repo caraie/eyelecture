@@ -18,7 +18,6 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 | Team names and photographs | Invented names and stock portraits. **Nobody on that row is a real person.** |
 | Team descriptions | Lorem ipsum. |
 | FAQ | Five plausible questions, lorem ipsum answers. |
-| Roadmap dates | 2017, funding, 2019 and 2023 come from the About copy. **2026 and 2027 are ours** — "rebuilding the app", then core curriculum and analytics. |
 | Sponsor wordmarks | Real marks now, normalised — see below. The planning notes had named one through a transcript as "ASCIARA" / "Ciara"; the team's About copy names the **ASCRS Foundation**, which settles it. |
 | Contact address | `info@eyelecture.com` is a guess. |
 | The contact form | Has nowhere to post. See below. |
