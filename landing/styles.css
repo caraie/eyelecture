@@ -1743,18 +1743,37 @@ a:hover {
   align-items: start;
 }
 
-/* The history, on the same paper as the feature cards. Two paragraphs with
-   room between them rather than a wall of text. */
+/* The history, set plain on the section's own ground. It was on a paper card
+   for a while; running text does not need a container to be read, and the
+   section already has the mission card carrying the weight below it. */
 .story {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
-  padding: var(--sp-8);
+  max-width: 72ch;
 }
 
 .story .body {
   font-size: 16px;
   line-height: 1.68;
+}
+
+/* The bold is the ink colour, not the accent — a paragraph with six blue words
+   in it reads as six broken links. The one real link is the exception, and it
+   is underlined so it is not just a bold word among bold words. */
+.story strong {
+  color: var(--md-sys-color-on-surface);
+  font-weight: 600;
+}
+
+.story a {
+  color: var(--md-sys-color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.story a strong {
+  color: inherit;
 }
 
 /* ---- The mission statement ----
