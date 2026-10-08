@@ -45,23 +45,22 @@ Borrowed from the design system on purpose:
   thing anybody sees is the same blue the product opens with — and `.hl` goes mint
   there, because blue on blue disappears;
 - the **toned cards** — features and programs alike — are `.el-card` filled with
-  the design system's accents. Each card is one accent the whole way through:
-  surface, heading and the mark in its corner, no chip around it, because a glyph
-  in a box beside text reads as two objects and in the card's own ink it reads as
-  one. Four of the six take `--acc-*-solid` with white ink; amber takes the solid
-  with near-black, where white would be unreadable; teal keeps the light
-  `--acc-teal-surface`, so the grid has somewhere to breathe. Per card it is two
-  custom properties, `--tone-surface` and `--tone-ink` — the body colour is mixed
-  from the ink toward the surface, so a new accent is two lines.
+  the design system's `--acc-*-surface` panels, heading and icon in that accent's
+  own ink. Solid fills were tried and dropped: six saturated blocks shouted over
+  each other and over the screenshots either side of them. Per card it is two
+  custom properties, `--tone-surface` and `--tone-ink`; the body colour is mixed
+  from the ink toward the surface rather than faded with opacity, which over a
+  tint goes grey. The phrase that carries each promise is lifted back to the full
+  ink in `<strong>` — weight alone is invisible at that size on a tint.
+
+  The six feature cards carry their icon **large and ghosted** behind the words,
+  a quarter of the way from surface to ink, with the heading and paragraph on the
+  floor of the card. It is the same `<svg>` the small mark used, sized by the
+  card rather than by the markup; the SVG is `aria-hidden`, so nothing readable
+  depends on it.
 
   The landing's token copy also carries the `--acc-*-solid` values, which the
   first copy left out, plus teal and slate solids to complete the set.
-
-  The six feature cards go one step further: a big bracketed numeral ghosted
-  behind the words, one step off the surface rather than a grey wash, which on a
-  coloured card would read as a stain. It is `aria-hidden` and the counting means
-  nothing — it is there to give the card a horizon, and everything that carries
-  meaning sits above it.
 
 Two deliberate differences:
 

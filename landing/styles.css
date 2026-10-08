@@ -474,7 +474,8 @@ a:hover {
 /* The icon tile picks up the lift a beat later than the card, which is what
    makes the two read as one object rather than two. */
 .card .tile-ico,
-.card .card-ico {
+.card .card-ico,
+.card .card-ghost {
   transition: transform var(--motion-base) var(--ease-spring);
 }
 
@@ -488,6 +489,9 @@ a:hover {
   .card:hover .tile-ico,
   .card:hover .card-ico {
     transform: none;
+  }
+  .card:hover .card-ghost {
+    transform: translateY(-56%);
   }
 }
 
@@ -1420,7 +1424,15 @@ a:hover {
 /* Not opacity: a faded ink over a filled panel goes grey. Mixing toward the
    surface keeps the body in the same hue as the heading, just quieter. */
 .card-tone .body {
-  color: color-mix(in srgb, var(--tone-ink) 86%, var(--tone-surface));
+  color: color-mix(in srgb, var(--tone-ink) 76%, var(--tone-surface));
+  line-height: 1.55;
+}
+
+/* The phrase that carries the promise, lifted to the full ink. Weight and
+   colour together — weight alone is invisible at this size on a tint. */
+.card-tone .body strong {
+  color: var(--tone-ink);
+  font-weight: 600;
 }
 
 /* The mark sits in the top corner, out of the reading order of the words,
@@ -1454,32 +1466,31 @@ a:hover {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  min-height: 250px;
-  padding-top: var(--sp-16);
+  min-height: 236px;
+  padding-top: var(--sp-10);
   overflow: hidden;
 }
 
-.card-num {
+.card-ghost {
   position: absolute;
-  right: var(--sp-4);
+  right: var(--sp-3);
   top: 50%;
-  transform: translateY(-58%);
-  font-family: var(--font-display);
-  font-size: clamp(58px, 7vw, 86px);
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  color: color-mix(in srgb, var(--tone-ink) 17%, var(--tone-surface));
+  transform: translateY(-56%);
+  color: color-mix(in srgb, var(--tone-ink) 26%, var(--tone-surface));
+  line-height: 0;
   pointer-events: none;
-  user-select: none;
 }
 
-/* The mark moves to the opposite corner from the numeral — the two are the
-   same ink, and side by side they would read as one lockup. */
-.card-figure .card-ico {
-  right: auto;
-  left: var(--sp-6);
-  z-index: 1;
+/* Sized here rather than on the element: the markup carries one 24-unit
+   viewBox and the card decides how big it wants it. */
+.card:hover .card-ghost {
+  transform: translateY(-56%) scale(1.05) rotate(-4deg);
+}
+
+.card-ghost svg {
+  width: clamp(104px, 11vw, 136px);
+  height: auto;
+  stroke-width: 1.2;
 }
 
 .card-figure .title,
@@ -1488,34 +1499,39 @@ a:hover {
   z-index: 1;
 }
 
+/* Bigger, and nearly touching the paragraph: a heading that sits close to its
+   own text reads as one block of writing rather than a label above a note. */
 .card-figure .title {
   padding-right: 0;
+  font-size: clamp(21px, 2.1vw, 25px);
+  line-height: 1.15;
+  margin-bottom: var(--sp-2);
 }
 
 /* ---- The six tones -------------------------------------------------------
-   Four filled, two tinted. All six filled would be a wall; the light ones
-   give the grid somewhere to breathe, which is what the reference set does
-   too. Ink is picked per tone for contrast, not by rule: white carries on
-   the deep fills, near-black on amber, where white would be unreadable. */
+   The tinted panels rather than the solids. Six saturated blocks shouted over
+   each other and over the screenshots either side of them; at this weight the
+   colour still tells the cards apart without being the loudest thing on the
+   page. Ink is the accent's own dark, so each card stays one hue throughout. */
 
 .tone-blue {
-  --tone-surface: var(--acc-blue-solid);
-  --tone-ink: #ffffff;
+  --tone-surface: var(--acc-blue-surface);
+  --tone-ink: var(--acc-blue-on);
 }
 
 .tone-emerald {
-  --tone-surface: var(--acc-emerald-solid);
-  --tone-ink: #ffffff;
+  --tone-surface: var(--acc-emerald-surface);
+  --tone-ink: var(--acc-emerald-on);
 }
 
 .tone-violet {
-  --tone-surface: var(--acc-violet-solid);
-  --tone-ink: #ffffff;
+  --tone-surface: var(--acc-violet-surface);
+  --tone-ink: var(--acc-violet-on);
 }
 
 .tone-amber {
-  --tone-surface: var(--el-amber-500);
-  --tone-ink: var(--el-n-950);
+  --tone-surface: var(--acc-amber-surface);
+  --tone-ink: var(--acc-amber-on);
 }
 
 .tone-teal {
@@ -1524,8 +1540,8 @@ a:hover {
 }
 
 .tone-slate {
-  --tone-surface: var(--el-n-800);
-  --tone-ink: #ffffff;
+  --tone-surface: var(--acc-slate-surface);
+  --tone-ink: var(--acc-slate-on);
 }
 
 /* A whole card in an accent, for the three one-word promises. The border carries
