@@ -48,8 +48,10 @@ Borrowed from the design system on purpose:
   of white with a grain over it: an inline SVG `feTurbulence`, carried as a data
   URI so there is no file to fetch, multiplied at 0.42 opacity — white, because
   on grey the texture read as a flat tone rather than as paper. In the far corner
-  sits a wash of the card's own accent, a radial gradient rather than a blurred
-  shape, since a gradient is already soft and costs no filter pass. All the colour lives in the **icon ring** — a
+  sits a wash of the card's own accent: two ellipses, offset from each other and
+  then blurred, because one circle reads as a circle — a shape somebody placed —
+  and two overlapping ovals read as light. It runs off the top and right edges
+  and is clipped by the card, so no edge of it is ever visible. All the colour lives in the **icon ring** — a
   disc in the accent with the glyph in a light tint of the same hue, mixed from
   the one `--tone-solid` each card sets, so a second hand-picked light value per
   accent is not six more tokens to keep in step with the app. The feature cards

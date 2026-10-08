@@ -1414,23 +1414,34 @@ a:hover {
   pointer-events: none;
 }
 
-/* A wash of the card's own accent in the far corner — a radial gradient
-   rather than a blurred shape, because a gradient is already soft and costs
-   no filter pass. Low enough that it reads as the paper having a warm side,
-   not as a glow somebody switched on. */
+/* A wash of the card's own accent in the far corner. Two ellipses, offset
+   from each other and then blurred, because one circle reads as a circle —
+   a deliberate shape somebody placed — and two overlapping ovals read as
+   light. The blur is on top of gradients that are already soft, which is
+   what takes the last of the edge out of them.
+
+   It runs off the top and right of the card and is clipped by the card's
+   overflow, so no edge of the shape is ever visible. */
 .card-paper::after {
   content: '';
   position: absolute;
   z-index: -1;
-  top: -20%;
-  right: -12%;
-  width: 62%;
-  height: 78%;
-  background: radial-gradient(
-    closest-side,
-    color-mix(in srgb, var(--tone-solid) 20%, transparent),
-    transparent 100%
-  );
+  top: -34%;
+  right: -26%;
+  width: 86%;
+  height: 112%;
+  background:
+    radial-gradient(
+      55% 42% at 62% 38%,
+      color-mix(in srgb, var(--tone-solid) 17%, transparent),
+      transparent 100%
+    ),
+    radial-gradient(
+      48% 56% at 34% 66%,
+      color-mix(in srgb, var(--tone-solid) 12%, transparent),
+      transparent 100%
+    );
+  filter: blur(30px);
   pointer-events: none;
 }
 
