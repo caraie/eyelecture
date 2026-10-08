@@ -1348,6 +1348,31 @@ a:hover {
   color: var(--acc-slate-on);
 }
 
+/* ============================================================
+   Program cards
+
+   The same .card, turned on its side: the icon in the first column, the words
+   in the second. align-items is start, so the tile stays level with the title
+   however many lines the body runs to.
+   ============================================================ */
+
+.card-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sp-5);
+  align-items: start;
+}
+
+/* The stacked cards above need the gap under the tile; here the grid gap is
+   already doing that job. */
+.card-row .tile-ico {
+  margin-bottom: 0;
+}
+
+.card-row .title {
+  margin-top: 2px;
+}
+
 /* A soft tint on the feature cards. The surface is a few per cent of the accent
    rather than the accent itself, so six of them in a grid read as one family
    instead of six competing panels — and the body text stays on-surface ink. */
