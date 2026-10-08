@@ -107,8 +107,7 @@ licence:
 | Mission band | `photo-1524178232363-1fb2b075b655` |
 
 All of them take Unsplash's own resizing parameters, so the page never downloads a
-4000px original. The team ones use `fit=facearea`, which crops to the face — that is
-what keeps a circular mask off somebody's forehead.
+4000px original.
 
 If the page should not depend on a third-party CDN, download them into `img/` and
 change the `src` attributes.
