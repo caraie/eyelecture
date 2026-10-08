@@ -334,21 +334,75 @@
         </div>
       </section>
 
+      <!-- Mission. It sits here, right before the screens, so the claim and the
+           proof are next to each other. The photograph is stock — see
+           landing/README.md. -->
+      <section class="section section-dark mission-band">
+        <img
+          class="mission-bg"
+          src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1800&q=75"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+        />
+        <div class="wrap mission">
+          <p class="mission-quote">
+            Ophthalmology education, built for the way
+            <span class="hl">we train</span>.
+          </p>
+          <p class="lede mission-lede">
+            EyeLecture brings high-quality ophthalmic teaching into a centralized
+            video library, giving trainees on-demand access to core concepts and
+            educators the tools to build them into their curriculum.
+          </p>
+        </div>
+      </section>
+
       <!-- ==========================================================
-           Inside the portal — the real screens, as they are today, in a coverflow
-           carousel: the centre slide faces you, the ones beside it turn away and
-           shrink. Every image is 1400×875, so no slide is a different shape.
+           How it works — the three steps, then the real screens as they are
+           today in a coverflow carousel: the centre slide faces you, the ones
+           beside it turn away and shrink. Every image is 1400×875, so no slide
+           is a different shape.
            ========================================================== -->
       <section class="section" id="screens">
         <div class="wrap">
           <header class="section-head center section-head-center">
-            <p class="overline">Inside the portal</p>
-            <h2 class="headline">What it looks like</h2>
+            <p class="overline">How EyeLecture works</p>
+            <h2 class="headline">
+              One account. A learning experience built around your training.
+            </h2>
             <p class="lede">
-              Sign up once, and your institution's email domain does the rest.
-              <strong>Program directors review everybody it does not.</strong>
+              Create an account, complete your profile, verify your affiliation,
+              and begin learning with content matched to your stage of training.
             </p>
           </header>
+
+          <!-- An ordered list, because the order is the content. The numeral is
+               the <li> marker styled as a counter, so screen readers announce
+               "1 of 3" without a decorative span to ignore. -->
+          <ol class="steps">
+            <li class="step">
+              <h3 class="step-title">Create your EyeLecture account</h3>
+              <p class="step-body">
+                Choose a permanent username and password so your account stays
+                with you throughout training.
+              </p>
+            </li>
+            <li class="step">
+              <h3 class="step-title">Complete your training profile</h3>
+              <p class="step-body">
+                Tell us whether you are a medical student, resident, or fellow
+                and connect with your institution.
+              </p>
+            </li>
+            <li class="step">
+              <h3 class="step-title">Verify your affiliation and start learning</h3>
+              <p class="step-body">
+                Participating institutions can verify learners automatically or
+                through a program administrator.
+              </p>
+            </li>
+          </ol>
         </div>
 
         <div
@@ -390,24 +444,17 @@
 
           <div class="coverflow-dots" data-cf="dots"></div>
         </div>
-      </section>
 
-      <!-- Mission. The photograph is stock — see landing/README.md. -->
-      <section class="section section-dark mission-band">
-        <img
-          class="mission-bg"
-          src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1800&q=75"
-          alt=""
-          aria-hidden="true"
-          loading="lazy"
-        />
-        <div class="wrap mission">
-          <p class="overline">A focus on better…</p>
-          <p class="mission-quote">
-            Technology has given the world the power to collaborate.
-            <span class="hl">EyeLecture</span> provides the tool for us to elevate
-            ophthalmic education to new heights.
-          </p>
+        <div class="wrap">
+          <div class="steps-cta">
+            <a class="btn btn-primary" href="https://platform.eyelecture.com/auth/register">
+              Create an account
+            </a>
+            <p class="steps-cta-note">
+              Already have an account?
+              <a href="https://platform.eyelecture.com">Log in</a>
+            </p>
+          </div>
         </div>
       </section>
 

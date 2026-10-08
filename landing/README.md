@@ -23,8 +23,10 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 | Contact address | `info@eyelecture.com` is a guess. |
 | The contact form | Has nowhere to post. See below. |
 
-Everything else — the hero, the six features, the mission line, the About section
-and the Custom/Cloud/Create trio — is the old eyelecture.com copy as supplied.
+Everything else — the six features and the About section — is the old
+eyelecture.com copy as supplied. The hero lede, the mission line above the
+screens and the whole "How EyeLecture works" section are **newer copy from the
+team**, and supersede the old site wherever the two disagree.
 
 The one thing **not** carried over is the rotating hero. The old site cycled three
 slides; here the first is the headline and the other two are the points under it.
