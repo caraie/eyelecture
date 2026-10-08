@@ -45,10 +45,11 @@ Borrowed from the design system on purpose:
   thing anybody sees is the same blue the product opens with — and `.hl` goes mint
   there, because blue on blue disappears;
 - the **paper cards** — features and programs alike — are `.el-card` on a sheet
-  of `--el-n-100` with a grain over it: an inline SVG `feTurbulence`, carried as
-  a data URI so there is no file to fetch, multiplied at 0.4 opacity. It is
-  almost invisible on purpose; paper does not announce itself, it just stops the
-  card reading as a flat rectangle. All the colour lives in the **icon ring** — a
+  of white with a grain over it: an inline SVG `feTurbulence`, carried as a data
+  URI so there is no file to fetch, multiplied at 0.42 opacity — white, because
+  on grey the texture read as a flat tone rather than as paper. In the far corner
+  sits a wash of the card's own accent, a radial gradient rather than a blurred
+  shape, since a gradient is already soft and costs no filter pass. All the colour lives in the **icon ring** — a
   disc in the accent with the glyph in a light tint of the same hue, mixed from
   the one `--tone-solid` each card sets, so a second hand-picked light value per
   accent is not six more tokens to keep in step with the app. The feature cards
