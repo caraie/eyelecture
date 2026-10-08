@@ -44,9 +44,12 @@ Borrowed from the design system on purpose:
 - the **hero gradient** is `.el-auth-aside`, the app's sign-in panel, so the first
   thing anybody sees is the same blue the product opens with — and `.hl` goes mint
   there, because blue on blue disappears;
-- the **tinted icon tiles** on the feature cards are the dashboard's;
-- the **accent cards** behind Custom / Cloud / Create are `.el-card` with the
-  `--acc-*` surfaces.
+- the **toned cards** — features and programs alike — are `.el-card` filled with
+  the design system's `--acc-*-surface` panels. Each card is one accent the whole
+  way through: surface, heading and icon. The icon carries no chip, because a
+  mark in a box next to text reads as two objects; in the card's own ink it reads
+  as one. Only `--tone-surface` and `--tone-ink` are set per card — the body
+  colour is mixed from the ink toward the surface, so a new accent is two lines.
 
 Two deliberate differences:
 

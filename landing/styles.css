@@ -467,7 +467,8 @@ a:hover {
 
 /* The icon tile picks up the lift a beat later than the card, which is what
    makes the two read as one object rather than two. */
-.card .tile-ico {
+.card .tile-ico,
+.card .card-ico {
   transition: transform var(--motion-base) var(--ease-spring);
 }
 
@@ -478,7 +479,8 @@ a:hover {
 @media (prefers-reduced-motion: reduce) {
   .card:hover,
   .card:active,
-  .card:hover .tile-ico {
+  .card:hover .tile-ico,
+  .card:hover .card-ico {
     transform: none;
   }
 }
@@ -1365,7 +1367,7 @@ a:hover {
 
 /* The stacked cards above need the gap under the tile; here the grid gap is
    already doing that job. */
-.card-row .tile-ico {
+.card-row .card-ico {
   margin-bottom: 0;
 }
 
@@ -1373,42 +1375,79 @@ a:hover {
   margin-top: 2px;
 }
 
-/* A soft tint on the feature cards. The surface is a few per cent of the accent
-   rather than the accent itself, so six of them in a grid read as one family
-   instead of six competing panels — and the body text stays on-surface ink. */
-.card-soft {
-  border-width: 1px;
-  border-style: solid;
+/* ============================================================
+   Toned cards
+
+   A card is one accent all the way through: the surface is the accent's
+   tinted panel, the heading is the accent's ink, and the icon is the same
+   ink with no chip around it — the mark and the words are the same colour,
+   which is what makes the card read as one thing rather than a glyph in a
+   box next to some text.
+
+   The surfaces come from --acc-*-surface, the design system's own tinted
+   panels, so six of these in a grid stay a family. Everything else is mixed
+   from the single --tone-ink, which means a new accent is two lines.
+   ============================================================ */
+
+.card-tone {
+  background: var(--tone-surface);
+  border-color: color-mix(in srgb, var(--tone-ink) 20%, transparent);
 }
 
-.tint-blue {
-  background: #f3f7fe;
-  border-color: #d9e4fd;
+.card-tone:hover {
+  border-color: color-mix(in srgb, var(--tone-ink) 45%, transparent);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--tone-ink) 16%, transparent);
 }
 
-.tint-emerald {
-  background: #f1fbf6;
-  border-color: #c9f0de;
+.card-tone .title {
+  color: var(--tone-ink);
 }
 
-.tint-amber {
-  background: #fffaf0;
-  border-color: #fae3bd;
+/* Not opacity: a faded ink over a tinted panel goes grey. Mixing toward the
+   surface keeps the body in the same hue as the heading, just quieter. */
+.card-tone .body {
+  color: color-mix(in srgb, var(--tone-ink) 88%, var(--tone-surface));
 }
 
-.tint-violet {
-  background: #f7f5fe;
-  border-color: #e0d8fb;
+.card-ico {
+  display: block;
+  color: var(--tone-ink);
+  margin-bottom: var(--sp-4);
+  line-height: 0;
 }
 
-.tint-teal {
-  background: #f0fafb;
-  border-color: #c7e6ec;
+.card:hover .card-ico {
+  transform: translateY(-2px) scale(1.06);
 }
 
-.tint-slate {
-  background: #f5f7fa;
-  border-color: #dfe5ee;
+.tone-blue {
+  --tone-surface: var(--acc-blue-surface);
+  --tone-ink: var(--acc-blue-on);
+}
+
+.tone-emerald {
+  --tone-surface: var(--acc-emerald-surface);
+  --tone-ink: var(--acc-emerald-on);
+}
+
+.tone-amber {
+  --tone-surface: var(--acc-amber-surface);
+  --tone-ink: var(--acc-amber-on);
+}
+
+.tone-violet {
+  --tone-surface: var(--acc-violet-surface);
+  --tone-ink: var(--acc-violet-on);
+}
+
+.tone-teal {
+  --tone-surface: var(--acc-teal-surface);
+  --tone-ink: var(--acc-teal-on);
+}
+
+.tone-slate {
+  --tone-surface: var(--acc-slate-surface);
+  --tone-ink: var(--acc-slate-on);
 }
 
 /* A whole card in an accent, for the three one-word promises. The border carries
