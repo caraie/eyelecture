@@ -1,6 +1,6 @@
 # Institution and sponsor logos
 
-Ten of the eleven marks are in place, supplied by the team. The eleventh is not:
+All eleven marks are in place, supplied by the team.
 
 | File | Organisation | Status |
 | --- | --- | --- |
@@ -8,16 +8,17 @@ Ten of the eleven marks are in place, supplied by the team. The eleventh is not:
 | `montefiore.svg` | Montefiore | in (vector) |
 | `ascrs-foundation.png` | ASCRS Foundation | in |
 | `allergan-foundation.png` | The Allergan Foundation | in |
-| `duke.png` | Duke Medicine | in |
+| `duke.png` | Duke University School of Medicine | in |
 | `nyu-langone.png` | NYU Langone School of Medicine | in |
 | `weill-cornell.png` | Weill Cornell Medicine | in |
 | `ucsf.svg` | UCSF | in (vector) |
 | `toronto.png` | University of Toronto | in |
 | `bascom-palmer.png` | Bascom Palmer Eye Institute | in |
-| `houston-methodist.svg` | Houston Methodist | **missing** |
+| `houston-methodist.png` | Houston Methodist | in |
 
-Until a file exists the browser falls back to the `alt` text, which `.logo img`
-styles as a wordmark — a missing logo reads as a name, not as a broken image.
+If a file ever goes missing the browser falls back to the `alt` text, which
+`.logo img` styles as a wordmark — so a gap reads as a name, not as a broken
+image.
 
 ## How they were standardised
 
@@ -48,8 +49,10 @@ controls it like every other logo in the row.
 Nothing is recoloured and nothing is redrawn. Most brand guidelines forbid both,
 and a greyscale treatment was dropped for exactly that reason.
 
-## Adding the missing one
+## Adding or replacing one
 
-Drop `houston-methodist.svg` (or `.png`, and change the extension in
-`index.html`) into this folder. If it is a raster file, run it through the same
-trim-and-fit so it matches the rest: trimmed of padding, fitted inside 440 × 112.
+Drop the file in `_raw/`, run it through the same trim-and-fit — cropped to its
+own content, fitted inside 440 × 112 — and save the result here as PNG. Then
+point the slot in `index.html` at it and check the `alt` text still names the
+right lockup: Duke's replacement was the School of Medicine mark, not the Duke
+Medicine one, and the alt had to follow.
