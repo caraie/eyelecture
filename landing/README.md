@@ -44,20 +44,21 @@ Borrowed from the design system on purpose:
 - the **hero gradient** is `.el-auth-aside`, the app's sign-in panel, so the first
   thing anybody sees is the same blue the product opens with — and `.hl` goes mint
   there, because blue on blue disappears;
-- the **toned cards** — features and programs alike — are `.el-card` filled with
-  the design system's `--acc-*-surface` panels, heading and icon in that accent's
-  own ink. Solid fills were tried and dropped: six saturated blocks shouted over
-  each other and over the screenshots either side of them. Per card it is two
-  custom properties, `--tone-surface` and `--tone-ink`; the body colour is mixed
-  from the ink toward the surface rather than faded with opacity, which over a
-  tint goes grey. The phrase that carries each promise is lifted back to the full
-  ink in `<strong>` — weight alone is invisible at that size on a tint.
+- the **paper cards** — features and programs alike — are `.el-card` on a sheet
+  of `--el-n-100` with a grain over it: an inline SVG `feTurbulence`, carried as
+  a data URI so there is no file to fetch, multiplied at 0.4 opacity. It is
+  almost invisible on purpose; paper does not announce itself, it just stops the
+  card reading as a flat rectangle. All the colour lives in the **icon ring** — a
+  disc in the accent with the glyph in a light tint of the same hue, mixed from
+  the one `--tone-solid` each card sets, so a second hand-picked light value per
+  accent is not six more tokens to keep in step with the app. The feature cards
+  put the ring at the top and the words on the floor, so six of them line up
+  along two edges; the program cards put it beside them. The phrase carrying
+  each promise is lifted to the full ink in `<strong>`.
 
-  The six feature cards carry their icon **large and ghosted** behind the words,
-  a quarter of the way from surface to ink, with the heading and paragraph on the
-  floor of the card. It is the same `<svg>` the small mark used, sized by the
-  card rather than by the markup; the SVG is `aria-hidden`, so nothing readable
-  depends on it.
+  Earlier passes filled the whole card with the accent — first the tinted panels,
+  then the solids. Both are in the history; the solids in particular shouted over
+  each other and over the screenshots either side of them.
 
   The landing's token copy also carries the `--acc-*-solid` values, which the
   first copy left out, plus teal and slate solids to complete the set.

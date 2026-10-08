@@ -474,8 +474,7 @@ a:hover {
 /* The icon tile picks up the lift a beat later than the card, which is what
    makes the two read as one object rather than two. */
 .card .tile-ico,
-.card .card-ico,
-.card .card-ghost {
+.card .card-ring {
   transition: transform var(--motion-base) var(--ease-spring);
 }
 
@@ -487,11 +486,8 @@ a:hover {
   .card:hover,
   .card:active,
   .card:hover .tile-ico,
-  .card:hover .card-ico {
+  .card:hover .card-ring {
     transform: none;
-  }
-  .card:hover .card-ghost {
-    transform: translateY(-56%);
   }
 }
 
@@ -1377,171 +1373,145 @@ a:hover {
 
 /* The stacked cards above need the gap under the tile; here the grid gap is
    already doing that job. */
-.card-row .card-ico {
-  position: static;
-}
-
 .card-row .title {
-  padding-right: 0;
-}
-
-.card-row .title {
-  margin-top: 2px;
+  margin-top: var(--sp-1);
 }
 
 /* ============================================================
-   Toned cards
+   Paper cards
 
-   A card is one accent all the way through: the surface is the accent's
-   tinted panel, the heading is the accent's ink, and the icon is the same
-   ink with no chip around it — the mark and the words are the same colour,
-   which is what makes the card read as one thing rather than a glyph in a
-   box next to some text.
+   A sheet of light grey rather than a panel of colour. The grain is an inline
+   SVG turbulence filter — a data URI, so there is no file to fetch and no
+   request to wait on — multiplied over the surface at low opacity. It is
+   deliberately almost invisible: paper does not announce itself, it just stops
+   the card reading as a flat rectangle of #eef1f7.
 
-   The surfaces come from --acc-*-surface, the design system's own tinted
-   panels, so six of these in a grid stay a family. Everything else is mixed
-   from the single --tone-ink, which means a new accent is two lines.
+   All the colour now lives in the icon ring, which means the accent is a mark
+   on the card rather than the card itself, and the words sit on grey where
+   they are easiest to read.
    ============================================================ */
 
-.card-tone {
+.card-paper {
   position: relative;
-  background: var(--tone-surface);
-  border-color: color-mix(in srgb, var(--tone-ink) 22%, transparent);
+  background-color: var(--el-n-100);
+  border-color: var(--el-n-200);
+  isolation: isolate;
 }
 
-.card-tone:hover {
-  border-color: color-mix(in srgb, var(--tone-ink) 50%, transparent);
-  box-shadow: 0 12px 28px color-mix(in srgb, var(--tone-surface) 55%, transparent);
+/* The grain. ::before rather than a second background on the card, so the
+   radius clips it and the blend mode has something of its own to act on. */
+.card-paper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  mix-blend-mode: multiply;
+  opacity: 0.4;
+  pointer-events: none;
 }
 
-.card-tone .title {
-  color: var(--tone-ink);
-  /* Room for the mark in the corner. Without it a two-line heading runs
-     underneath the glyph. */
-  padding-right: var(--sp-10);
+.card-paper:hover {
+  border-color: var(--el-n-300);
+  box-shadow: var(--md-sys-elevation-3);
 }
 
-/* Not opacity: a faded ink over a filled panel goes grey. Mixing toward the
-   surface keeps the body in the same hue as the heading, just quieter. */
-.card-tone .body {
-  color: color-mix(in srgb, var(--tone-ink) 76%, var(--tone-surface));
+.card-paper .title {
+  color: var(--md-sys-color-on-surface);
+}
+
+.card-paper .body {
+  color: var(--md-sys-color-on-surface-variant);
   line-height: 1.55;
 }
 
-/* The phrase that carries the promise, lifted to the full ink. Weight and
-   colour together — weight alone is invisible at this size on a tint. */
-.card-tone .body strong {
-  color: var(--tone-ink);
+/* The phrase that carries the promise, lifted to the full ink. */
+.card-paper .body strong {
+  color: var(--md-sys-color-on-surface);
   font-weight: 600;
 }
 
-/* The mark sits in the top corner, out of the reading order of the words,
-   the way a stamp does. Same ink as the heading, no chip. */
-.card-ico {
-  position: absolute;
-  top: var(--sp-5);
-  right: var(--sp-5);
-  color: var(--tone-ink);
-  line-height: 0;
+/* ---- The icon ring ----
+   A disc in the accent with the icon in a light tint of the same hue, mixed
+   from the one --tone-solid each card sets. One colour per card, two values
+   derived from it — a second hand-picked light value per accent would be six
+   more tokens to keep in step with the app. */
+
+.card-ring {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--tone-solid);
+  color: color-mix(in srgb, var(--tone-solid) 42%, #ffffff);
+  box-shadow: 0 5px 12px color-mix(in srgb, var(--tone-solid) 18%, transparent);
 }
 
-.card:hover .card-ico {
-  transform: translateY(-2px) scale(1.08) rotate(-6deg);
+.card-ring svg {
+  width: 30px;
+  height: 30px;
+  stroke-width: 1.6;
+}
+
+.card:hover .card-ring {
+  transform: translateY(-3px) scale(1.05);
 }
 
 /* ============================================================
    Figure cards
 
-   The feature cards, given the shape of a numbered plate: the mark in the top
-   corner, a big ghosted numeral behind, and the words sitting on the floor of
-   the card. The numeral is one step off the surface — not a grey wash, which
-   would read as a stain on a coloured card — so it registers as texture and
-   never competes with the heading.
-
-   The numeral is aria-hidden and the counting means nothing: it is there to
-   give the card a horizon. Everything that carries meaning sits above it.
+   The feature cards: ring at the top, words on the floor, so six of them in a
+   grid line up along two edges instead of drifting with the text length.
    ============================================================ */
 
 .card-figure {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   min-height: 236px;
-  padding-top: var(--sp-10);
-  overflow: hidden;
 }
 
-.card-ghost {
-  position: absolute;
-  right: var(--sp-3);
-  top: 50%;
-  transform: translateY(-56%);
-  color: color-mix(in srgb, var(--tone-ink) 26%, var(--tone-surface));
-  line-height: 0;
-  pointer-events: none;
+/* Pushes the ring up and the words down, with the slack between them. */
+.card-figure .card-ring {
+  margin-bottom: auto;
 }
 
-/* Sized here rather than on the element: the markup carries one 24-unit
-   viewBox and the card decides how big it wants it. */
-.card:hover .card-ghost {
-  transform: translateY(-56%) scale(1.05) rotate(-4deg);
-}
-
-.card-ghost svg {
-  width: clamp(104px, 11vw, 136px);
-  height: auto;
-  stroke-width: 1.2;
-}
-
-.card-figure .title,
-.card-figure .body {
-  position: relative;
-  z-index: 1;
-}
-
-/* Bigger, and nearly touching the paragraph: a heading that sits close to its
-   own text reads as one block of writing rather than a label above a note. */
 .card-figure .title {
   padding-right: 0;
   font-size: clamp(21px, 2.1vw, 25px);
   line-height: 1.15;
-  margin-bottom: var(--sp-2);
+  margin: var(--sp-8) 0 var(--sp-2);
 }
 
-/* ---- The six tones -------------------------------------------------------
-   The tinted panels rather than the solids. Six saturated blocks shouted over
-   each other and over the screenshots either side of them; at this weight the
-   colour still tells the cards apart without being the loudest thing on the
-   page. Ink is the accent's own dark, so each card stays one hue throughout. */
+/* ---- The six accents ----
+   One value each: the ring's disc. Everything else on the card is paper and
+   ink, so this is the only place the accent appears. */
 
 .tone-blue {
-  --tone-surface: var(--acc-blue-surface);
-  --tone-ink: var(--acc-blue-on);
+  --tone-solid: var(--acc-blue-solid);
 }
 
 .tone-emerald {
-  --tone-surface: var(--acc-emerald-surface);
-  --tone-ink: var(--acc-emerald-on);
+  --tone-solid: var(--acc-emerald-solid);
 }
 
 .tone-violet {
-  --tone-surface: var(--acc-violet-surface);
-  --tone-ink: var(--acc-violet-on);
+  --tone-solid: var(--acc-violet-solid);
 }
 
 .tone-amber {
-  --tone-surface: var(--acc-amber-surface);
-  --tone-ink: var(--acc-amber-on);
+  --tone-solid: var(--acc-amber-solid);
 }
 
 .tone-teal {
-  --tone-surface: var(--acc-teal-surface);
-  --tone-ink: var(--acc-teal-on);
+  --tone-solid: var(--acc-teal-solid);
 }
 
 .tone-slate {
-  --tone-surface: var(--acc-slate-surface);
-  --tone-ink: var(--acc-slate-on);
+  --tone-solid: var(--acc-slate-solid);
 }
 
 /* A whole card in an accent, for the three one-word promises. The border carries
