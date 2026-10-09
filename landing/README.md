@@ -137,9 +137,24 @@ keyboard for free.
 
 ## Deploying
 
-Nothing here is wired up yet. Static files, so any host will do — Cloud Storage
-behind the existing load balancer, Cloud Run with a static server, or whatever
-`eyelecture.com` points at today.
+Cloudflare Workers, static assets only — no Worker script, no build step:
+
+```sh
+cd landing && npx wrangler deploy
+```
+
+`wrangler.toml` points the assets directory at this folder, so what is here is
+what goes up. `.assetsignore` keeps the rest out: the README, the originals in
+`img/_raw-hero/` and `img/logos/_raw/`, and `all files/`, which is a copy of an
+older version of the page from when it was handed over as a zip.
+
+It lands on `eyelecture-landing.<account>.workers.dev`. Pointing
+`eyelecture.com` at it is a custom domain on the Worker, which is done in the
+Cloudflare dashboard, not here.
+
+The app's GitHub Actions deploy does **not** cover this — that workflow builds
+the backend and frontend images for Cloud Run and knows nothing about `landing/`.
+Pushing to main will not publish the page.
 
 ## The contact form
 

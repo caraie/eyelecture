@@ -1,0 +1,19 @@
+# Publishes the landing page to Cloudflare Workers.
+#
+#   cd landing && npx wrangler deploy
+#
+# There is no Worker script: `assets.directory` with no `main` makes this a
+# static-assets-only Worker, which Cloudflare serves straight from its edge.
+# The directory is this one, so index.html, styles.css and img/ go up as they
+# are — the page has no build step and nothing to compile.
+
+name = "eyelecture-landing"
+compatibility_date = "2026-10-09"
+
+[assets]
+directory = "./"
+
+# index.html for "/", and for "/features" and friends if a path is ever typed by
+# hand. not_found_handling is deliberately left at its default (404): this is one
+# page, so a wrong path should say so rather than quietly serve the home page.
+html_handling = "auto-trailing-slash"

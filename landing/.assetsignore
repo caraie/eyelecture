@@ -1,0 +1,19 @@
+# What not to publish. The assets directory is the landing folder itself, so
+# without this the originals, the notes and a stale copy of an older version of
+# the page would all go up with it.
+
+README.md
+wrangler.toml
+.assetsignore
+.DS_Store
+
+# A copy of an earlier version of the page, kept around from when it was handed
+# over as a zip. Not the page.
+all files/
+all files.zip
+
+# Originals: multi-megabyte PNGs and the logos as the institutions supplied
+# them. The page serves the trimmed and resized versions beside them.
+img/_raw-hero/
+img/logos/_raw/
+img/logos/README.md
