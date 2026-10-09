@@ -17,7 +17,7 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 | --- | --- |
 | Team photographs | None yet. Each card shows the person's initials on a disc in their accent; dropping an `<img>` into `.person-avatar` later changes nothing else. |
 | Team bios | "Short bio to come." Every card is a `<details>` that already opens — the bio is one line to replace per person. |
-| FAQ | Five plausible questions, lorem ipsum answers. |
+| Student bios | "Short bio to come" on all eight. First names only, because that is what the team gave us. |
 | Roadmap dates | 2017, funding, 2019 and 2023 come from the About copy. **2026 and 2027 are ours** — "rebuilding the app", then core curriculum and analytics. |
 | Sponsor wordmarks | Real marks now, normalised — see below. The planning notes had named one through a transcript as "ASCIARA" / "Ciara"; the team's About copy names the **ASCRS Foundation**, which settles it. |
 | Contact address | `info@eyelecture.com` is a guess. |

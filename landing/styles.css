@@ -2026,6 +2026,94 @@ a:hover {
 }
 
 /* ============================================================
+   Student contributors
+
+   Two groups side by side, each a grid of small cards. Lighter than the team
+   cards above: a name and a disc, no toggle, because there is nothing behind
+   them to open yet.
+   ============================================================ */
+
+.contrib-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--sp-10);
+  align-items: start;
+  margin-top: var(--sp-8);
+}
+
+@media (max-width: 900px) {
+  .contrib-groups {
+    grid-template-columns: 1fr;
+    gap: var(--sp-8);
+  }
+}
+
+.contrib-group-title {
+  margin: 0 0 var(--sp-4);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--md-sys-color-on-surface);
+}
+
+.contrib-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+
+@media (max-width: 520px) {
+  .contrib-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contrib {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--md-sys-color-surface);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-md);
+}
+
+.contrib-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: color-mix(in srgb, var(--tone-solid) 15%, #ffffff);
+  color: var(--tone-solid);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.contrib-id {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.contrib-name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--md-sys-color-on-surface);
+}
+
+.contrib-note {
+  font-size: 12.5px;
+  color: var(--md-sys-color-on-surface-muted);
+}
+
+/* ============================================================
    FAQ — a centred accordion on <details>, which opens with no script and takes
    the keyboard for free.
    ============================================================ */
