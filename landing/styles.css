@@ -1766,14 +1766,18 @@ a:hover {
   font-weight: 600;
 }
 
+/* The one link in the paragraph is dressed like the bold names around it —
+   same ink, no underline — so it does not pull the eye. The pointer and the
+   underline on hover are what say it is a link. */
 .story a {
-  color: var(--md-sys-color-primary);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  color: inherit;
+  text-decoration: none;
 }
 
-.story a strong {
-  color: inherit;
+.story a:hover,
+.story a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* ---- The mission statement ----
