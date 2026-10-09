@@ -39,3 +39,6 @@ override.tf.json
 
 # Scratch folder used when files are moved in from a remote session.
 _to_delete/
+
+# Wrangler scratch
+landing/.wrangler/

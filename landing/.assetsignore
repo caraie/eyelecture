@@ -7,6 +7,10 @@ wrangler.toml
 .assetsignore
 .DS_Store
 
+# Wrangler's own scratch directory, which it creates inside the folder it is
+# about to publish — the first deploy uploaded its no-op worker as an asset.
+.wrangler/
+
 # A copy of an earlier version of the page, kept around from when it was handed
 # over as a zip. Not the page.
 all files/
