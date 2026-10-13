@@ -18,13 +18,14 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 | Team photographs | None yet. Each card shows the person's initials on a disc in their accent; dropping an `<img>` into `.person-avatar` later changes nothing else. |
 | Team bios | "Short bio to come." Every card is a `<details>` that already opens — the bio is one line to replace per person. |
 | Student bios | "Short bio to come" on all eight. First names only, because that is what the team gave us. |
-| Roadmap dates | 2017, funding, 2019 and 2023 come from the About copy. **2026 and 2027 are ours** — "rebuilding the app", then core curriculum and analytics. |
 | Sponsor wordmarks | Real marks now, normalised — see below. The planning notes had named one through a transcript as "ASCIARA" / "Ciara"; the team's About copy names the **ASCRS Foundation**, which settles it. |
 | Contact address | `info@eyelecture.com` is a guess. |
 | The contact form | Has nowhere to post. See below. |
 
-Everything else — the six features — is the old eyelecture.com copy as
-supplied. **The About section is not**: its heading, the two history paragraphs
+Everything else is the team's copy as supplied. The six features, the hero, the
+band before the screens, the mission statement and the contact heading were all
+rewritten from **Meeting #1 changes to website.pptx** (October 2026), whose notes
+and ink annotations are the source of record for this page's wording. **The About section is not**: its heading, the two history paragraphs
 and the mission statement are the team's newer copy, which names Daniel Wisotsky
 and the ASCRS Foundation and supersedes the old site. The hero lede, the mission line above the
 screens and the whole "How EyeLecture works" section are **newer copy from the

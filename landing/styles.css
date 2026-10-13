@@ -1256,19 +1256,24 @@ a:hover {
   margin-bottom: var(--sp-6);
 }
 
+/* Flex rather than a grid of equal columns: a grid leaves the last row
+   hanging on the left when the marks do not divide evenly, and seven
+   collaborators never will. Wrapping flex centres every row, including the
+   short one. */
 .logo-row {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: var(--sp-8) var(--sp-6);
-  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-8) var(--sp-10);
 }
 
 .logo {
   display: grid;
   place-items: center;
+  flex: 0 1 170px;
   min-height: 56px;
 }
 
@@ -1923,6 +1928,12 @@ a:hover {
   margin-top: var(--sp-16);
 }
 
+/* The story now sits inside the team's header, between the overline and the
+   heading, so it needs the air a header does not give it. */
+.team-head .story {
+  margin: var(--sp-3) 0 var(--sp-6);
+}
+
 .team {
   margin-top: var(--sp-8);
 }
@@ -2027,6 +2038,14 @@ a:hover {
   font-size: 14.5px;
   line-height: 1.6;
   color: var(--md-sys-color-on-surface-muted);
+}
+
+/* The deck's call to action under the program cards. Centred, so it reads as
+   the section's own ending rather than a fifth card. */
+.programs-cta {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--sp-10);
 }
 
 /* ============================================================
