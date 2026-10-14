@@ -17,7 +17,7 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 | --- | --- |
 | Team photographs | Dr. Shrivastava, Daniel and Carlos have one. Sally Park, Diego and Zara still show initials on a disc in their accent; dropping an `<img>` into `.person-avatar` is all it takes. |
 | Team bios | Dr. Shrivastava, Daniel and Carlos have one. The other three say "Short bio to come". |
-| Contributor photos and bios | Everyone except Oluchi and Arthi. Both still show initials and "Short bio to come". |
+| Contributor photos and bios | Everyone except Oluchi and Arthi. Both still show initials and "Short bio to come". The section no longer says which school anybody is at — one list, no headings. |
 | Sponsor wordmarks | Real marks now, normalised — see below. The planning notes had named one through a transcript as "ASCIARA" / "Ciara"; the team's About copy names the **ASCRS Foundation**, which settles it. |
 | Contact address | `info@eyelecture.com` is a guess. |
 | The contact form | Has nowhere to post. See below. |
