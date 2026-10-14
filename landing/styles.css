@@ -1222,6 +1222,13 @@ a:hover {
   margin-bottom: var(--sp-10);
 }
 
+/* The mission statement's heading is the whole section — the paragraph that
+   used to follow it now lives under Our story — so there is nothing for that
+   bottom margin to separate it from. */
+#about .section-head {
+  margin-bottom: 0;
+}
+
 .section-head .overline {
   margin-bottom: var(--sp-3);
 }
@@ -1604,16 +1611,38 @@ a:hover {
   isolation: isolate;
 }
 
+/* A scrim over the photograph, heaviest where the words are. Without it a
+   face at 14% is still a face, and a reader's eye goes to it before the
+   sentence — which is the one thing a band like this cannot afford. */
+.mission-band::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    var(--md-sys-color-inverse-surface) 0%,
+    color-mix(in srgb, var(--md-sys-color-inverse-surface) 94%, transparent) 40%,
+    color-mix(in srgb, var(--md-sys-color-inverse-surface) 70%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
 .mission-bg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.17;
-  z-index: -1;
+  opacity: 0.4;
+  /* Under the scrim, which is at -1: same stacking level and the image, being
+     later in the DOM, would paint over it. */
+  z-index: -2;
 }
 
+/* Inside the wrap rather than being it: carrying both classes on one element
+   meant this max-width beat the wrap's, and the band's words ended up centred
+   in the page while every other section started at the left margin. */
 .mission {
   position: relative;
   max-width: 52ch;
