@@ -1925,8 +1925,12 @@ a:hover {
   margin: var(--sp-3) 0 var(--sp-6);
 }
 
+/* align-items: start, or the row stretches. Grid items fill their row's
+   height by default, so opening one card made the two beside it grow a pocket
+   of empty space — it read as if all three had opened. */
 .team {
   margin-top: var(--sp-8);
+  align-items: start;
 }
 
 /* ---- One person ----
