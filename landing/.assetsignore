@@ -19,5 +19,6 @@ all files.zip
 # Originals: multi-megabyte PNGs and the logos as the institutions supplied
 # them. The page serves the trimmed and resized versions beside them.
 img/_raw-hero/
+img/_raw-team/
 img/logos/_raw/
 img/logos/README.md

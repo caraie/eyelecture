@@ -1993,6 +1993,25 @@ a:hover {
   letter-spacing: 0.02em;
 }
 
+/* A photograph fills the same circle the initials sat in, so adding one
+   changes nothing about the layout. The tinted background and the letters are
+   simply covered. */
+.person-avatar.has-photo,
+.contrib-avatar.has-photo {
+  background: var(--md-sys-color-surface-container-high);
+  overflow: hidden;
+  padding: 0;
+}
+
+.person-avatar img,
+.contrib-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
 .person-id {
   display: flex;
   flex-direction: column;
@@ -2079,6 +2098,7 @@ a:hover {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sp-3);
+  align-items: start;
 }
 
 @media (max-width: 520px) {
@@ -2088,21 +2108,61 @@ a:hover {
 }
 
 .contrib {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-3);
   padding: var(--sp-3) var(--sp-4);
   background: var(--md-sys-color-surface);
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--md-sys-shape-corner-md);
+  transition: border-color var(--motion-base);
+}
+
+.contrib:hover {
+  border-color: color-mix(in srgb, var(--tone-solid) 45%, var(--md-sys-color-outline));
+}
+
+.contrib-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  cursor: pointer;
+  list-style: none;
+}
+
+.contrib-head::-webkit-details-marker {
+  display: none;
+}
+
+.contrib-head:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 3px;
+  border-radius: var(--md-sys-shape-corner-sm);
+}
+
+.contrib .person-chev {
+  margin-left: auto;
+  flex: none;
+  color: var(--md-sys-color-on-surface-muted);
+  transition: transform var(--motion-base) var(--ease-standard);
+}
+
+.contrib[open] .person-chev {
+  transform: rotate(180deg);
+}
+
+.contrib-bio {
+  margin: var(--sp-3) 0 var(--sp-1);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .contrib-avatar {
   flex: none;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--md-sys-shape-corner-full);
   background: color-mix(in srgb, var(--tone-solid) 15%, #ffffff);
   color: var(--tone-solid);
@@ -2126,9 +2186,9 @@ a:hover {
   color: var(--md-sys-color-on-surface);
 }
 
-.contrib-note {
-  font-size: 12.5px;
-  color: var(--md-sys-color-on-surface-muted);
+.contrib-avatar {
+  width: 42px;
+  height: 42px;
 }
 
 /* ============================================================

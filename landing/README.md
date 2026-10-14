@@ -15,9 +15,9 @@ that means in practice is below, so nobody mistakes a draft for a decision.
 
 | Not real yet | What it is today |
 | --- | --- |
-| Team photographs | None yet. Each card shows the person's initials on a disc in their accent; dropping an `<img>` into `.person-avatar` later changes nothing else. |
-| Team bios | "Short bio to come." Every card is a `<details>` that already opens — the bio is one line to replace per person. |
-| Student bios | "Short bio to come" on all eight. First names only, because that is what the team gave us. |
+| Team photographs | Dr. Shrivastava, Daniel and Carlos have one. Sally Park, Diego and Zara still show initials on a disc in their accent; dropping an `<img>` into `.person-avatar` is all it takes. |
+| Team bios | Dr. Shrivastava, Daniel and Carlos have one. The other three say "Short bio to come". |
+| Contributor photos and bios | Everyone except Oluchi and Arthi. Both still show initials and "Short bio to come". |
 | Sponsor wordmarks | Real marks now, normalised — see below. The planning notes had named one through a transcript as "ASCIARA" / "Ciara"; the team's About copy names the **ASCRS Foundation**, which settles it. |
 | Contact address | `info@eyelecture.com` is a guess. |
 | The contact form | Has nowhere to post. See below. |
@@ -92,6 +92,10 @@ public is on.
 They are cropped to a common 16:10 rather than letterboxed. The bars that padding
 left were the thing that looked wrong; the crop is anchored top-left, so what goes
 is whitespace at the bottom and never the side navigation's rounded edge.
+
+Portraits in `img/team/` come from the team's **Eye Lecture Bios** Google doc,
+cropped square at 256px. The originals are in `img/_raw-team/`, which does not
+publish.
 
 Three of the six hero tiles are **supplied images**, not stock: `hero-team.jpg` (a
 group of clinicians), `hero-app.jpg` (the app on a tablet) and `hero-slitlamp.jpg`
