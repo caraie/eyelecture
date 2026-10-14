@@ -1616,7 +1616,7 @@ a:hover {
 
 .mission {
   position: relative;
-  max-width: 48ch;
+  max-width: 52ch;
 }
 
 .mission .overline {
@@ -1779,50 +1779,9 @@ a:hover {
   text-underline-offset: 3px;
 }
 
-/* ---- The mission statement ----
-   Dark, full width, and after everything else. The section above it is how
-   EyeLecture came to exist; this is what it is for, so it gets its own ground
-   rather than another paragraph in the same card. */
 
-.mission-card {
-  margin-top: var(--sp-10);
-  padding: var(--sp-10);
-  border-radius: var(--md-sys-shape-corner-xl);
-  background: var(--el-n-900);
-  color: var(--el-n-25);
-}
 
-.mission-label {
-  margin: 0 0 var(--sp-5);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--el-blue-300);
-}
 
-.mission-statement {
-  margin: 0;
-  max-width: 68ch;
-  font-family: var(--font-display);
-  font-size: clamp(21px, 2.3vw, 27px);
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  line-height: 1.3;
-}
-
-.mission-aim {
-  margin: var(--sp-4) 0 0;
-  max-width: 68ch;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--el-n-300);
-}
-
-@media (max-width: 700px) {
-  .mission-card {
-    padding: var(--sp-6);
-  }
-}
 
 @media (max-width: 900px) {
   .about-grid {
@@ -1918,13 +1877,22 @@ a:hover {
   color: var(--md-sys-color-on-surface-variant);
 }
 
+/* The story sits inside the team's header, between the overline and the
+   heading. The header is 62ch so a heading never runs the width of a monitor;
+   the paragraph wants that width, so the cap moves off the header and onto the
+   two elements that still need it. */
 .team-head {
   margin-top: var(--sp-16);
+  max-width: none;
 }
 
-/* The story now sits inside the team's header, between the overline and the
-   heading, so it needs the air a header does not give it. */
+.team-head .headline,
+.team-head .lede {
+  max-width: 62ch;
+}
+
 .team-head .story {
+  max-width: none;
   margin: var(--sp-3) 0 var(--sp-6);
 }
 
