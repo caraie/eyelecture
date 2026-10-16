@@ -1222,10 +1222,10 @@ a:hover {
   margin-bottom: var(--sp-10);
 }
 
-/* The mission statement's heading is the whole section — the paragraph that
-   used to follow it now lives under Our story — so there is nothing for that
-   bottom margin to separate it from. */
-#about .section-head {
+/* The mission statement's heading is the whole section — the band carries the
+   statement itself — so there is nothing for that bottom margin to separate it
+   from. */
+#mission .section-head {
   margin-bottom: 0;
 }
 
