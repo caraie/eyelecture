@@ -1,0 +1,114 @@
+<header class="page-head">
+  <div>
+    <p class="el-overline">Lecture bank</p>
+    <h1 class="el-headline">Browse the library</h1>
+    <p class="el-lede">
+      Peer-reviewed lectures, filed by section. Pick a shelf on the left to
+      narrow the list.
+    </p>
+  </div>
+</header>
+
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else {
+  <div class="bank">
+    <nav class="el-card side" aria-label="Sections">
+      <button
+        type="button"
+        class="row all"
+        [class.on]="!isFiltered()"
+        (click)="showAll()"
+      >
+        <mat-icon>apps</mat-icon>
+        <span>Show all</span>
+      </button>
+
+      @if (sections().length === 0) {
+        <p class="none">
+          No sections yet. An administrator sets these up in the lecture bank.
+        </p>
+      } @else {
+        <ul class="tree">
+          @for (section of sections(); track section.id) {
+            <li>
+              <div class="row-wrap">
+                <button
+                  type="button"
+                  class="twisty"
+                  [attr.aria-label]="
+                    isExpanded(section.id)
+                      ? 'Collapse ' + section.name
+                      : 'Expand ' + section.name
+                  "
+                  [attr.aria-expanded]="isExpanded(section.id)"
+                  (click)="toggleExpanded(section.id)"
+                >
+                  <mat-icon>{{
+                    isExpanded(section.id) ? 'expand_more' : 'chevron_right'
+                  }}</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  class="row sec"
+                  [class.on]="isSectionSelected(section.id)"
+                  (click)="selectSection(section)"
+                >
+                  <span>{{ section.name }}</span>
+                  @if (section.subsections.length > 0) {
+                    <span class="count">{{ section.subsections.length }}</span>
+                  }
+                </button>
+              </div>
+
+              @if (isExpanded(section.id)) {
+                @if (section.subsections.length === 0) {
+                  <p class="none sub-none">No subsections yet.</p>
+                } @else {
+                  <ul class="subs">
+                    @for (sub of section.subsections; track sub.id) {
+                      <li>
+                        <button
+                          type="button"
+                          class="row sub"
+                          [class.on]="isSubsectionSelected(sub.id)"
+                          (click)="selectSubsection(section.id, sub.id)"
+                        >
+                          {{ sub.name }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
+              }
+            </li>
+          }
+        </ul>
+      }
+    </nav>
+
+    <section class="main">
+      <header class="list-head">
+        <h2 class="el-title">{{ heading() }}</h2>
+        @if (isFiltered()) {
+          <button mat-stroked-button type="button" (click)="showAll()">
+            Clear filter
+          </button>
+        }
+      </header>
+
+      <!--
+        The lecture list goes here. Until EYE-2 ships there is nothing to list,
+        and saying so is better than an empty frame that looks broken.
+      -->
+      <div class="el-card empty">
+        <mat-icon>video_library</mat-icon>
+        <p class="t">No lectures yet</p>
+        <p class="s">
+          The shelves are ready. Lectures can be added to them once uploading is
+          in place.
+        </p>
+      </div>
+    </section>
+  </div>
+}

@@ -109,6 +109,26 @@ export const routes: Routes = [
           ),
       },
       {
+        // Everyone signed in can browse the bank; it is the point of the product.
+        path: 'lectures',
+        title: 'Lecture bank · EyeLecture',
+        loadComponent: () =>
+          import('./features/lecture-bank/lecture-bank.component').then(
+            (m) => m.LectureBankComponent,
+          ),
+      },
+      {
+        // Program administrators curate the bank too — it is their programme's
+        // catalogue as much as the platform's.
+        path: 'lecture-bank',
+        canActivate: [roleGuard('super_user', 'program_administrator')],
+        title: 'Lecture bank · EyeLecture',
+        loadComponent: () =>
+          import('./features/admin/lecture-bank.component').then(
+            (m) => m.LectureBankAdminComponent,
+          ),
+      },
+      {
         path: 'catalogs',
         canActivate: [roleGuard('super_user')],
         title: 'Reference lists · EyeLecture',

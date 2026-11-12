@@ -10,6 +10,7 @@ import { PersonalEmailGuard } from './common/guards/personal-email.guard';
 import { UsersModule } from './modules/users/users.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { CatalogsModule } from './modules/catalogs/catalogs.module';
+import { LectureBankModule } from './modules/lecture-bank/lecture-bank.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { HealthController } from './health.controller';
@@ -42,6 +43,7 @@ import { HealthController } from './health.controller';
     UsersModule,
     InstitutionsModule,
     CatalogsModule,
+    LectureBankModule,
     AuthModule,
   ],
   controllers: [HealthController],

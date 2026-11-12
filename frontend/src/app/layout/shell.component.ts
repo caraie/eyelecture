@@ -75,7 +75,12 @@ export class ShellComponent {
     const groups: { title: string; items: NavItem[] }[] = [
       {
         title: 'Overview',
-        items: [{ label: 'Dashboard', icon: 'dashboard', route: '/app/dashboard' }],
+        items: [
+          { label: 'Dashboard', icon: 'dashboard', route: '/app/dashboard' },
+          // Browsing the bank is what everybody is here for, administrators
+          // included, so it sits above the screens about people.
+          { label: 'Lecture bank', icon: 'video_library', route: '/app/lectures' },
+        ],
       },
     ];
 
@@ -101,6 +106,23 @@ export class ShellComponent {
         label: this.auth.isSuperUser() ? 'All users' : 'Your institution',
         icon: 'group',
         route: '/app/users',
+      });
+    }
+
+    // Curating the shelves is a different job from browsing them, and both
+    // administrative ranks do it — so it gets its own group rather than sitting
+    // inside the super-user block, and a label that says shelves rather than
+    // repeating "Lecture bank" two lines below the link that browses it.
+    if (this.auth.canReview()) {
+      groups.push({
+        title: 'Content',
+        items: [
+          {
+            label: 'Sections & subsections',
+            icon: 'account_tree',
+            route: '/app/lecture-bank',
+          },
+        ],
       });
     }
 

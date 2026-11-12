@@ -1,0 +1,152 @@
+.page-head {
+  margin-bottom: var(--sp-6);
+
+  .el-overline {
+    margin-bottom: var(--sp-1);
+  }
+
+  .el-headline {
+    margin-bottom: var(--sp-2);
+  }
+}
+
+.state {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-12);
+}
+
+.none {
+  color: var(--md-sys-color-on-surface-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.add-section {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-5);
+
+  mat-form-field {
+    min-width: 280px;
+  }
+
+  .tally {
+    margin: 0 0 0 auto;
+    font-size: 13px;
+    color: var(--md-sys-color-on-surface-muted);
+  }
+}
+
+@media (max-width: 700px) {
+  .add-section {
+    flex-wrap: wrap;
+
+    .tally {
+      margin-left: 0;
+    }
+  }
+}
+
+.sections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.section {
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+}
+
+.sec-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+
+  .nm {
+    margin: 0;
+  }
+
+  .count {
+    font-size: 12.5px;
+    color: var(--md-sys-color-on-surface-muted);
+    white-space: nowrap;
+  }
+
+  /* Pushes the buttons to the right edge whatever the name's length. */
+  .actions {
+    margin-left: auto;
+  }
+}
+
+.twisty {
+  flex: none;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.rename {
+  flex: 1 1 auto;
+  max-width: 420px;
+}
+
+.subs {
+  list-style: none;
+  margin: var(--sp-3) 0 0;
+  padding: 0 0 0 var(--sp-8);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sub {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--md-sys-shape-corner-sm);
+
+  &:hover {
+    background: var(--md-sys-color-surface-container);
+  }
+
+  .leaf {
+    flex: none;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--md-sys-color-on-surface-muted);
+  }
+
+  .nm {
+    font-size: 14.5px;
+  }
+
+  .actions {
+    margin-left: auto;
+  }
+}
+
+.sub-none {
+  margin: var(--sp-3) 0 0 var(--sp-8);
+}
+
+.add-sub {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0 0 var(--sp-8);
+
+  mat-form-field {
+    min-width: 240px;
+  }
+}

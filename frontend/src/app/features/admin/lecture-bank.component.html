@@ -1,0 +1,245 @@
+<header class="page-head">
+  <div>
+    <p class="el-overline">Administration</p>
+    <h1 class="el-headline">Lecture bank</h1>
+    <p class="el-lede">
+      The shelves lectures are filed on. A section holds subsections, and every
+      lecture belongs to <span class="el-hl-em">exactly one subsection</span> —
+      so this is also the menu learners browse the bank by.
+    </p>
+  </div>
+</header>
+
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else {
+  <section class="el-card add-section">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Add section</mat-label>
+      <input
+        matInput
+        placeholder="Glaucoma"
+        [value]="sectionDraft()"
+        (input)="sectionDraft.set($any($event.target).value)"
+        (keyup.enter)="addSection()"
+      />
+    </mat-form-field>
+    <button
+      mat-flat-button
+      type="button"
+      [disabled]="!sectionDraft().trim() || busyId() === 'new-section'"
+      (click)="addSection()"
+    >
+      Add section
+    </button>
+    <p class="tally">
+      {{ sections().length }} sections · {{ subsectionTotal() }} subsections
+    </p>
+  </section>
+
+  @if (sections().length === 0) {
+    <p class="none">
+      No sections yet. The first one is the first shelf learners will see.
+    </p>
+  } @else {
+    <ul class="sections">
+      @for (section of sections(); track section.id; let i = $index) {
+        <li class="el-card section">
+          <header class="sec-head">
+            <button
+              mat-icon-button
+              type="button"
+              class="twisty"
+              [attr.aria-label]="
+                isCollapsed(section.id) ? 'Expand ' + section.name : 'Collapse ' + section.name
+              "
+              (click)="toggleCollapsed(section.id)"
+            >
+              <mat-icon>{{
+                isCollapsed(section.id) ? 'chevron_right' : 'expand_more'
+              }}</mat-icon>
+            </button>
+
+            @if (busyId() === section.id) {
+              <mat-spinner diameter="20" />
+            } @else if (editingId() === section.id) {
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="rename">
+                <input
+                  matInput
+                  [value]="editValue()"
+                  (input)="editValue.set($any($event.target).value)"
+                  (keyup.enter)="saveSectionName(section)"
+                  (keyup.escape)="cancelEditing()"
+                />
+              </mat-form-field>
+              <button mat-icon-button type="button" aria-label="Save" (click)="saveSectionName(section)">
+                <mat-icon>check</mat-icon>
+              </button>
+              <button mat-icon-button type="button" aria-label="Cancel" (click)="cancelEditing()">
+                <mat-icon>close</mat-icon>
+              </button>
+            } @else {
+              <h3 class="el-title nm">{{ section.name }}</h3>
+              <span class="count">
+                {{ section.subsections.length }}
+                {{ section.subsections.length === 1 ? 'subsection' : 'subsections' }}
+              </span>
+
+              <div class="actions">
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Move up"
+                  matTooltip="Move up"
+                  [disabled]="i === 0"
+                  (click)="moveSection(i, -1)"
+                >
+                  <mat-icon>arrow_upward</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Move down"
+                  matTooltip="Move down"
+                  [disabled]="i === sections().length - 1"
+                  (click)="moveSection(i, 1)"
+                >
+                  <mat-icon>arrow_downward</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Rename"
+                  matTooltip="Rename"
+                  (click)="startEditing(section)"
+                >
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button
+                  mat-icon-button
+                  type="button"
+                  aria-label="Delete"
+                  [matTooltip]="
+                    section.subsections.length > 0
+                      ? 'Empty it first'
+                      : 'Delete this section'
+                  "
+                  [disabled]="section.subsections.length > 0"
+                  (click)="deleteSection(section)"
+                >
+                  <mat-icon>delete_outline</mat-icon>
+                </button>
+              </div>
+            }
+          </header>
+
+          @if (!isCollapsed(section.id)) {
+            @if (section.subsections.length === 0) {
+              <p class="none sub-none">
+                Nothing filed under this section yet.
+              </p>
+            } @else {
+              <ul class="subs">
+                @for (sub of section.subsections; track sub.id; let j = $index) {
+                  <li class="sub">
+                    @if (busyId() === sub.id) {
+                      <mat-spinner diameter="18" />
+                    } @else if (editingId() === sub.id) {
+                      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="rename">
+                        <input
+                          matInput
+                          [value]="editValue()"
+                          (input)="editValue.set($any($event.target).value)"
+                          (keyup.enter)="saveSubsectionName(section, sub)"
+                          (keyup.escape)="cancelEditing()"
+                        />
+                      </mat-form-field>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        aria-label="Save"
+                        (click)="saveSubsectionName(section, sub)"
+                      >
+                        <mat-icon>check</mat-icon>
+                      </button>
+                      <button mat-icon-button type="button" aria-label="Cancel" (click)="cancelEditing()">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    } @else {
+                      <mat-icon class="leaf">subdirectory_arrow_right</mat-icon>
+                      <span class="nm">{{ sub.name }}</span>
+
+                      <div class="actions">
+                        <button
+                          mat-icon-button
+                          type="button"
+                          aria-label="Move up"
+                          matTooltip="Move up"
+                          [disabled]="j === 0"
+                          (click)="moveSubsection(section, j, -1)"
+                        >
+                          <mat-icon>arrow_upward</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          aria-label="Move down"
+                          matTooltip="Move down"
+                          [disabled]="j === section.subsections.length - 1"
+                          (click)="moveSubsection(section, j, 1)"
+                        >
+                          <mat-icon>arrow_downward</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          aria-label="Rename"
+                          matTooltip="Rename"
+                          (click)="startEditing(sub)"
+                        >
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button
+                          mat-icon-button
+                          type="button"
+                          aria-label="Delete"
+                          matTooltip="Delete this subsection"
+                          (click)="deleteSubsection(section, sub)"
+                        >
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      </div>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+
+            <div class="add-sub">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Add subsection</mat-label>
+                <input
+                  matInput
+                  placeholder="Angle closure"
+                  [value]="subsectionDraft(section.id)"
+                  (input)="setSubsectionDraft(section.id, $any($event.target).value)"
+                  (keyup.enter)="addSubsection(section)"
+                />
+              </mat-form-field>
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="
+                  !subsectionDraft(section.id).trim() || busyId() === 'new-' + section.id
+                "
+                (click)="addSubsection(section)"
+              >
+                Add
+              </button>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+}

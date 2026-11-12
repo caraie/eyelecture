@@ -3,6 +3,7 @@ import * as bcrypt from 'bcrypt';
 import AppDataSource from './data-source';
 import { User } from '../modules/users/entities/user.entity';
 import { Institution } from '../modules/institutions/entities/institution.entity';
+import { Section } from '../modules/lecture-bank/entities/section.entity';
 import { InstitutionDomain } from '../modules/institutions/entities/institution-domain.entity';
 import { UserRole } from '../modules/users/enums/user-role.enum';
 import { UserStatus } from '../modules/users/enums/user-status.enum';
@@ -20,6 +21,7 @@ async function seed(): Promise<void> {
   const dataSource = await AppDataSource.initialize();
 
   const institutions = dataSource.getRepository(Institution);
+  const sections = dataSource.getRepository(Section);
   const domains = dataSource.getRepository(InstitutionDomain);
   const users = dataSource.getRepository(User);
 
@@ -72,6 +74,48 @@ async function seed(): Promise<void> {
   } else {
     console.log('Demo institution already exists, skipping');
   }
+
+  /**
+   * The twelve sections the old app shelved its lectures under, in its own
+   * order — Fundamentals first, the rest roughly as a curriculum runs rather
+   * than alphabetically. Seeded rather than migrated because a program director
+   * will want to edit these on day one, and a migration that inserts content
+   * has to be re-run by hand to change its mind.
+   *
+   * No subsections: the old app's were per-section and we do not have that list
+   * yet. An empty section is a shelf waiting for one, which is honest.
+   */
+  const SECTIONS = [
+    'Fundamentals',
+    'Cornea & External Disease',
+    'Glaucoma',
+    'Retina & Vitreous',
+    'Lens & Cataract',
+    'Clinical Optics',
+    'Oculoplastics',
+    'Neuro-Ophthalmology',
+    'Pediatrics & Strabismus',
+    'Pathology & Oncology',
+    'Refractive Surgery',
+    'Uveitis',
+  ];
+
+  let created = 0;
+  for (const [index, name] of SECTIONS.entries()) {
+    const existing = await sections
+      .createQueryBuilder('section')
+      .where('LOWER(section.name) = :name', { name: name.toLowerCase() })
+      .getOne();
+    if (existing) continue;
+
+    await sections.save(sections.create({ name, sortOrder: index }));
+    created += 1;
+  }
+  console.log(
+    created > 0
+      ? `Created ${created} lecture bank section(s)`
+      : 'Lecture bank sections already exist, skipping',
+  );
 
   await dataSource.destroy();
   console.log('Seed finished.');
