@@ -33,7 +33,10 @@
       Add section
     </button>
     <p class="tally">
-      {{ sections().length }} sections · {{ subsectionTotal() }} subsections
+      {{ sections().length }}
+      {{ sections().length === 1 ? 'section' : 'sections' }} ·
+      {{ subsectionTotal() }}
+      {{ subsectionTotal() === 1 ? 'subsection' : 'subsections' }}
     </p>
   </section>
 
