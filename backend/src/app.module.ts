@@ -11,6 +11,7 @@ import { UsersModule } from './modules/users/users.module';
 import { InstitutionsModule } from './modules/institutions/institutions.module';
 import { CatalogsModule } from './modules/catalogs/catalogs.module';
 import { LectureBankModule } from './modules/lecture-bank/lecture-bank.module';
+import { LecturesModule } from './modules/lectures/lectures.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MailModule } from './modules/mail/mail.module';
 import { HealthController } from './health.controller';
@@ -44,6 +45,7 @@ import { HealthController } from './health.controller';
     InstitutionsModule,
     CatalogsModule,
     LectureBankModule,
+    LecturesModule,
     AuthModule,
   ],
   controllers: [HealthController],

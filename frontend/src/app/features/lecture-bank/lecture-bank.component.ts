@@ -1,30 +1,41 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LectureBankService } from '../../core/services/lecture-bank.service';
+import { LecturesService } from '../../core/services/lectures.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { BankFilter, Section } from '../../core/models/lecture-bank.model';
+import { Lecture } from '../../core/models/lecture.model';
 
 /**
  * The Lecture Bank as a learner meets it: the catalogue down the left, the
  * lectures on the right.
  *
- * The lectures are not here yet — EYE-2 adds them. What exists is the sidebar
- * and the filter it sets, so the list has something to plug into: `filter()`
- * already carries a section or a subsection, and the empty state says plainly
- * that nothing has been published rather than pretending to be a loading
- * spinner that never resolves.
+ * The list reloads whenever the filter changes, rather than being filtered in
+ * the browser. The server already decides which lectures this person may see —
+ * drafts are nobody else's business and an institution-only lecture is not
+ * every institution's — so asking it again is both simpler and the only way
+ * that stays true as the library grows.
  */
 @Component({
   selector: 'el-lecture-bank',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIconModule, MatButtonModule, MatProgressSpinnerModule],
+  imports: [RouterLink, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
   templateUrl: './lecture-bank.component.html',
   styleUrl: './lecture-bank.component.scss',
 })
 export class LectureBankComponent {
   private readonly api = inject(LectureBankService);
+  private readonly lectureApi = inject(LecturesService);
   private readonly notify = inject(NotificationService);
 
   readonly loading = signal(true);
@@ -49,8 +60,41 @@ export class LectureBankComponent {
 
   readonly isFiltered = computed(() => this.filter().kind !== 'all');
 
+  readonly lectures = signal<Lecture[]>([]);
+  readonly loadingLectures = signal(true);
+
   constructor() {
     this.load();
+
+    // Runs once on open and again on every change of shelf.
+    effect(() => {
+      const current = this.filter();
+      this.loadLectures(current);
+    });
+  }
+
+  private loadLectures(current: BankFilter): void {
+    this.loadingLectures.set(true);
+    this.lectureApi
+      .list({
+        sectionId: current.kind === 'section' ? current.sectionId : undefined,
+        subsectionId:
+          current.kind === 'subsection' ? current.subsectionId : undefined,
+      })
+      .subscribe({
+        next: (lectures) => {
+          this.lectures.set(lectures);
+          this.loadingLectures.set(false);
+        },
+        error: (error: unknown) => {
+          this.loadingLectures.set(false);
+          this.notify.showHttpError(error, 'Could not load the lectures');
+        },
+      });
+  }
+
+  hasVideo(lecture: Lecture): boolean {
+    return lecture.assets.some((asset) => asset.kind === 'video');
   }
 
   load(): void {

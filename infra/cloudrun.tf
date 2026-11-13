@@ -101,6 +101,16 @@ resource "google_cloud_run_v2_service" "api" {
         name  = "FRONTEND_URL"
         value = local.public_web_url
       }
+      # Lecture files. The driver tells the API to sign Cloud Storage URLs
+      # rather than write to a local directory, which is what it does in dev.
+      env {
+        name  = "STORAGE_DRIVER"
+        value = "gcs"
+      }
+      env {
+        name  = "STORAGE_BUCKET"
+        value = google_storage_bucket.media.name
+      }
 
       # Mail. Off unless var.mail_enabled says otherwise, so a deploy that forgets
       # the rest of these sends nothing rather than sending badly.

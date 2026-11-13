@@ -1,0 +1,62 @@
+.viewer {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-3);
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-lg);
+  padding: var(--sp-4);
+  min-height: 420px;
+
+  /* In fullscreen the element is the whole screen, so the slide centres itself
+     instead of sitting at the top of a black field. */
+  &:fullscreen {
+    align-content: center;
+    background: var(--md-sys-color-inverse-surface);
+    border-radius: 0;
+  }
+}
+
+canvas {
+  max-width: 100%;
+  border-radius: var(--md-sys-shape-corner-sm);
+  box-shadow: var(--md-sys-elevation-2);
+  background: #fff;
+
+  &.hidden {
+    display: none;
+  }
+}
+
+.state {
+  display: grid;
+  place-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-12);
+  color: var(--md-sys-color-on-surface-variant);
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+
+  .count {
+    min-width: 72px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  .full {
+    margin-left: var(--sp-4);
+  }
+}

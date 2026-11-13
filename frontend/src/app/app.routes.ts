@@ -118,6 +118,47 @@ export const routes: Routes = [
           ),
       },
       {
+        // Before ':id', or a lecture called "mine" would shadow this route.
+        path: 'lectures/mine',
+        canActivate: [
+          roleGuard(
+            'super_user',
+            'program_administrator',
+            'attending_physician',
+            'fellow',
+          ),
+        ],
+        title: 'Your lectures · EyeLecture',
+        loadComponent: () =>
+          import('./features/lectures/my-lectures.component').then(
+            (m) => m.MyLecturesComponent,
+          ),
+      },
+      {
+        path: 'lectures/edit/:id',
+        canActivate: [
+          roleGuard(
+            'super_user',
+            'program_administrator',
+            'attending_physician',
+            'fellow',
+          ),
+        ],
+        title: 'Edit lecture · EyeLecture',
+        loadComponent: () =>
+          import('./features/lectures/lecture-editor.component').then(
+            (m) => m.LectureEditorComponent,
+          ),
+      },
+      {
+        path: 'lectures/:id',
+        title: 'Lecture · EyeLecture',
+        loadComponent: () =>
+          import('./features/lectures/lecture-detail.component').then(
+            (m) => m.LectureDetailComponent,
+          ),
+      },
+      {
         // Program administrators curate the bank too — it is their programme's
         // catalogue as much as the platform's.
         path: 'lecture-bank',

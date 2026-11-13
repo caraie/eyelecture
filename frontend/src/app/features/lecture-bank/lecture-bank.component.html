@@ -97,18 +97,43 @@
         }
       </header>
 
-      <!--
-        The lecture list goes here. Until EYE-2 ships there is nothing to list,
-        and saying so is better than an empty frame that looks broken.
-      -->
-      <div class="el-card empty">
-        <mat-icon>video_library</mat-icon>
-        <p class="t">No lectures yet</p>
-        <p class="s">
-          The shelves are ready. Lectures can be added to them once uploading is
-          in place.
-        </p>
-      </div>
+      @if (loadingLectures()) {
+        <div class="state"><mat-spinner diameter="24" /></div>
+      } @else if (lectures().length === 0) {
+        <div class="el-card empty">
+          <mat-icon>video_library</mat-icon>
+          <p class="t">Nothing on this shelf yet</p>
+          <p class="s">
+            Published lectures filed here will appear in this list.
+          </p>
+        </div>
+      } @else {
+        <ul class="lectures">
+          @for (lecture of lectures(); track lecture.id) {
+            <li class="el-card el-card-hover lecture">
+              <a class="t" [routerLink]="['/app/lectures', lecture.id]">
+                {{ lecture.title }}
+              </a>
+              <p class="by">
+                @if (lecture.authorName) {
+                  {{ lecture.authorName }}
+                } @else {
+                  <span class="muted">Author removed</span>
+                }
+                @if (lecture.institutionName) {
+                  · {{ lecture.institutionName }}
+                }
+              </p>
+              <div class="marks">
+                <span class="chip"><mat-icon>picture_as_pdf</mat-icon> Slides</span>
+                @if (hasVideo(lecture)) {
+                  <span class="chip"><mat-icon>movie</mat-icon> Video</span>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
     </section>
   </div>
 }

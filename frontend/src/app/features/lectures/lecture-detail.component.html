@@ -1,0 +1,69 @@
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (lecture(); as lecture) {
+  <header class="page-head">
+    <a routerLink="/app/lectures" class="back">
+      <mat-icon>arrow_back</mat-icon>
+      Lecture bank
+    </a>
+
+    <h1 class="el-headline">{{ lecture.title }}</h1>
+
+    <p class="by">
+      @if (lecture.authorName) {
+        {{ lecture.authorName }}
+      } @else {
+        <span class="muted">Author removed</span>
+      }
+      @if (lecture.institutionName) {
+        · {{ lecture.institutionName }}
+      }
+      @if (lecture.status === 'draft') {
+        <span class="draft">Draft</span>
+      }
+    </p>
+
+    @if (lecture.keywords.length > 0) {
+      <ul class="tags">
+        @for (word of lecture.keywords; track word) {
+          <li>{{ word }}</li>
+        }
+      </ul>
+    }
+  </header>
+
+  <mat-tab-group animationDuration="0ms">
+    <mat-tab label="Slides">
+      @if (slidesUrl(); as url) {
+        <el-slide-viewer [src]="url" />
+      } @else {
+        <div class="state"><mat-spinner diameter="24" /></div>
+      }
+    </mat-tab>
+
+    @if (hasVideo()) {
+      <mat-tab label="Video">
+        <ng-template matTabContent>
+          @if (videoUrl(); as url) {
+            <video class="video" controls controlsList="nodownload" [src]="url"></video>
+          } @else {
+            <div class="state">
+              <button mat-flat-button type="button" (click)="openVideo()">
+                Load the video
+              </button>
+            </div>
+          }
+        </ng-template>
+      </mat-tab>
+    }
+
+    @if (lecture.objectives) {
+      <mat-tab label="Objectives">
+        <!-- The author's rich text. Angular escapes it, so what shows is the
+             text they wrote; rendering it as markup would be an injection hole
+             for a field any author can fill. -->
+        <div class="objectives">{{ lecture.objectives }}</div>
+      </mat-tab>
+    }
+  </mat-tab-group>
+}

@@ -109,21 +109,21 @@ export class ShellComponent {
       });
     }
 
-    // Curating the shelves is a different job from browsing them, and both
-    // administrative ranks do it — so it gets its own group rather than sitting
-    // inside the super-user block, and a label that says shelves rather than
-    // repeating "Lecture bank" two lines below the link that browses it.
-    if (this.auth.canReview()) {
-      groups.push({
-        title: 'Content',
-        items: [
-          {
-            label: 'Sections & subsections',
-            icon: 'account_tree',
-            route: '/app/lecture-bank',
-          },
-        ],
-      });
+    // Writing lectures is not an administrative job: an attending physician or
+    // a fellow teaches without running anything. Curating the shelves is, so
+    // the two live in the same group but behind different checks.
+    if (this.auth.canWriteLectures()) {
+      const content: NavItem[] = [
+        { label: 'Your lectures', icon: 'co_present', route: '/app/lectures/mine' },
+      ];
+      if (this.auth.canReview()) {
+        content.push({
+          label: 'Sections & subsections',
+          icon: 'account_tree',
+          route: '/app/lecture-bank',
+        });
+      }
+      groups.push({ title: 'Content', items: content });
     }
 
     if (this.auth.isSuperUser()) {

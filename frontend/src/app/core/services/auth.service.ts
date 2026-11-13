@@ -64,6 +64,21 @@ export class AuthService {
     () => this.isSuperUser() || (this.isProgramAdministrator() && this.isValidated()),
   );
   /**
+   * Can write a lecture. Teaching is not an administrative job: an attending
+   * physician or a fellow authors one without running anything, which is why
+   * this is a wider set than `canReview`. The API enforces the same list; this
+   * only decides whether the screens are offered.
+   */
+  readonly canWriteLectures = computed(() => {
+    const role = this.role();
+    return (
+      role === 'super_user' ||
+      role === 'program_administrator' ||
+      role === 'attending_physician' ||
+      role === 'fellow'
+    );
+  });
+  /**
    * The account is on a temporary password an admin handed out. The API refuses
    * everything but /me, change-password and logout until it is replaced, so the
    * router has to send them straight to that screen.

@@ -1,0 +1,179 @@
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (lecture(); as lecture) {
+  <header class="page-head">
+    <a routerLink="/app/lectures/mine" class="back">
+      <mat-icon>arrow_back</mat-icon>
+      Your lectures
+    </a>
+
+    <div class="head-row">
+      <h1 class="el-headline">{{ lecture.title }}</h1>
+      <span class="status" [class.live]="isPublished()">
+        {{ isPublished() ? 'Published' : 'Draft' }}
+      </span>
+    </div>
+  </header>
+
+  <div class="cols">
+    <section class="el-card block">
+      <h2 class="el-title">Files</h2>
+
+      @for (kind of kinds; track kind) {
+        <div class="file">
+          <div class="f-head">
+            <p class="f-label">{{ rules[kind].label }}</p>
+            <span class="f-max">up to {{ rules[kind].maxLabel }}</span>
+          </div>
+
+          @if (assetOf(kind); as asset) {
+            <p class="f-have">
+              <mat-icon>check_circle</mat-icon>
+              {{ asset.fileName }}
+              <span class="f-size">{{ sizeLabel(asset.sizeBytes) }}</span>
+            </p>
+          } @else {
+            <p class="f-none">Nothing uploaded.</p>
+          }
+
+          @if (uploading() === kind) {
+            <mat-progress-bar mode="determinate" [value]="progress()" />
+            <p class="f-progress">{{ progress() }}%</p>
+          } @else {
+            <div class="f-actions">
+              <input
+                type="file"
+                hidden
+                #picker
+                [accept]="rules[kind].accept"
+                (change)="pick(kind, picker)"
+              />
+              <button mat-stroked-button type="button" (click)="picker.click()">
+                {{ assetOf(kind) ? 'Replace' : 'Upload' }}
+              </button>
+
+              @if (assetOf(kind)) {
+                <button
+                  mat-button
+                  type="button"
+                  [disabled]="kind === 'presentation' && isPublished()"
+                  [title]="
+                    kind === 'presentation' && isPublished()
+                      ? 'A published lecture needs its presentation'
+                      : ''
+                  "
+                  (click)="removeFile(kind)"
+                >
+                  Remove
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="el-card block">
+      <h2 class="el-title">Details</h2>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Title</mat-label>
+        <input
+          matInput
+          [value]="title()"
+          (input)="title.set($any($event.target).value)"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Shelf</mat-label>
+        <mat-select [value]="subsectionId()" (valueChange)="subsectionId.set($event)">
+          @for (section of sections(); track section.id) {
+            @for (sub of section.subsections; track sub.id) {
+              <mat-option [value]="sub.id">{{ section.name }} · {{ sub.name }}</mat-option>
+            }
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Objectives</mat-label>
+        <textarea
+          matInput
+          rows="5"
+          placeholder="What a learner should be able to do after this lecture."
+          [value]="objectives()"
+          (input)="objectives.set($any($event.target).value)"
+        ></textarea>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Keywords</mat-label>
+        <input
+          matInput
+          placeholder="angle closure, gonioscopy, IOP"
+          [value]="keywords()"
+          (input)="keywords.set($any($event.target).value)"
+        />
+      </mat-form-field>
+
+      <mat-slide-toggle
+        [checked]="openToAll()"
+        (change)="openToAll.set($event.checked)"
+      >
+        Available to every institution
+      </mat-slide-toggle>
+      <p class="hint">
+        Turn this off to keep the lecture inside your own institution.
+      </p>
+
+      <div class="save-row">
+        <button
+          mat-flat-button
+          type="button"
+          [disabled]="saving() || !title().trim()"
+          (click)="save()"
+        >
+          Save
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <section class="el-card block publish">
+    @if (isPublished()) {
+      <div>
+        <p class="p-title">This lecture is in the bank</p>
+        <p class="p-sub">Learners on the shelf you chose can read it now.</p>
+      </div>
+      <button mat-stroked-button type="button" (click)="unpublish()">
+        Unpublish
+      </button>
+    } @else {
+      <div>
+        <p class="p-title">Not visible to anyone yet</p>
+        <p class="p-sub">
+          @if (hasPresentation()) {
+            Publishing puts it on its shelf for learners.
+          } @else {
+            Upload the presentation first — it is what learners read.
+          }
+        </p>
+      </div>
+      <button
+        mat-flat-button
+        type="button"
+        [disabled]="!hasPresentation()"
+        (click)="publish()"
+      >
+        Publish
+      </button>
+    }
+  </section>
+
+  <section class="danger">
+    <button mat-button type="button" class="del" (click)="remove()">
+      Delete this lecture
+    </button>
+  </section>
+}

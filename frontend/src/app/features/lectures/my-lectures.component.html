@@ -1,0 +1,93 @@
+<header class="page-head">
+  <div>
+    <p class="el-overline">Teaching</p>
+    <h1 class="el-headline">Your lectures</h1>
+    <p class="el-lede">
+      Start one here, then add the presentation and anything else on its own
+      page. Nothing is visible to learners until you
+      <span class="el-hl-em">publish it</span>.
+    </p>
+  </div>
+</header>
+
+<section class="el-card new">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="shelf">
+    <mat-label>Shelf</mat-label>
+    <mat-select [value]="subsectionId()" (valueChange)="subsectionId.set($event)">
+      @for (section of sections(); track section.id) {
+        @for (sub of section.subsections; track sub.id) {
+          <mat-option [value]="sub.id">{{ section.name }} · {{ sub.name }}</mat-option>
+        }
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="title">
+    <mat-label>Title</mat-label>
+    <input
+      matInput
+      placeholder="Angle closure: recognising it in clinic"
+      [value]="title()"
+      (input)="title.set($any($event.target).value)"
+      (keyup.enter)="create()"
+    />
+  </mat-form-field>
+
+  <button
+    mat-flat-button
+    type="button"
+    [disabled]="!title().trim() || !subsectionId() || creating()"
+    (click)="create()"
+  >
+    New lecture
+  </button>
+</section>
+
+@if (sections().length === 0 && !loading()) {
+  <p class="none">
+    There are no shelves yet. An administrator creates sections and subsections
+    first — a lecture has to live on one.
+  </p>
+}
+
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (lectures().length === 0) {
+  <p class="none">You have not written a lecture yet.</p>
+} @else {
+  <ul class="rows">
+    @for (lecture of lectures(); track lecture.id) {
+      <li class="el-card row">
+        <div class="main">
+          <a class="t" [routerLink]="['/app/lectures/edit', lecture.id]">
+            {{ lecture.title }}
+          </a>
+          <p class="shelf-line">{{ shelfOf(lecture) }}</p>
+        </div>
+
+        <div class="files">
+          @if (hasFile(lecture, 'presentation')) {
+            <span class="chip ok"><mat-icon>picture_as_pdf</mat-icon> Slides</span>
+          } @else {
+            <span class="chip missing"><mat-icon>picture_as_pdf</mat-icon> No slides</span>
+          }
+          @if (hasFile(lecture, 'video')) {
+            <span class="chip ok"><mat-icon>movie</mat-icon> Video</span>
+          }
+        </div>
+
+        <span class="status" [class.live]="lecture.status === 'published'">
+          {{ lecture.status === 'published' ? 'Published' : 'Draft' }}
+        </span>
+
+        <a
+          mat-stroked-button
+          [routerLink]="['/app/lectures/edit', lecture.id]"
+          class="edit"
+        >
+          Edit
+        </a>
+      </li>
+    }
+  </ul>
+}

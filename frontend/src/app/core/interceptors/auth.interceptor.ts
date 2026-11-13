@@ -9,6 +9,7 @@ import { inject } from '@angular/core';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, filter, switchMap, take } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 /** Endpoints that must never carry a token or trigger a refresh loop. */
 const PUBLIC_PATHS = [
@@ -28,6 +29,18 @@ const PUBLIC_PATHS = [
 const isPublic = (url: string): boolean =>
   PUBLIC_PATHS.some((path) => url.includes(path));
 
+/**
+ * Anything that is not our own API. Lecture files are PUT and GET straight
+ * from object storage with a signed URL, and that signature covers an exact
+ * set of headers — an Authorization we add on the way out either breaks it or
+ * is preferred over it, and either way the upload fails.
+ *
+ * The second reason is the one that matters more: that request goes to Google,
+ * and our access token has no business being sent there.
+ */
+const isOurs = (url: string): boolean =>
+  url.startsWith(environment.apiUrl) || url.startsWith('/');
+
 // Shared across concurrent requests so a burst of 401s produces one refresh, not N.
 let refreshInFlight = false;
 const refreshedToken$ = new BehaviorSubject<string | null>(null);
@@ -41,7 +54,7 @@ export const authInterceptor: HttpInterceptorFn = (
 ): Observable<HttpEvent<unknown>> => {
   const auth = inject(AuthService);
 
-  if (isPublic(req.url)) return next(req);
+  if (!isOurs(req.url) || isPublic(req.url)) return next(req);
 
   const token = auth.accessToken;
   const request = token ? withToken(req, token) : req;
