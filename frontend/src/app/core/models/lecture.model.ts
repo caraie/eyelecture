@@ -28,8 +28,43 @@ export interface Lecture {
   authorName: string | null;
   institutionName: string | null;
   assets: LectureAsset[];
+  /** Zero means the lecture has no quiz at all. */
+  questionCount: number;
+  quizAvailability: QuizAvailability;
   createdAt: string;
 }
+
+/** When a learner may take the quiz: before the lecture, after it, or both. */
+export type QuizAvailability = 'pre' | 'post' | 'both';
+
+export interface QuizOption {
+  id: string;
+  text: string;
+  /** Only ever sent to someone who may edit the lecture. */
+  isCorrect: boolean;
+}
+
+export interface QuizQuestion {
+  id: string;
+  prompt: string;
+  explanation: string | null;
+  options: QuizOption[];
+}
+
+/** A question on its way to the server — ids are the server's business. */
+export interface SaveQuestion {
+  prompt: string;
+  explanation?: string | null;
+  options: { text: string; isCorrect: boolean }[];
+}
+
+export const QUIZ_RULES = { minOptions: 2, maxOptions: 6 } as const;
+
+export const QUIZ_AVAILABILITY_LABELS: Record<QuizAvailability, string> = {
+  pre: 'Before the lecture only',
+  post: 'After the lecture only',
+  both: 'Before and after',
+};
 
 /** Where the browser must PUT a file, and what it has to send with it. */
 export interface UploadTicket {

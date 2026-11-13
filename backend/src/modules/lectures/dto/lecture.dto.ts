@@ -123,6 +123,9 @@ export class LectureResponseDto {
   @ApiProperty({ nullable: true }) authorName!: string | null;
   @ApiProperty({ nullable: true }) institutionName!: string | null;
   @ApiProperty({ type: [LectureAssetDto] }) assets!: LectureAssetDto[];
+  @ApiProperty({ description: 'Zero means the lecture has no quiz' })
+  questionCount!: number;
+  @ApiProperty({ enum: ['pre', 'post', 'both'] }) quizAvailability!: string;
   @ApiProperty() createdAt!: Date;
 
   static from(lecture: Lecture): LectureResponseDto {
@@ -143,6 +146,8 @@ export class LectureResponseDto {
       assets: (lecture.assets ?? [])
         .filter((asset) => asset.uploadedAt !== null)
         .map(LectureAssetDto.from),
+      questionCount: lecture.questionCount ?? 0,
+      quizAvailability: lecture.quizAvailability,
       createdAt: lecture.createdAt,
     };
   }

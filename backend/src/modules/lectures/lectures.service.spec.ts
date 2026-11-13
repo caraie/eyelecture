@@ -9,6 +9,7 @@ import {
 import { LecturesService } from './lectures.service';
 import { Lecture } from './entities/lecture.entity';
 import { LectureAsset } from './entities/lecture-asset.entity';
+import { QuizQuestion } from './entities/quiz-question.entity';
 import { Subsection } from '../lecture-bank/entities/subsection.entity';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/enums/user-role.enum';
@@ -67,6 +68,7 @@ describe('LecturesService', () => {
   let lectures: Record<string, jest.Mock>;
   let assets: Record<string, jest.Mock>;
   let subsections: Record<string, jest.Mock>;
+  let questions: Record<string, jest.Mock>;
   let storage: Record<string, jest.Mock>;
 
   beforeEach(async () => {
@@ -85,6 +87,17 @@ describe('LecturesService', () => {
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
     subsections = { findOne: jest.fn().mockResolvedValue({ id: 'sub-1' }) };
+    // Only used to count each lecture's questions; no test here asserts on it,
+    // so an empty result is enough — every lecture comes back with zero.
+    questions = {
+      createQueryBuilder: jest.fn(() => ({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      })),
+    };
     storage = {
       uploadUrl: jest.fn().mockResolvedValue({
         url: 'https://storage.test/put',
@@ -102,6 +115,7 @@ describe('LecturesService', () => {
         { provide: getRepositoryToken(Lecture), useValue: lectures },
         { provide: getRepositoryToken(LectureAsset), useValue: assets },
         { provide: getRepositoryToken(Subsection), useValue: subsections },
+        { provide: getRepositoryToken(QuizQuestion), useValue: questions },
         { provide: StorageService, useValue: storage },
       ],
     }).compile();

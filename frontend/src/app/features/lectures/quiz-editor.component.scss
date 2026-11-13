@@ -1,0 +1,148 @@
+:host {
+  display: block;
+}
+
+.state {
+  display: grid;
+  place-items: center;
+  padding: var(--sp-8);
+}
+
+.q-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-4);
+
+  .el-title { margin: 0; }
+}
+
+.q-sub {
+  margin: var(--sp-1) 0 0;
+  font-size: 13.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.q-when {
+  width: 220px;
+  margin-bottom: -1.25em;
+}
+
+.q-list {
+  list-style: none;
+  margin: var(--sp-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.q-item {
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface);
+}
+
+.q-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+}
+
+.q-num {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--md-sys-shape-corner-full);
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.q-body { flex: 1; min-width: 0; }
+
+.q-prompt {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+.q-answer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin: var(--sp-1) 0 0;
+  font-size: 13px;
+  color: var(--acc-emerald-on);
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+.q-count {
+  margin-left: var(--sp-2);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.q-tools {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+.q-new { margin-top: var(--sp-2); }
+
+.q-add {
+  margin-top: var(--sp-3);
+}
+
+/* --- The form ------------------------------------------------------------ */
+
+.q-form {
+  display: grid;
+  padding: var(--sp-4);
+
+  mat-form-field { width: 100%; }
+}
+
+.q-legend {
+  margin: 0 0 var(--sp-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.q-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+
+  /* The field carries its own bottom space; the radio and the close button
+     would otherwise sit low against it. */
+  mat-radio-button, button { margin-bottom: 1.25em; }
+}
+
+.q-option-text { flex: 1; min-width: 0; }
+
+.q-add-option {
+  justify-self: start;
+  margin-bottom: var(--sp-3);
+}
+
+.q-form-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+
+  .spacer { flex: 1; }
+}
+
+.q-problem {
+  margin: 0;
+  font-size: 13px;
+  color: var(--md-sys-color-error);
+}

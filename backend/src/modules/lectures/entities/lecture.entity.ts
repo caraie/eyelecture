@@ -15,6 +15,8 @@ import { Institution } from '../../institutions/entities/institution.entity';
 import { LectureAsset } from './lecture-asset.entity';
 import { LectureStatus } from '../enums/lecture-status.enum';
 import { LectureVisibility } from '../enums/lecture-visibility.enum';
+import { QuizAvailability } from '../enums/quiz-availability.enum';
+import { QuizQuestion } from './quiz-question.entity';
 
 /**
  * A lecture: a presentation to read through, and optionally a video to watch.
@@ -92,6 +94,26 @@ export class Lecture {
 
   @OneToMany(() => LectureAsset, (asset) => asset.lecture)
   assets!: LectureAsset[];
+
+  @OneToMany(() => QuizQuestion, (question) => question.lecture)
+  questions!: QuizQuestion[];
+
+  /**
+   * When the quiz may be taken. Meaningless until there are questions — a
+   * lecture with none simply has no quiz.
+   */
+  @Column({
+    type: 'enum',
+    enum: QuizAvailability,
+    default: QuizAvailability.BOTH,
+  })
+  quizAvailability!: QuizAvailability;
+
+  /**
+   * Not a column. Filled in by the service so a card can say "5 questions"
+   * without every screen loading every option of every question.
+   */
+  questionCount?: number;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

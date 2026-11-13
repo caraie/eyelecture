@@ -17,6 +17,7 @@ import {
   LectureAssetKind,
 } from '../../core/models/lecture.model';
 import { Section } from '../../core/models/lecture-bank.model';
+import { QuizEditorComponent } from './quiz-editor.component';
 
 /**
  * Everything about one lecture that its author can change, including the files.
@@ -40,6 +41,7 @@ import { Section } from '../../core/models/lecture-bank.model';
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatSlideToggleModule,
+    QuizEditorComponent,
   ],
   templateUrl: './lecture-editor.component.html',
   styleUrl: './lecture-editor.component.scss',

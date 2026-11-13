@@ -11,6 +11,7 @@ import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import { Lecture } from './entities/lecture.entity';
 import { LectureAsset } from './entities/lecture-asset.entity';
+import { QuizQuestion } from './entities/quiz-question.entity';
 import { Subsection } from '../lecture-bank/entities/subsection.entity';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/enums/user-role.enum';
@@ -64,6 +65,8 @@ export class LecturesService {
     private readonly assets: Repository<LectureAsset>,
     @InjectRepository(Subsection)
     private readonly subsections: Repository<Subsection>,
+    @InjectRepository(QuizQuestion)
+    private readonly questions: Repository<QuizQuestion>,
     private readonly storage: StorageService,
   ) {}
 
@@ -111,16 +114,45 @@ export class LecturesService {
       );
     }
 
-    return query.getMany();
+    return this.withQuestionCounts(await query.getMany());
+  }
+
+  /**
+   * Fills in `questionCount` for a list of lectures with one grouped query.
+   *
+   * The alternative — a count per lecture, or joining the questions in — is
+   * either N+1 or dragging every option of every question across the wire so a
+   * card can print a number.
+   */
+  private async withQuestionCounts(lectures: Lecture[]): Promise<Lecture[]> {
+    if (lectures.length === 0) return lectures;
+
+    const rows = await this.questions
+      .createQueryBuilder('question')
+      .select('question."lectureId"', 'lectureId')
+      .addSelect('COUNT(*)', 'count')
+      .where('question."lectureId" IN (:...ids)', {
+        ids: lectures.map((lecture) => lecture.id),
+      })
+      .groupBy('question."lectureId"')
+      .getRawMany<{ lectureId: string; count: string }>();
+
+    const counts = new Map(rows.map((row) => [row.lectureId, Number(row.count)]));
+    for (const lecture of lectures) {
+      lecture.questionCount = counts.get(lecture.id) ?? 0;
+    }
+    return lectures;
   }
 
   /** The author's own lectures, drafts included. */
   async findMine(author: User): Promise<Lecture[]> {
-    return this.lectures.find({
-      where: { authorId: author.id },
-      relations: { assets: true, author: true, institution: true },
-      order: { updatedAt: 'DESC' },
-    });
+    return this.withQuestionCounts(
+      await this.lectures.find({
+        where: { authorId: author.id },
+        relations: { assets: true, author: true, institution: true },
+        order: { updatedAt: 'DESC' },
+      }),
+    );
   }
 
   async findOneFor(id: string, viewer: User): Promise<Lecture> {
@@ -396,7 +428,9 @@ export class LecturesService {
       relations: { assets: true, author: true, institution: true },
     });
     if (!lecture) throw new NotFoundException('That lecture was not found');
-    return lecture;
+
+    const [withCount] = await this.withQuestionCounts([lecture]);
+    return withCount;
   }
 
   private async findSubsection(id: string): Promise<Subsection> {

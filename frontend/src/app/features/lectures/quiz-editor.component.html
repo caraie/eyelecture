@@ -1,0 +1,185 @@
+<div class="q-head">
+  <div>
+    <h2 class="el-title">Quiz</h2>
+    <p class="q-sub">
+      @if (questions().length) {
+        {{ questions().length }} question{{ questions().length === 1 ? '' : 's' }}
+      } @else {
+        No questions yet — a lecture works perfectly well without one.
+      }
+    </p>
+  </div>
+
+  @if (questions().length) {
+    <mat-form-field appearance="outline" class="q-when">
+      <mat-label>When learners take it</mat-label>
+      <mat-select
+        [value]="chosenAvailability()"
+        (selectionChange)="changeAvailability($event.value)"
+      >
+        @for (option of availabilities; track option) {
+          <mat-option [value]="option">{{ availabilityLabels[option] }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  }
+</div>
+
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="24" /></div>
+} @else {
+  <ol class="q-list">
+    @for (question of questions(); track question.id; let i = $index) {
+      <li class="q-item">
+        @if (editingId() === question.id) {
+          <ng-container [ngTemplateOutlet]="form" />
+        } @else {
+          <div class="q-row">
+            <span class="q-num">{{ i + 1 }}</span>
+
+            <div class="q-body">
+              <p class="q-prompt">{{ question.prompt }}</p>
+              <p class="q-answer">
+                <mat-icon>check</mat-icon>
+                {{ correctAnswerOf(question) }}
+                <span class="q-count">
+                  of {{ question.options.length }} answers
+                </span>
+              </p>
+            </div>
+
+            <div class="q-tools">
+              <button
+                mat-icon-button
+                type="button"
+                title="Move up"
+                [disabled]="i === 0"
+                (click)="move(i, -1)"
+              >
+                <mat-icon>arrow_upward</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                title="Move down"
+                [disabled]="i === questions().length - 1"
+                (click)="move(i, 1)"
+              >
+                <mat-icon>arrow_downward</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                title="Edit"
+                (click)="edit(question)"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                title="Remove"
+                (click)="remove(question)"
+              >
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </li>
+    }
+  </ol>
+
+  @if (editingId() === 'new') {
+    <div class="q-item q-new">
+      <ng-container [ngTemplateOutlet]="form" />
+    </div>
+  } @else if (!editingId()) {
+    <button mat-stroked-button type="button" class="q-add" (click)="startNew()">
+      <mat-icon>add</mat-icon>
+      Add a question
+    </button>
+  }
+}
+
+<ng-template #form>
+  <div class="q-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Question</mat-label>
+      <textarea
+        matInput
+        rows="2"
+        [value]="draft().prompt"
+        (input)="setPrompt($any($event.target).value)"
+      ></textarea>
+    </mat-form-field>
+
+    <p class="q-legend">
+      Answers — pick the right one.
+      {{ rules.minOptions }} to {{ rules.maxOptions }}.
+    </p>
+
+    @for (option of draft().options; track $index; let i = $index) {
+      <div class="q-option">
+        <mat-radio-button
+          [checked]="option.isCorrect"
+          (change)="setCorrect(i)"
+          [attr.aria-label]="'Answer ' + (i + 1) + ' is correct'"
+        />
+
+        <mat-form-field appearance="outline" class="q-option-text">
+          <mat-label>Answer {{ i + 1 }}</mat-label>
+          <input
+            matInput
+            [value]="option.text"
+            (input)="setOptionText(i, $any($event.target).value)"
+          />
+        </mat-form-field>
+
+        <button
+          mat-icon-button
+          type="button"
+          title="Remove this answer"
+          [disabled]="!canRemoveOption()"
+          (click)="removeOption(i)"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    @if (canAddOption()) {
+      <button mat-button type="button" class="q-add-option" (click)="addOption()">
+        <mat-icon>add</mat-icon>
+        Another answer
+      </button>
+    }
+
+    <mat-form-field appearance="outline">
+      <mat-label>Why that answer is right (optional)</mat-label>
+      <textarea
+        matInput
+        rows="2"
+        [value]="draft().explanation"
+        (input)="setExplanation($any($event.target).value)"
+      ></textarea>
+      <mat-hint>Shown to learners once they have answered.</mat-hint>
+    </mat-form-field>
+
+    <div class="q-form-actions">
+      @if (problem(); as problem) {
+        <p class="q-problem">{{ problem }}</p>
+      }
+      <span class="spacer"></span>
+      <button mat-button type="button" (click)="cancel()">Cancel</button>
+      <button
+        mat-flat-button
+        type="button"
+        [disabled]="!!problem() || saving()"
+        (click)="saveQuestion()"
+      >
+        {{ saving() ? 'Saving…' : 'Save question' }}
+      </button>
+    </div>
+  </div>
+</ng-template>
