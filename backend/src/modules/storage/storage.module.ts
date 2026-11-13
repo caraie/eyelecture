@@ -27,7 +27,11 @@ const driver = (config: ConfigService): string =>
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.getOrThrow<string>('JWT_SECRET'),
+        // `jwt.accessSecret` from the config namespace, not a bare env var.
+        // The deployed environments pass JWT_ACCESS_SECRET from Secret Manager
+        // and there is no JWT_SECRET anywhere — asking for one by that name
+        // threw at boot and the container never answered its startup probe.
+        secret: config.getOrThrow<string>('jwt.accessSecret'),
       }),
     }),
   ],
