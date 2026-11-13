@@ -146,6 +146,19 @@
   font-weight: 500;
 }
 
+/* A button is as wide as its label, full stop.
+   Put one in a flex row next to a text input and the input takes every pixel it
+   can while the button, being shrinkable by default, gets squeezed until
+   "Add section" breaks into "Add / section". Buttons are the fixed thing in
+   such a row and the input is the elastic one, so the defaults are the wrong
+   way round — this sets them straight once instead of at every call site. */
+.mat-mdc-button-base {
+  flex: none;
+}
+.mat-mdc-button-base .mdc-button__label {
+  white-space: nowrap;
+}
+
 /* The design system sizes icons inside a labelled button at 18px (`.btn .ms`), not
    mat-icon's 24px default. At 24 the icon's box is taller than the label's line, so
    the glyph reads as floating above the text. Icon-only buttons are deliberately not
@@ -173,6 +186,29 @@
 }
 .mat-mdc-button-base:not(:disabled):active {
   transform: scale(0.965);
+}
+
+/* Slide toggle: the hover belongs to the switch, not to the handle.
+   Stock MD3 draws a circular state layer around the thumb, which at this size
+   reads as a stray dot floating next to the label rather than as the control
+   responding. The circle goes, and the whole switch gets a ring instead —
+   focus included, so keyboard and mouse say the same thing. */
+.mat-mdc-slide-toggle {
+  .mdc-switch__ripple,
+  .mat-mdc-slide-toggle-ripple {
+    display: none;
+  }
+
+  .mdc-switch {
+    border-radius: var(--md-sys-shape-corner-full);
+    transition: box-shadow var(--motion-fast) var(--ease-standard);
+  }
+
+  .mdc-switch:enabled:hover,
+  .mdc-switch:enabled:focus-visible {
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent);
+  }
 }
 
 /* Cards: border-led, not shadow-led. */

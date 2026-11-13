@@ -1,3 +1,13 @@
+/* The page is a stack of cards, so the spacing between them is one gap here
+   rather than a margin on each. Adding a card used to mean remembering to give
+   it a margin-top, which is how Credit and Quiz ended up flush against their
+   neighbours. */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
 .state {
   display: grid;
   place-items: center;
@@ -5,7 +15,8 @@
 }
 
 .page-head {
-  margin-bottom: var(--sp-5);
+  /* A little more air under the title than between the cards below it. */
+  margin-bottom: var(--sp-2);
 
   .back {
     display: inline-flex;
@@ -124,7 +135,6 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-4);
-  margin-top: var(--sp-4);
 
   .p-title { margin: 0; font-weight: 600; }
   .p-sub {
@@ -135,7 +145,8 @@
 }
 
 .danger {
-  margin-top: var(--sp-6);
+  /* Set apart from the rest, so deleting is never the next thing in the row. */
+  margin-top: var(--sp-4);
 
   .del { color: var(--md-sys-color-error); }
 }

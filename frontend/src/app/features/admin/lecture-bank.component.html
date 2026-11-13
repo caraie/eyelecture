@@ -16,9 +16,11 @@
   <section class="el-card add-section">
     <mat-form-field appearance="outline" subscriptSizing="dynamic">
       <mat-label>Add section</mat-label>
+      <!-- "e.g." because a bare "Glaucoma" sitting where a value goes reads as
+           a section already named that. -->
       <input
         matInput
-        placeholder="Glaucoma"
+        placeholder="e.g. Glaucoma"
         [value]="sectionDraft()"
         (input)="sectionDraft.set($any($event.target).value)"
         (keyup.enter)="addSection()"
@@ -223,7 +225,7 @@
                 <mat-label>Add subsection</mat-label>
                 <input
                   matInput
-                  placeholder="Angle closure"
+                  placeholder="e.g. Angle closure"
                   [value]="subsectionDraft(section.id)"
                   (input)="setSubsectionDraft(section.id, $any($event.target).value)"
                   (keyup.enter)="addSubsection(section)"

@@ -29,8 +29,13 @@
   padding: var(--sp-4);
   margin-bottom: var(--sp-5);
 
+  /* The elastic one in the row: it gives up width so the button keeps its
+     label on one line. `min-width: 0` because a flex item will not shrink
+     below its content without it. */
   mat-form-field {
-    min-width: 280px;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 420px;
   }
 
   .tally {
@@ -147,6 +152,8 @@
   margin: var(--sp-3) 0 0 var(--sp-8);
 
   mat-form-field {
-    min-width: 240px;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 360px;
   }
 }

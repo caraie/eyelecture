@@ -23,8 +23,10 @@
   padding: var(--sp-4);
   margin-bottom: var(--sp-5);
 
-  .shelf { min-width: 280px; }
-  .title { flex: 1 1 auto; min-width: 240px; }
+  /* Both fields shrink before the button does — see the note on
+     .mat-mdc-button-base in the material bridge. */
+  .shelf { flex: 0 1 280px; min-width: 0; }
+  .title { flex: 1 1 auto; min-width: 0; }
 }
 
 @media (max-width: 800px) {
