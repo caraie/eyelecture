@@ -1,7 +1,7 @@
 import { Test, TestingModuleBuilder } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, ObjectLiteral, Repository } from 'typeorm';
 import { LecturesModule } from './lectures.module';
 import { LecturesService } from './lectures.service';
 import { QuizzesService } from './quizzes.service';
@@ -66,7 +66,7 @@ describe('LecturesModule', () => {
     for (const entity of ENTITIES) {
       builder
         .overrideProvider(getRepositoryToken(entity))
-        .useValue({} as Repository<unknown>);
+        .useValue({} as Partial<Repository<ObjectLiteral>>);
     }
     builder.overrideProvider(DataSource).useValue({});
 

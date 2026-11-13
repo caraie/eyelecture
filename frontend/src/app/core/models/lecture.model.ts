@@ -7,12 +7,23 @@ export type LectureVisibility = 'all_institutions' | 'own_institution';
 /** The three files a lecture can carry, one of each at most. */
 export type LectureAssetKind = 'presentation' | 'video' | 'tile';
 
+/**
+ * Whether the file had to be turned into something the viewer can read.
+ * "none" is a PDF uploaded as a PDF, which needed nothing.
+ */
+export type AssetConversionStatus = 'none' | 'pending' | 'ready' | 'failed';
+
 export interface LectureAsset {
   kind: LectureAssetKind;
   fileName: string;
   contentType: string;
   sizeBytes: number;
   uploadedAt: string | null;
+  conversionStatus: AssetConversionStatus;
+  /** Only set when it failed, and written for the author to act on. */
+  conversionError: string | null;
+  /** There is an editable deck behind the PDF learners read. */
+  hasOriginal: boolean;
 }
 
 export interface Lecture {
@@ -24,8 +35,11 @@ export interface Lecture {
   status: LectureStatus;
   visibility: LectureVisibility;
   publishedAt: string | null;
+  authorId: string | null;
   /** Null when the author's account was deleted — the screen says so. */
   authorName: string | null;
+  /** Who filed it, and only when that is somebody other than the author. */
+  createdByName: string | null;
   institutionName: string | null;
   assets: LectureAsset[];
   coAuthors: CoAuthor[];
@@ -152,17 +166,24 @@ export interface UploadTicket {
  * What each kind of file may be. The server enforces this; the input's
  * `accept` is here so the file picker does not offer what will be refused.
  *
- * Presentations are PDF only. A browser cannot display a .pptx, so showing one
- * inside the app means converting it server-side — a piece of work with its own
- * ticket. Until then, "export to PDF" is one menu item away in PowerPoint.
+ * A presentation may be a PDF or a PowerPoint deck. A browser cannot display a
+ * .pptx, so a deck is turned into a PDF on the server and both are kept: the
+ * PDF is what learners read, the deck is what a co-author picks up to edit.
  */
 export const ASSET_RULES: Record<
   LectureAssetKind,
   { accept: string; label: string; maxLabel: string }
 > = {
   presentation: {
-    accept: 'application/pdf',
-    label: 'Presentation (PDF)',
+    // The deck is converted to a PDF server-side; both are kept. `.pptx` and
+    // `.ppt` are listed as well as their media types because Windows does not
+    // always give the file a type the picker will match on.
+    accept:
+      'application/pdf,.pdf,' +
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation,.pptx,' +
+      'application/vnd.ms-powerpoint,.ppt,' +
+      'application/vnd.oasis.opendocument.presentation,.odp',
+    label: 'Presentation (PDF or PowerPoint)',
     maxLabel: '200 MB',
   },
   video: {

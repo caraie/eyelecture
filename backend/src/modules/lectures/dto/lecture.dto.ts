@@ -16,6 +16,7 @@ import { CoAuthorDto } from './co-author.dto';
 import { Lecture } from '../entities/lecture.entity';
 import { LectureAsset } from '../entities/lecture-asset.entity';
 import { LectureAssetKind } from '../enums/lecture-asset-kind.enum';
+import { AssetConversionStatus } from '../enums/asset-conversion-status.enum';
 import { LectureStatus } from '../enums/lecture-status.enum';
 import { LectureVisibility } from '../enums/lecture-visibility.enum';
 
@@ -59,6 +60,16 @@ export class CreateLectureDto {
   @IsOptional()
   @IsEnum(LectureVisibility)
   visibility?: LectureVisibility;
+
+  /**
+   * Who wrote it. Left out means the person creating it, which is almost
+   * always right — an administrator filing a colleague's deck is the case
+   * this exists for.
+   */
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  authorId?: string;
 }
 
 export class UpdateLectureDto extends PartialType(CreateLectureDto) {}
@@ -92,12 +103,24 @@ export class LectureAssetDto {
   @ApiProperty() contentType!: string;
   @ApiProperty() sizeBytes!: number;
   @ApiProperty({ nullable: true }) uploadedAt!: Date | null;
+  @ApiProperty({
+    enum: AssetConversionStatus,
+    description: '"none" for a file that needed no converting',
+  })
+  conversionStatus!: AssetConversionStatus;
+  @ApiProperty({ nullable: true, description: 'Only set when it failed' })
+  conversionError!: string | null;
+  @ApiProperty({ description: 'There is an editable original behind the PDF' })
+  hasOriginal!: boolean;
 
   static from(asset: LectureAsset): LectureAssetDto {
     return {
       kind: asset.kind,
       fileName: asset.fileName,
       contentType: asset.contentType,
+      conversionStatus: asset.conversionStatus,
+      conversionError: asset.conversionError,
+      hasOriginal: asset.conversionStatus !== AssetConversionStatus.NONE,
       // bigint comes back from pg as a string, which would quietly become
       // "4194304" in JSON and sort wrong in any UI that compares sizes.
       sizeBytes: Number(asset.sizeBytes),
@@ -121,7 +144,13 @@ export class LectureResponseDto {
   @ApiProperty({ enum: LectureStatus }) status!: LectureStatus;
   @ApiProperty({ enum: LectureVisibility }) visibility!: LectureVisibility;
   @ApiProperty({ nullable: true }) publishedAt!: Date | null;
+  @ApiProperty({ nullable: true }) authorId!: string | null;
   @ApiProperty({ nullable: true }) authorName!: string | null;
+  @ApiProperty({
+    nullable: true,
+    description: 'Who filed it, when that is not who wrote it',
+  })
+  createdByName!: string | null;
   @ApiProperty({ nullable: true }) institutionName!: string | null;
   @ApiProperty({ type: [CoAuthorDto] }) coAuthors!: CoAuthorDto[];
   @ApiProperty({ type: [LectureAssetDto] }) assets!: LectureAssetDto[];
@@ -143,7 +172,14 @@ export class LectureResponseDto {
       publishedAt: lecture.publishedAt,
       // Null when the account was deleted. The screen says "Author removed"
       // rather than inventing a name.
+      authorId: lecture.authorId,
       authorName: author ? `${author.firstName} ${author.lastName}`.trim() : null,
+      // Only worth saying when it differs — "filed by" the author themselves
+      // is noise on every other lecture.
+      createdByName:
+        lecture.createdBy && lecture.createdById !== lecture.authorId
+          ? `${lecture.createdBy.firstName} ${lecture.createdBy.lastName}`.trim()
+          : null,
       institutionName: lecture.institution?.name ?? null,
       coAuthors: (lecture.coAuthors ?? []).map(CoAuthorDto.from),
       assets: (lecture.assets ?? [])

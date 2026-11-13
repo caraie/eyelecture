@@ -1,12 +1,25 @@
 import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, filter, map, switchMap } from 'rxjs';
+import { Observable, concat, filter, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Lecture,
   LectureAssetKind,
   UploadTicket,
 } from '../models/lecture.model';
+
+/**
+ * What an upload reports as it goes: bytes moving, then — for a deck — the
+ * wait while the server turns it into a PDF, then the lecture.
+ */
+export type UploadEvent =
+  | { progress: number }
+  | { converting: true }
+  | { lecture: Lecture };
+
+/** Anything that is not already a PDF has to be converted before it can be read. */
+const isDeck = (file: File): boolean =>
+  file.type !== 'application/pdf' && /\.(pptx?|odp)$/i.test(file.name);
 
 @Injectable({ providedIn: 'root' })
 export class LecturesService {
@@ -49,6 +62,7 @@ export class LecturesService {
       objectives: string | null;
       keywords: string[];
       visibility: string;
+      authorId: string;
     }>,
   ): Observable<Lecture> {
     return this.http.patch<Lecture>(`${this.base}/${id}`, payload);
@@ -76,6 +90,24 @@ export class LecturesService {
     );
   }
 
+  /** The deck as it was uploaded, for whoever may edit the lecture. */
+  originalUrl(
+    id: string,
+    kind: LectureAssetKind,
+  ): Observable<{ url: string; contentType: string }> {
+    return this.http.get<{ url: string; contentType: string }>(
+      `${this.base}/${id}/files/${kind}/original`,
+    );
+  }
+
+  /** Try a failed conversion again — the deck is already in the bucket. */
+  retryConversion(id: string, kind: LectureAssetKind): Observable<Lecture> {
+    return this.http.post<Lecture>(
+      `${this.base}/${id}/files/${kind}/convert`,
+      {},
+    );
+  }
+
   removeFile(id: string, kind: LectureAssetKind): Observable<Lecture> {
     return this.http.delete<Lecture>(`${this.base}/${id}/files/${kind}`);
   }
@@ -92,7 +124,7 @@ export class LecturesService {
     id: string,
     kind: LectureAssetKind,
     file: File,
-  ): Observable<{ progress: number } | { lecture: Lecture }> {
+  ): Observable<UploadEvent> {
     return this.http
       .post<UploadTicket>(`${this.base}/${id}/files/${kind}/upload-url`, {
         fileName: file.name,
@@ -126,10 +158,17 @@ export class LecturesService {
                   ];
                 }
                 // The bytes are up; now the API checks the bucket and only
-                // then counts the file as part of the lecture.
-                return this.http
+                // then counts the file as part of the lecture. For a deck that
+                // same call also runs the conversion, which takes long enough
+                // that the screen has to say what it is waiting for — hence
+                // the extra event before it.
+                const confirm = this.http
                   .post<Lecture>(`${this.base}/${id}/files/${kind}/confirm`, {})
                   .pipe(map((lecture) => ({ lecture })));
+
+                return isDeck(file)
+                  ? concat(of({ converting: true as const }), confirm)
+                  : confirm;
               }),
             ),
         ),

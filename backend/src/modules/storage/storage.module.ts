@@ -5,6 +5,7 @@ import { StorageService } from './storage.service';
 import { GcsStorage } from './gcs.storage';
 import { LocalStorage } from './local.storage';
 import { LocalStorageController } from './storage.controller';
+import { ConverterService } from './converter.service';
 
 const driver = (config: ConfigService): string =>
   (config.get<string>('STORAGE_DRIVER') ?? 'local').toLowerCase();
@@ -38,6 +39,7 @@ const driver = (config: ConfigService): string =>
   controllers: [LocalStorageController],
   providers: [
     LocalStorage,
+    ConverterService,
     {
       provide: StorageService,
       inject: [ConfigService, LocalStorage],
@@ -45,6 +47,6 @@ const driver = (config: ConfigService): string =>
         driver(config) === 'gcs' ? new GcsStorage(config) : local,
     },
   ],
-  exports: [StorageService],
+  exports: [StorageService, ConverterService],
 })
 export class StorageModule {}

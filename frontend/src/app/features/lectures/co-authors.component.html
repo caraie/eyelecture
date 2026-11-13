@@ -7,6 +7,14 @@
       <mat-icon>person</mat-icon>
       {{ authorName() }}
       <span class="role">Author</span>
+      <button
+        mat-icon-button
+        type="button"
+        title="Somebody else wrote this"
+        (click)="open('author')"
+      >
+        <mat-icon>edit</mat-icon>
+      </button>
     </li>
   }
 
@@ -41,6 +49,10 @@
   }
 </ul>
 
+@if (createdByName(); as filer) {
+  <p class="filed-by">Filed by {{ filer }}.</p>
+}
+
 @if (!picking()) {
   <button mat-stroked-button type="button" class="add" (click)="open()">
     <mat-icon>person_add</mat-icon>
@@ -49,6 +61,12 @@
 } @else {
   <section class="picker">
     @if (!inviting()) {
+      @if (picking_for() === 'author') {
+        <p class="p-why">
+          Who wrote this lecture? You keep the right to edit it either way.
+        </p>
+      }
+
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label>Search by name or email</mat-label>
         <input
@@ -76,9 +94,9 @@
                 mat-button
                 type="button"
                 [disabled]="busy()"
-                (click)="add(person)"
+                (click)="pick(person)"
               >
-                Add
+                {{ picking_for() === 'author' ? 'Make author' : 'Add' }}
               </button>
             </li>
           }
@@ -87,14 +105,29 @@
         <!-- The old app stopped here with "No Results". -->
         <div class="nobody">
           <p class="n-title">Nobody on EyeLecture matches “{{ term() }}”</p>
-          <p class="n-sub">
-            If they are not on the platform yet, write to them and they will be
-            credited as soon as they sign up.
-          </p>
-          <button mat-flat-button type="button" (click)="startInvite()">
-            <mat-icon>mail</mat-icon>
-            Invite by email
-          </button>
+
+          @if (picking_for() === 'author') {
+            <!-- An author is the account the lecture hangs off, so it has to
+                 be one that exists. Crediting them as a co-author is the
+                 thing that works before they sign up. -->
+            <p class="n-sub">
+              The author has to have an account. Leave it as it is for now and
+              credit them as a co-author instead — the invitation takes care of
+              itself when they join.
+            </p>
+            <button mat-flat-button type="button" (click)="open('co-author')">
+              Credit them as a co-author
+            </button>
+          } @else {
+            <p class="n-sub">
+              If they are not on the platform yet, write to them and they will
+              be credited as soon as they sign up.
+            </p>
+            <button mat-flat-button type="button" (click)="startInvite()">
+              <mat-icon>mail</mat-icon>
+              Invite by email
+            </button>
+          }
         </div>
       }
     } @else {

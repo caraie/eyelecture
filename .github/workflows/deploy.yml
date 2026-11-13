@@ -46,6 +46,7 @@ jobs:
         run: |
           echo "api=${REGISTRY}/api:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
           echo "web=${REGISTRY}/web:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+          echo "converter=${REGISTRY}/converter:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push the API image
         run: |
@@ -65,6 +66,19 @@ jobs:
           docker push "${{ steps.tags.outputs.web }}"
           docker push "${REGISTRY}/web:latest"
 
+      # Carries LibreOffice, so it is the slow one to build. It changes about
+      # never, and Docker's layer cache in Artifact Registry means a commit that
+      # does not touch ./converter reuses the apt layer.
+      - name: Build and push the converter image
+        run: |
+          docker build \
+            --cache-from "${REGISTRY}/converter:latest" \
+            --tag "${{ steps.tags.outputs.converter }}" \
+            --tag "${REGISTRY}/converter:latest" \
+            ./converter
+          docker push "${{ steps.tags.outputs.converter }}"
+          docker push "${REGISTRY}/converter:latest"
+
       # Migrations run before the new revision serves traffic, so the schema is
       # never behind the code. The job shares the API image, so it always carries
       # exactly the migrations this commit expects.
@@ -77,6 +91,20 @@ jobs:
           gcloud run jobs execute eyelecture-migrate \
             --region="${REGION}" \
             --wait
+
+      # Before the API, which will start calling it the moment it is live.
+      # Skipped while the service does not exist yet, so a deploy that lands
+      # before `terraform apply` still gets the rest of the stack out.
+      - name: Deploy the converter
+        run: |
+          if gcloud run services describe eyelecture-converter --region="${REGION}" >/dev/null 2>&1; then
+            gcloud run deploy eyelecture-converter \
+              --image="${{ steps.tags.outputs.converter }}" \
+              --region="${REGION}" \
+              --quiet
+          else
+            echo "::warning::eyelecture-converter does not exist yet — run terraform apply"
+          fi
 
       - name: Deploy the API
         run: |

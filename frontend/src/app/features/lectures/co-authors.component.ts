@@ -5,6 +5,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -48,12 +49,23 @@ export class CoAuthorsComponent {
 
   readonly lectureId = input.required<string>();
   readonly authorName = input<string | null>(null);
+  readonly createdByName = input<string | null>(null);
   readonly initial = input<CoAuthor[]>([]);
+
+  /** Emitted when the author is handed to somebody else. */
+  readonly authorChanged = output<string>();
 
   readonly coAuthors = signal<CoAuthor[]>([]);
   readonly picking = signal(false);
   readonly searching = signal(false);
   readonly busy = signal(false);
+
+  /**
+   * What the picker is being used for. The search is the same either way —
+   * naming an author and crediting a co-author are the same question about
+   * the same people — so one panel does both.
+   */
+  readonly picking_for = signal<'co-author' | 'author'>('co-author');
 
   readonly term = signal('');
   readonly results = signal<Person[]>([]);
@@ -95,7 +107,8 @@ export class CoAuthorsComponent {
       });
   }
 
-  open(): void {
+  open(what: 'co-author' | 'author' = 'co-author'): void {
+    this.picking_for.set(what);
     this.picking.set(true);
     this.reset();
   }
@@ -120,6 +133,16 @@ export class CoAuthorsComponent {
       return;
     }
     this.typed.next(term.trim());
+  }
+
+  /** Whichever the panel was opened for. */
+  pick(person: Person): void {
+    if (this.picking_for() === 'author') {
+      this.authorChanged.emit(person.id);
+      this.close();
+      return;
+    }
+    this.add(person);
   }
 
   add(person: Person): void {

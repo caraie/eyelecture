@@ -1,0 +1,17 @@
+{
+  "name": "eyelecture-converter",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Turns a PowerPoint deck in Cloud Storage into a PDF beside it.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.14.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

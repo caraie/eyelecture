@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Lecture } from './lecture.entity';
 import { LectureAssetKind } from '../enums/lecture-asset-kind.enum';
+import { AssetConversionStatus } from '../enums/asset-conversion-status.enum';
 
 /**
  * One file belonging to a lecture: its presentation, its video or its tile
@@ -55,6 +56,42 @@ export class LectureAsset {
    */
   @Column({ type: 'timestamptz', nullable: true })
   uploadedAt!: Date | null;
+
+  /**
+   * The PDF made from `objectKey`, when the author uploaded something the
+   * viewer cannot read — a PowerPoint deck.
+   *
+   * Both are kept. The PDF is what learners are shown; the original is what a
+   * co-author picks up to edit, and re-exporting it from the PDF would not be
+   * the same file.
+   */
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  derivedObjectKey!: string | null;
+
+  @Column({
+    type: 'enum',
+    enum: AssetConversionStatus,
+    default: AssetConversionStatus.NONE,
+  })
+  conversionStatus!: AssetConversionStatus;
+
+  /** Why it failed, in words the author can act on. Null unless it did. */
+  @Column({ type: 'text', nullable: true })
+  conversionError!: string | null;
+
+  /** What the viewer should actually fetch. */
+  get readableKey(): string {
+    return this.derivedObjectKey ?? this.objectKey;
+  }
+
+  /** Nothing to wait for, or the wait is over and it worked. */
+  get isReadable(): boolean {
+    return (
+      this.uploadedAt !== null &&
+      (this.conversionStatus === AssetConversionStatus.NONE ||
+        this.conversionStatus === AssetConversionStatus.READY)
+    );
+  }
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

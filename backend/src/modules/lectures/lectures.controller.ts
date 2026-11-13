@@ -164,13 +164,47 @@ export class LecturesController {
     );
   }
 
+  @Post(':id/files/:kind/convert')
+  @Roles(...AUTHOR_ROLES)
+  @ApiOperation({
+    summary: 'Try a failed conversion again',
+    description: 'The deck is already in the bucket; this does not re-upload it.',
+  })
+  async retryConversion(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('kind', new ParseEnumPipe(LectureAssetKind)) kind: LectureAssetKind,
+    @CurrentUser() user: User,
+  ): Promise<LectureResponseDto> {
+    return LectureResponseDto.from(
+      await this.lectures.retryConversion(id, kind, user),
+    );
+  }
+
   @Get(':id/files/:kind/url')
-  @ApiOperation({ summary: 'A short-lived link to read one file' })
+  @ApiOperation({
+    summary: 'A short-lived link to read one file',
+    description:
+      'For a converted deck this is the PDF. Anyone who can see the lecture ' +
+      'may ask for it.',
+  })
   async fileUrl(
     @Param('id', ParseUUIDPipe) id: string,
     @Param('kind', new ParseEnumPipe(LectureAssetKind)) kind: LectureAssetKind,
     @CurrentUser() user: User,
   ): Promise<{ url: string; contentType: string }> {
     return this.lectures.fileUrl(id, kind, user);
+  }
+
+  @Get(':id/files/:kind/original')
+  @Roles(...AUTHOR_ROLES)
+  @ApiOperation({
+    summary: 'The file as it was uploaded — the editable deck, not the PDF',
+  })
+  async originalUrl(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('kind', new ParseEnumPipe(LectureAssetKind)) kind: LectureAssetKind,
+    @CurrentUser() user: User,
+  ): Promise<{ url: string; contentType: string }> {
+    return this.lectures.fileUrl(id, kind, user, true);
   }
 }

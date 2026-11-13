@@ -11,6 +11,7 @@ import { Lecture } from './entities/lecture.entity';
 import { LectureAsset } from './entities/lecture-asset.entity';
 import { QuizQuestion } from './entities/quiz-question.entity';
 import { LectureCoAuthor } from './entities/lecture-co-author.entity';
+import { User } from '../users/entities/user.entity';
 import { Subsection } from '../lecture-bank/entities/subsection.entity';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/enums/user-role.enum';
@@ -18,6 +19,9 @@ import { LectureAssetKind } from './enums/lecture-asset-kind.enum';
 import { LectureStatus } from './enums/lecture-status.enum';
 import { LectureVisibility } from './enums/lecture-visibility.enum';
 import { StorageService } from '../storage/storage.service';
+import { ConverterService } from '../storage/converter.service';
+import { ConfigService } from '@nestjs/config';
+import { AssetConversionStatus } from './enums/asset-conversion-status.enum';
 
 const MONTEFIORE = 'inst-montefiore';
 const STANFORD = 'inst-stanford';
@@ -32,8 +36,14 @@ const makeUser = (overrides: Partial<User> = {}): User =>
     ...overrides,
   }) as User;
 
-const makeAsset = (overrides: Partial<LectureAsset> = {}): LectureAsset =>
-  ({
+/**
+ * A real entity instance, not an object literal: `readableKey` and
+ * `isReadable` are getters on the class, and a cast literal would silently
+ * have neither.
+ */
+const makeAsset = (overrides: Partial<LectureAsset> = {}): LectureAsset => {
+  const asset = new LectureAsset();
+  Object.assign(asset, {
     id: 'asset-1',
     lectureId: 'lec-1',
     kind: LectureAssetKind.PRESENTATION,
@@ -42,9 +52,17 @@ const makeAsset = (overrides: Partial<LectureAsset> = {}): LectureAsset =>
     contentType: 'application/pdf',
     sizeBytes: '1024',
     uploadedAt: new Date(),
+    derivedObjectKey: null,
+    conversionStatus: AssetConversionStatus.NONE,
+    conversionError: null,
     createdAt: new Date(),
     ...overrides,
-  }) as LectureAsset;
+  });
+  return asset;
+};
+
+const PPTX =
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 
 const makeLecture = (overrides: Partial<Lecture> = {}): Lecture =>
   ({
@@ -71,7 +89,9 @@ describe('LecturesService', () => {
   let subsections: Record<string, jest.Mock>;
   let questions: Record<string, jest.Mock>;
   let coAuthors: Record<string, jest.Mock>;
+  let users: Record<string, jest.Mock>;
   let storage: Record<string, jest.Mock>;
+  let converter: { isAvailable: boolean; toPdf: jest.Mock };
 
   beforeEach(async () => {
     lectures = {
@@ -89,8 +109,20 @@ describe('LecturesService', () => {
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
     };
     subsections = { findOne: jest.fn().mockResolvedValue({ id: 'sub-1' }) };
-    // Likewise only read to decorate a lecture with who is credited on it.
-    coAuthors = { find: jest.fn().mockResolvedValue([]) };
+    // Likewise only read to decorate a lecture with who is credited on it,
+    // and to check that a named author is not already a co-author.
+    coAuthors = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+    };
+    users = {
+      findOne: jest.fn().mockResolvedValue({
+        id: 'user-sally',
+        firstName: 'Sally',
+        lastName: 'Chen',
+        institutionId: MONTEFIORE,
+      } as User),
+    };
     // Only used to count each lecture's questions; no test here asserts on it,
     // so an empty result is enough — every lecture comes back with zero.
     questions = {
@@ -112,6 +144,14 @@ describe('LecturesService', () => {
       stat: jest.fn().mockResolvedValue({ size: 2048 }),
       remove: jest.fn().mockResolvedValue(undefined),
     };
+    converter = {
+      isAvailable: true,
+      toPdf: jest
+        .fn()
+        .mockImplementation((_bucket: string, _source: string, target: string) =>
+          Promise.resolve({ targetKey: target, sizeBytes: 1024 }),
+        ),
+    };
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -121,7 +161,13 @@ describe('LecturesService', () => {
         { provide: getRepositoryToken(Subsection), useValue: subsections },
         { provide: getRepositoryToken(QuizQuestion), useValue: questions },
         { provide: getRepositoryToken(LectureCoAuthor), useValue: coAuthors },
+        { provide: getRepositoryToken(User), useValue: users },
         { provide: StorageService, useValue: storage },
+        { provide: ConverterService, useValue: converter },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue('test-bucket') },
+        },
       ],
     }).compile();
 
@@ -154,7 +200,22 @@ describe('LecturesService', () => {
   });
 
   describe('requestUpload', () => {
-    it('refuses a presentation that is not a PDF', async () => {
+    it('refuses a presentation that is neither a PDF nor a deck', async () => {
+      await expect(
+        service.requestUpload(
+          'lec-1',
+          LectureAssetKind.PRESENTATION,
+          {
+            fileName: 'slides.key',
+            contentType: 'application/x-iwork-keynote-sffkey',
+            sizeBytes: 1024,
+          },
+          makeUser(),
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('takes a PowerPoint deck now that something can convert it', async () => {
       await expect(
         service.requestUpload(
           'lec-1',
@@ -167,7 +228,25 @@ describe('LecturesService', () => {
           },
           makeUser(),
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).resolves.toBeDefined();
+    });
+
+    it('refuses a deck where there is no converter, rather than later', async () => {
+      converter.isAvailable = false;
+
+      await expect(
+        service.requestUpload(
+          'lec-1',
+          LectureAssetKind.PRESENTATION,
+          {
+            fileName: 'slides.pptx',
+            contentType:
+              'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            sizeBytes: 1024,
+          },
+          makeUser(),
+        ),
+      ).rejects.toThrow(/Export the deck to PDF/);
     });
 
     it('refuses a video over the size limit', async () => {
@@ -221,6 +300,89 @@ describe('LecturesService', () => {
     });
   });
 
+  describe('authorship', () => {
+    it('credits the person creating it unless they say otherwise', async () => {
+      await service.create(
+        { subsectionId: 'sub-1', title: 'Angle closure' },
+        makeUser(),
+      );
+
+      expect(lectures.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          authorId: 'user-author',
+          createdById: 'user-author',
+        }),
+      );
+    });
+
+    it('lets an administrator file a lecture under somebody else’s name', async () => {
+      await service.create(
+        {
+          subsectionId: 'sub-1',
+          title: 'Angle closure',
+          authorId: 'user-sally',
+        },
+        makeUser({ id: 'admin-1', role: UserRole.PROGRAM_ADMINISTRATOR }),
+      );
+
+      expect(lectures.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          authorId: 'user-sally',
+          createdById: 'admin-1',
+        }),
+      );
+    });
+
+    it('offers the lecture on the author’s behalf, not the filer’s', async () => {
+      users.findOne.mockResolvedValue({
+        id: 'user-sally',
+        institutionId: 'inst-einstein',
+      } as User);
+
+      await service.create(
+        { subsectionId: 'sub-1', title: 'Angle closure', authorId: 'user-sally' },
+        makeUser({ id: 'admin-1', role: UserRole.PROGRAM_ADMINISTRATOR }),
+      );
+
+      expect(lectures.save).toHaveBeenCalledWith(
+        expect.objectContaining({ institutionId: 'inst-einstein' }),
+      );
+    });
+
+    it('refuses an author who does not exist', async () => {
+      users.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.create(
+          { subsectionId: 'sub-1', title: 'A', authorId: 'nobody' },
+          makeUser(),
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('refuses to make a co-author the author as well', async () => {
+      coAuthors.findOne.mockResolvedValue({ id: 'ca-1' });
+
+      await expect(
+        service.update('lec-1', { authorId: 'user-sally' }, makeUser()),
+      ).rejects.toThrow(/already a co-author/);
+    });
+
+    it('keeps the filer able to edit after handing the lecture over', async () => {
+      lectures.findOne.mockResolvedValue(
+        makeLecture({ authorId: 'user-sally', createdById: 'admin-1' }),
+      );
+
+      await expect(
+        service.update(
+          'lec-1',
+          { title: 'Still mine to fix' },
+          makeUser({ id: 'admin-1', role: UserRole.FELLOW }),
+        ),
+      ).resolves.toBeDefined();
+    });
+  });
+
   describe('confirmUpload', () => {
     it('refuses when the object is not in the bucket', async () => {
       assets.findOne.mockResolvedValue(makeAsset({ uploadedAt: null }));
@@ -246,6 +408,116 @@ describe('LecturesService', () => {
         expect.objectContaining({ sizeBytes: '2048' }),
       );
     });
+
+    it('leaves a PDF alone rather than sending it to be converted', async () => {
+      assets.findOne.mockResolvedValue(makeAsset({ uploadedAt: null }));
+
+      await service.confirmUpload(
+        'lec-1',
+        LectureAssetKind.PRESENTATION,
+        makeUser(),
+      );
+
+      expect(converter.toPdf).not.toHaveBeenCalled();
+      expect(assets.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          conversionStatus: AssetConversionStatus.NONE,
+        }),
+      );
+    });
+
+    it('converts a deck and keeps the original beside the PDF', async () => {
+      const deck = makeAsset({
+        uploadedAt: null,
+        contentType: PPTX,
+        objectKey: 'lectures/lec-1/presentation/abc.pptx',
+        fileName: 'slides.pptx',
+      });
+      assets.findOne.mockResolvedValue(deck);
+
+      await service.confirmUpload(
+        'lec-1',
+        LectureAssetKind.PRESENTATION,
+        makeUser(),
+      );
+
+      expect(converter.toPdf).toHaveBeenCalledWith(
+        'test-bucket',
+        'lectures/lec-1/presentation/abc.pptx',
+        'lectures/lec-1/presentation/abc.pdf',
+      );
+      expect(deck.derivedObjectKey).toBe('lectures/lec-1/presentation/abc.pdf');
+      expect(deck.conversionStatus).toBe(AssetConversionStatus.READY);
+      // The deck itself is still there — it is what a co-author picks up.
+      expect(deck.objectKey).toBe('lectures/lec-1/presentation/abc.pptx');
+    });
+
+    it('records a failed conversion instead of throwing it at the author', async () => {
+      converter.toPdf.mockRejectedValue(new Error('LibreOffice produced no PDF'));
+      const deck = makeAsset({
+        uploadedAt: null,
+        contentType: PPTX,
+        objectKey: 'lectures/lec-1/presentation/abc.pptx',
+      });
+      assets.findOne.mockResolvedValue(deck);
+
+      await expect(
+        service.confirmUpload('lec-1', LectureAssetKind.PRESENTATION, makeUser()),
+      ).resolves.toBeDefined();
+
+      expect(deck.conversionStatus).toBe(AssetConversionStatus.FAILED);
+      expect(deck.conversionError).toBe('LibreOffice produced no PDF');
+      expect(deck.derivedObjectKey).toBeNull();
+    });
+
+    it('clears the PDF the previous file left behind', async () => {
+      assets.findOne.mockResolvedValue(
+        makeAsset({
+          uploadedAt: null,
+          derivedObjectKey: 'lectures/lec-1/presentation/old.pdf',
+        }),
+      );
+
+      await service.confirmUpload(
+        'lec-1',
+        LectureAssetKind.PRESENTATION,
+        makeUser(),
+      );
+
+      expect(storage.remove).toHaveBeenCalledWith(
+        'lectures/lec-1/presentation/old.pdf',
+      );
+    });
+  });
+
+  describe('retryConversion', () => {
+    it('does not make the author upload the deck again', async () => {
+      const deck = makeAsset({
+        contentType: PPTX,
+        objectKey: 'lectures/lec-1/presentation/abc.pptx',
+        conversionStatus: AssetConversionStatus.FAILED,
+        conversionError: 'It went wrong',
+      });
+      assets.findOne.mockResolvedValue(deck);
+
+      await service.retryConversion(
+        'lec-1',
+        LectureAssetKind.PRESENTATION,
+        makeUser(),
+      );
+
+      expect(converter.toPdf).toHaveBeenCalled();
+      expect(deck.conversionStatus).toBe(AssetConversionStatus.READY);
+      expect(deck.conversionError).toBeNull();
+    });
+
+    it('refuses a file that never needed converting', async () => {
+      assets.findOne.mockResolvedValue(makeAsset());
+
+      await expect(
+        service.retryConversion('lec-1', LectureAssetKind.PRESENTATION, makeUser()),
+      ).rejects.toThrow(ConflictException);
+    });
   });
 
   describe('publish', () => {
@@ -254,6 +526,32 @@ describe('LecturesService', () => {
 
       await expect(service.publish('lec-1', makeUser())).rejects.toThrow(
         /presentation/,
+      );
+    });
+
+    it('refuses while the deck is still being converted', async () => {
+      lectures.findOne.mockResolvedValue(
+        makeLecture({
+          assets: [
+            makeAsset({ conversionStatus: AssetConversionStatus.PENDING }),
+          ],
+        }),
+      );
+
+      await expect(service.publish('lec-1', makeUser())).rejects.toThrow(
+        /still being turned into a PDF/,
+      );
+    });
+
+    it('refuses when the deck could not be converted', async () => {
+      lectures.findOne.mockResolvedValue(
+        makeLecture({
+          assets: [makeAsset({ conversionStatus: AssetConversionStatus.FAILED })],
+        }),
+      );
+
+      await expect(service.publish('lec-1', makeUser())).rejects.toThrow(
+        /nothing for learners to read/,
       );
     });
 

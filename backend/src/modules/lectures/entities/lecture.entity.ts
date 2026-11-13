@@ -56,9 +56,13 @@ export class Lecture {
   keywords!: string[];
 
   /**
-   * Whoever created it. Nullable and ON DELETE SET NULL, matching how the rest
-   * of the app treats attribution: deleting an account must not delete the
-   * lecture, it just loses the name attached to it.
+   * Who wrote it — the name on the lecture. Nullable and ON DELETE SET NULL,
+   * matching how the rest of the app treats attribution: deleting an account
+   * must not delete the lecture, it just loses the name attached to it.
+   *
+   * Not necessarily whoever filed it: an administrator often puts a
+   * colleague's deck in the bank, and crediting themselves for it would be
+   * wrong. `createdById` is the other half of that.
    */
   @Column({ type: 'uuid', nullable: true })
   authorId!: string | null;
@@ -66,6 +70,21 @@ export class Lecture {
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'authorId' })
   author!: User | null;
+
+  /**
+   * Who filed it. Set once and never changed, so "who put this here?" still
+   * has an answer after the author has been handed over to somebody else.
+   *
+   * It also keeps the right to edit with the person who did the filing: an
+   * administrator who names a colleague as the author does not thereby lock
+   * themselves out of the lecture they just uploaded.
+   */
+  @Column({ type: 'uuid', nullable: true })
+  createdById!: string | null;
+
+  @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'createdById' })
+  createdBy!: User | null;
 
   /**
    * The institution the lecture is offered on behalf of, captured when it is

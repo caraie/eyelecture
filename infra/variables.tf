@@ -32,6 +32,12 @@ variable "web_image" {
   default     = "gcr.io/cloudrun/hello"
 }
 
+variable "converter_image" {
+  type        = string
+  description = "Full image reference for the PowerPoint converter. Same placeholder rationale as api_image."
+  default     = "gcr.io/cloudrun/hello"
+}
+
 variable "db_tier" {
   type        = string
   description = "Cloud SQL machine type. db-f1-micro is the cheapest that runs Postgres 17."

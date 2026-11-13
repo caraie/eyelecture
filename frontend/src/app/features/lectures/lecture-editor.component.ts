@@ -74,6 +74,8 @@ export class LectureEditorComponent {
   /** Upload in flight: which file, and how far along. */
   readonly uploading = signal<LectureAssetKind | null>(null);
   readonly progress = signal(0);
+  /** The bytes are up and the server is turning the deck into a PDF. */
+  readonly converting = signal(false);
 
   readonly isPublished = computed(() => this.lecture()?.status === 'published');
   readonly hasPresentation = computed(() =>
@@ -146,6 +148,23 @@ export class LectureEditorComponent {
       });
   }
 
+  /** Hand the lecture to whoever actually wrote it. */
+  changeAuthor(authorId: string): void {
+    const lecture = this.lecture();
+    if (!lecture) return;
+
+    this.api.update(lecture.id, { authorId }).subscribe({
+      next: (updated) => {
+        this.apply(updated);
+        this.notify.success(
+          `${updated.authorName ?? 'They'} is now the author`,
+        );
+      },
+      error: (error: unknown) =>
+        this.notify.showHttpError(error, 'Could not change the author'),
+    });
+  }
+
   pick(kind: LectureAssetKind, input: HTMLInputElement): void {
     const file = input.files?.[0];
     // Clearing it means picking the same file twice in a row still fires a
@@ -155,6 +174,7 @@ export class LectureEditorComponent {
 
     this.uploading.set(kind);
     this.progress.set(0);
+    this.converting.set(false);
 
     const lecture = this.lecture();
     if (!lecture) return;
@@ -165,16 +185,73 @@ export class LectureEditorComponent {
           this.progress.set(event.progress);
           return;
         }
-        this.uploading.set(null);
-        this.progress.set(0);
+        if ('converting' in event) {
+          this.progress.set(100);
+          this.converting.set(true);
+          return;
+        }
+        this.clearUpload();
         this.apply(event.lecture);
-        this.notify.success(`${file.name} uploaded`);
+
+        const asset = event.lecture.assets.find((a) => a.kind === kind);
+        if (asset?.conversionStatus === 'failed') {
+          // The upload itself worked — it is the conversion that did not, and
+          // the deck is still there to try again with.
+          this.notify.error(
+            asset.conversionError ?? 'The deck could not be turned into a PDF',
+          );
+        } else {
+          this.notify.success(`${file.name} uploaded`);
+        }
       },
       error: (error: unknown) => {
-        this.uploading.set(null);
-        this.progress.set(0);
+        this.clearUpload();
         this.notify.showHttpError(error, `Could not upload ${file.name}`);
       },
+    });
+  }
+
+  private clearUpload(): void {
+    this.uploading.set(null);
+    this.progress.set(0);
+    this.converting.set(false);
+  }
+
+  retryConversion(kind: LectureAssetKind): void {
+    const lecture = this.lecture();
+    if (!lecture) return;
+
+    this.converting.set(true);
+    this.api.retryConversion(lecture.id, kind).subscribe({
+      next: (updated) => {
+        this.converting.set(false);
+        this.apply(updated);
+
+        const asset = updated.assets.find((a) => a.kind === kind);
+        if (asset?.conversionStatus === 'failed') {
+          this.notify.error(
+            asset.conversionError ?? 'It failed again',
+          );
+        } else {
+          this.notify.success('Converted');
+        }
+      },
+      error: (error: unknown) => {
+        this.converting.set(false);
+        this.notify.showHttpError(error, 'Could not convert that deck');
+      },
+    });
+  }
+
+  /** Download the deck as it was uploaded, rather than the PDF made from it. */
+  downloadOriginal(kind: LectureAssetKind): void {
+    const lecture = this.lecture();
+    if (!lecture) return;
+
+    this.api.originalUrl(lecture.id, kind).subscribe({
+      next: ({ url }) => window.open(url, '_blank', 'noopener'),
+      error: (error: unknown) =>
+        this.notify.showHttpError(error, 'Could not fetch that file'),
     });
   }
 

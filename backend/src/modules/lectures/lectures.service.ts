@@ -3,8 +3,10 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
@@ -20,6 +22,8 @@ import { LectureAssetKind } from './enums/lecture-asset-kind.enum';
 import { LectureStatus } from './enums/lecture-status.enum';
 import { LectureVisibility } from './enums/lecture-visibility.enum';
 import { StorageService, UploadTicket } from '../storage/storage.service';
+import { ConverterService } from '../storage/converter.service';
+import { AssetConversionStatus } from './enums/asset-conversion-status.enum';
 import {
   CreateLectureDto,
   RequestUploadDto,
@@ -27,23 +31,32 @@ import {
 } from './dto/lecture.dto';
 
 /**
+ * The PowerPoint types the converter will open. A deck uploaded as one of
+ * these is stored as it came and a PDF is made from it; the PDF is what
+ * learners are shown, and the original is what a co-author picks up to edit.
+ */
+const CONVERTIBLE = new Set([
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.oasis.opendocument.presentation',
+]);
+
+/**
  * What each kind of file may be, and how big.
  *
- * Presentations are PDF only for now. The old app took .ppt and .pptx, and the
- * story asks for them, but a browser cannot display either — showing one inside
- * the app means converting it to PDF or to images on the server, which is a
- * LibreOffice-sized piece of infrastructure and its own ticket. PDF is the
- * subset that works today end to end, and "export to PDF" is one menu item away
- * in PowerPoint and Keynote.
+ * The viewer reads PDF and nothing else, so anything that is not already a PDF
+ * has to be turned into one before a learner can read it — see
+ * ConverterService, which is a whole separate Cloud Run service because
+ * LibreOffice is most of a gigabyte and the API should not carry it.
  */
 const RULES: Record<
   LectureAssetKind,
   { types: string[]; maxBytes: number; label: string }
 > = {
   [LectureAssetKind.PRESENTATION]: {
-    types: ['application/pdf'],
+    types: ['application/pdf', ...CONVERTIBLE],
     maxBytes: 200 * 1024 * 1024,
-    label: 'a PDF',
+    label: 'a PDF or a PowerPoint deck',
   },
   [LectureAssetKind.VIDEO]: {
     types: ['video/mp4', 'video/quicktime'],
@@ -70,8 +83,14 @@ export class LecturesService {
     private readonly questions: Repository<QuizQuestion>,
     @InjectRepository(LectureCoAuthor)
     private readonly coAuthors: Repository<LectureCoAuthor>,
+    @InjectRepository(User)
+    private readonly users: Repository<User>,
     private readonly storage: StorageService,
+    private readonly converter: ConverterService,
+    private readonly config: ConfigService,
   ) {}
+
+  private readonly logger = new Logger(LecturesService.name);
 
   // --- Reading ----------------------------------------------------------------
 
@@ -89,6 +108,7 @@ export class LecturesService {
       .createQueryBuilder('lecture')
       .leftJoinAndSelect('lecture.assets', 'asset')
       .leftJoinAndSelect('lecture.author', 'author')
+      .leftJoinAndSelect('lecture.createdBy', 'createdBy')
       .leftJoinAndSelect('lecture.institution', 'institution')
       .innerJoin('lecture.subsection', 'subsection')
       .where('lecture.status = :status', { status: LectureStatus.PUBLISHED })
@@ -179,7 +199,7 @@ export class LecturesService {
     return this.withQuestionCounts(
       await this.lectures.find({
         where: { authorId: author.id },
-        relations: { assets: true, author: true, institution: true },
+        relations: { assets: true, author: true, createdBy: true, institution: true },
         order: { updatedAt: 'DESC' },
       }),
     );
@@ -188,7 +208,7 @@ export class LecturesService {
   async findOneFor(id: string, viewer: User): Promise<Lecture> {
     const lecture = await this.lectures.findOne({
       where: { id },
-      relations: { assets: true, author: true, institution: true },
+      relations: { assets: true, author: true, createdBy: true, institution: true },
     });
     if (!lecture) throw new NotFoundException('That lecture was not found');
 
@@ -212,8 +232,13 @@ export class LecturesService {
 
   // --- Writing ----------------------------------------------------------------
 
-  async create(dto: CreateLectureDto, author: User): Promise<Lecture> {
+  async create(dto: CreateLectureDto, creator: User): Promise<Lecture> {
     await this.findSubsection(dto.subsectionId);
+
+    // Themselves unless they say otherwise, because it almost always is.
+    const author = dto.authorId
+      ? await this.findAuthor(dto.authorId)
+      : creator;
 
     const lecture = await this.lectures.save(
       this.lectures.create({
@@ -223,8 +248,11 @@ export class LecturesService {
         keywords: dto.keywords ?? [],
         visibility: dto.visibility ?? LectureVisibility.ALL_INSTITUTIONS,
         authorId: author.id,
+        createdById: creator.id,
         // Captured now rather than read from the author later: somebody who
         // moves institutions does not take their published lectures with them.
+        // The author's institution, not the filer's — an administrator putting
+        // up a colleague's deck is not offering it on their own behalf.
         institutionId: author.institutionId ?? null,
         status: LectureStatus.DRAFT,
       }),
@@ -246,8 +274,32 @@ export class LecturesService {
     if (dto.keywords !== undefined) lecture.keywords = dto.keywords;
     if (dto.visibility !== undefined) lecture.visibility = dto.visibility;
 
+    if (dto.authorId !== undefined && dto.authorId !== lecture.authorId) {
+      const author = await this.findAuthor(dto.authorId);
+      // One person, one credit: being the author and a co-author of the same
+      // lecture would put their name on it twice and mean nothing extra.
+      const alreadyCredited = await this.coAuthors.findOne({
+        where: { lectureId: id, userId: author.id, revokedAt: IsNull() },
+      });
+      if (alreadyCredited) {
+        throw new ConflictException(
+          'They are already a co-author. Remove that credit first.',
+        );
+      }
+
+      lecture.authorId = author.id;
+      lecture.institutionId = author.institutionId ?? null;
+    }
+
     await this.lectures.save(lecture);
     return this.findOrFail(id);
+  }
+
+  /** Somebody who can be named as an author: a real, finished account. */
+  private async findAuthor(id: string): Promise<User> {
+    const author = await this.users.findOne({ where: { id } });
+    if (!author) throw new NotFoundException('That person was not found');
+    return author;
   }
 
   /**
@@ -266,6 +318,16 @@ export class LecturesService {
     if (!presentation) {
       throw new ConflictException(
         'Upload the presentation before publishing — it is what learners read.',
+      );
+    }
+    if (presentation.conversionStatus === AssetConversionStatus.PENDING) {
+      throw new ConflictException(
+        'The deck is still being turned into a PDF. Try again in a moment.',
+      );
+    }
+    if (presentation.conversionStatus === AssetConversionStatus.FAILED) {
+      throw new ConflictException(
+        'The deck could not be turned into a PDF, so there is nothing for learners to read yet.',
       );
     }
 
@@ -292,6 +354,8 @@ export class LecturesService {
     // bucket, so the files go first and by hand.
     for (const asset of lecture.assets ?? []) {
       await this.storage.remove(asset.objectKey);
+      // A converted deck leaves two objects behind, not one.
+      if (asset.derivedObjectKey) await this.storage.remove(asset.derivedObjectKey);
     }
     await this.lectures.delete({ id });
   }
@@ -323,6 +387,14 @@ export class LecturesService {
         `That file is larger than the ${this.megabytes(rules.maxBytes)} limit for ${kind}s.`,
       );
     }
+    // Refused here rather than after the bytes are in the bucket: accepting a
+    // deck nothing can convert would leave a lecture that can never be
+    // published, and the author would not find out until they tried.
+    if (CONVERTIBLE.has(dto.contentType) && !this.converter.isAvailable) {
+      throw new BadRequestException(
+        'PowerPoint uploads are not available here yet. Export the deck to PDF and upload that.',
+      );
+    }
 
     // The key is ours, never the client's: a name that came off the browser
     // could walk out of the lecture's own folder. The original name is kept as
@@ -341,6 +413,12 @@ export class LecturesService {
       existing.contentType = dto.contentType;
       existing.sizeBytes = String(dto.sizeBytes);
       existing.uploadedAt = null;
+      // The old PDF stays where it is until the new file is confirmed and
+      // converted; `confirmUpload` is what clears it. Resetting the status now
+      // would make the lecture unpublishable before the author has even
+      // finished the upload they might abandon.
+      existing.conversionStatus = AssetConversionStatus.NONE;
+      existing.conversionError = null;
       await this.assets.save(existing);
     } else {
       await this.assets.save(
@@ -384,8 +462,89 @@ export class LecturesService {
 
     asset.sizeBytes = String(stored.size);
     asset.uploadedAt = new Date();
+
+    // Whatever PDF the previous file left behind is now stale. Dropped here
+    // rather than at request time, so an abandoned upload leaves the lecture
+    // exactly as it was.
+    const stalePdf = asset.derivedObjectKey;
+    asset.derivedObjectKey = null;
+    asset.conversionStatus = CONVERTIBLE.has(asset.contentType)
+      ? AssetConversionStatus.PENDING
+      : AssetConversionStatus.NONE;
+    asset.conversionError = null;
     await this.assets.save(asset);
 
+    if (stalePdf) await this.storage.remove(stalePdf);
+
+    if (asset.conversionStatus === AssetConversionStatus.PENDING) {
+      await this.convert(asset);
+    }
+
+    return this.findOrFail(id);
+  }
+
+  /**
+   * Turn an uploaded deck into the PDF the viewer reads.
+   *
+   * Awaited rather than left running in the background: Cloud Run throttles an
+   * instance's CPU between requests, so a promise left behind after the
+   * response would crawl or stall. The author waits, and the screen says what
+   * is happening.
+   *
+   * A failure is recorded, not thrown — the deck is in the bucket and the
+   * author can retry without uploading it again, which is the whole reason the
+   * status lives on the row.
+   */
+  private async convert(asset: LectureAsset): Promise<LectureAsset> {
+    const bucket = this.config.get<string>('storage.bucket') ?? '';
+    const targetKey = `${asset.objectKey.replace(/\.[^./]*$/, '')}.pdf`;
+
+    try {
+      const { sizeBytes } = await this.converter.toPdf(
+        bucket,
+        asset.objectKey,
+        targetKey,
+      );
+      asset.derivedObjectKey = targetKey;
+      asset.conversionStatus = AssetConversionStatus.READY;
+      asset.conversionError = null;
+      this.logger.log(
+        `Converted ${asset.objectKey} to a ${this.megabytes(sizeBytes)} PDF`,
+      );
+    } catch (error) {
+      asset.derivedObjectKey = null;
+      asset.conversionStatus = AssetConversionStatus.FAILED;
+      asset.conversionError =
+        error instanceof Error ? error.message : 'The conversion failed';
+      this.logger.warn(
+        `Could not convert ${asset.objectKey}: ${asset.conversionError}`,
+      );
+    }
+
+    return this.assets.save(asset);
+  }
+
+  /** Try a failed conversion again, without making them upload the deck twice. */
+  async retryConversion(
+    id: string,
+    kind: LectureAssetKind,
+    editor: User,
+  ): Promise<Lecture> {
+    const lecture = await this.findOrFail(id);
+    this.assertMayEdit(lecture, editor);
+
+    const asset = await this.assets.findOne({ where: { lectureId: id, kind } });
+    if (!asset || !asset.uploadedAt) {
+      throw new NotFoundException('There is no uploaded file to convert');
+    }
+    if (asset.conversionStatus === AssetConversionStatus.NONE) {
+      throw new ConflictException('That file did not need converting');
+    }
+    if (asset.conversionStatus === AssetConversionStatus.READY) {
+      return lecture;
+    }
+
+    await this.convert(asset);
     return this.findOrFail(id);
   }
 
@@ -407,15 +566,24 @@ export class LecturesService {
     if (!asset) return lecture;
 
     await this.storage.remove(asset.objectKey);
+    if (asset.derivedObjectKey) await this.storage.remove(asset.derivedObjectKey);
     await this.assets.delete({ id: asset.id });
     return this.findOrFail(id);
   }
 
-  /** A short-lived link to read one file. This is how the viewer gets its bytes. */
+  /**
+   * A short-lived link to read one file. This is how the viewer gets its bytes.
+   *
+   * For a converted deck this hands back the PDF, which is the thing anybody
+   * can actually open. `original: true` asks for the deck as it was uploaded —
+   * only for people who may edit the lecture, since it is the editable source
+   * rather than the published reading copy.
+   */
   async fileUrl(
     id: string,
     kind: LectureAssetKind,
     viewer: User,
+    original = false,
   ): Promise<{ url: string; contentType: string }> {
     const lecture = await this.findOneFor(id, viewer);
 
@@ -424,22 +592,48 @@ export class LecturesService {
     );
     if (!asset) throw new NotFoundException('This lecture has no such file');
 
+    if (original) {
+      this.assertMayEdit(lecture, viewer);
+      return {
+        url: await this.storage.readUrl(asset.objectKey, asset.fileName),
+        contentType: asset.contentType,
+      };
+    }
+
+    if (!asset.isReadable) {
+      throw new ConflictException(
+        asset.conversionStatus === AssetConversionStatus.PENDING
+          ? 'That deck is still being turned into a PDF.'
+          : 'That deck could not be turned into a PDF.',
+      );
+    }
+
+    const converted = asset.derivedObjectKey !== null;
     return {
-      url: await this.storage.readUrl(asset.objectKey, asset.fileName),
-      contentType: asset.contentType,
+      url: await this.storage.readUrl(
+        asset.readableKey,
+        converted ? asset.fileName.replace(/\.[^./]*$/, '.pdf') : asset.fileName,
+      ),
+      contentType: converted ? 'application/pdf' : asset.contentType,
     };
   }
 
   // --- Guards -----------------------------------------------------------------
 
   /**
-   * The author, and the administrators. Co-authors arrive in EYE-5 and will be
-   * one more clause here — the reason this is a method rather than a line
-   * repeated through the service.
+   * The author, whoever filed it, and the administrators.
+   *
+   * Co-authors are deliberately not here: being credited on a lecture says who
+   * worked on it, not who may change it. Widening that is a decision, not an
+   * oversight, and it can be made later without anyone having quietly
+   * rewritten somebody else's lecture in the meantime.
    */
   private mayEdit(lecture: Lecture, user: User): boolean {
     if (user.role === UserRole.SUPER_USER) return true;
     if (lecture.authorId === user.id) return true;
+    // An administrator who names a colleague as the author does not thereby
+    // lock themselves out of the lecture they just uploaded.
+    if (lecture.createdById === user.id) return true;
     return (
       user.role === UserRole.PROGRAM_ADMINISTRATOR &&
       lecture.institutionId !== null &&
@@ -456,7 +650,7 @@ export class LecturesService {
   private async findOrFail(id: string): Promise<Lecture> {
     const lecture = await this.lectures.findOne({
       where: { id },
-      relations: { assets: true, author: true, institution: true },
+      relations: { assets: true, author: true, createdBy: true, institution: true },
     });
     if (!lecture) throw new NotFoundException('That lecture was not found');
 

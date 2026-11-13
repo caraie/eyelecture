@@ -90,6 +90,24 @@
   .f-max { font-size: 12px; color: var(--md-sys-color-on-surface-muted); }
 }
 
+.f-note {
+  margin: var(--sp-1) 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-muted);
+}
+
+.f-bad {
+  margin: var(--sp-1) 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--md-sys-color-error);
+}
+
+.f-have {
+  &.bad mat-icon { color: var(--md-sys-color-error); }
+}
+
 .f-have {
   display: flex;
   align-items: center;

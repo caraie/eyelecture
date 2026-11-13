@@ -27,18 +27,37 @@
           </div>
 
           @if (assetOf(kind); as asset) {
-            <p class="f-have">
-              <mat-icon>check_circle</mat-icon>
+            <p class="f-have" [class.bad]="asset.conversionStatus === 'failed'">
+              <mat-icon>
+                {{ asset.conversionStatus === 'failed' ? 'error_outline' : 'check_circle' }}
+              </mat-icon>
               {{ asset.fileName }}
               <span class="f-size">{{ sizeLabel(asset.sizeBytes) }}</span>
             </p>
+
+            @if (asset.conversionStatus === 'ready') {
+              <p class="f-note">
+                Converted to a PDF for the slide viewer. Your deck is kept as
+                you uploaded it.
+              </p>
+            } @else if (asset.conversionStatus === 'failed') {
+              <p class="f-bad">
+                {{ asset.conversionError || 'The deck could not be turned into a PDF.' }}
+                Learners cannot read it until this works.
+              </p>
+            }
           } @else {
             <p class="f-none">Nothing uploaded.</p>
           }
 
           @if (uploading() === kind) {
-            <mat-progress-bar mode="determinate" [value]="progress()" />
-            <p class="f-progress">{{ progress() }}%</p>
+            <mat-progress-bar
+              [mode]="converting() ? 'indeterminate' : 'determinate'"
+              [value]="progress()"
+            />
+            <p class="f-progress">
+              {{ converting() ? 'Turning the deck into a PDF…' : progress() + '%' }}
+            </p>
           } @else {
             <div class="f-actions">
               <input
@@ -52,7 +71,28 @@
                 {{ assetOf(kind) ? 'Replace' : 'Upload' }}
               </button>
 
-              @if (assetOf(kind)) {
+              @if (assetOf(kind); as asset) {
+                @if (asset.conversionStatus === 'failed') {
+                  <button
+                    mat-flat-button
+                    type="button"
+                    [disabled]="converting()"
+                    (click)="retryConversion(kind)"
+                  >
+                    {{ converting() ? 'Converting…' : 'Try converting again' }}
+                  </button>
+                }
+
+                @if (asset.hasOriginal) {
+                  <button
+                    mat-button
+                    type="button"
+                    (click)="downloadOriginal(kind)"
+                  >
+                    Download the original
+                  </button>
+                }
+
                 <button
                   mat-button
                   type="button"
@@ -144,7 +184,9 @@
     <el-co-authors
       [lectureId]="lecture.id"
       [authorName]="lecture.authorName"
+      [createdByName]="lecture.createdByName"
       [initial]="lecture.coAuthors"
+      (authorChanged)="changeAuthor($event)"
     />
   </section>
 

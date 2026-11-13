@@ -47,7 +47,12 @@ export class CoAuthorsController {
   constructor(private readonly coAuthors: CoAuthorsService) {}
 
   @Get('search')
-  @ApiOperation({ summary: 'People to credit, by name or address' })
+  @ApiOperation({
+    summary: 'People to credit, by name or address',
+    description:
+      'Also what the author picker uses — naming an author and crediting a ' +
+      'co-author are the same question about the same people.',
+  })
   async search(
     @Query() query: SearchPeopleDto,
     @CurrentUser() user: User,

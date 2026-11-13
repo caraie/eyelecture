@@ -111,6 +111,13 @@ resource "google_cloud_run_v2_service" "api" {
         name  = "STORAGE_BUCKET"
         value = google_storage_bucket.media.name
       }
+      # Where to send a PowerPoint deck to be turned into a PDF. Empty means
+      # there is nowhere to send it, and the API refuses the upload rather than
+      # accepting a deck it can never show.
+      env {
+        name  = "CONVERTER_URL"
+        value = google_cloud_run_v2_service.converter.uri
+      }
 
       # Mail. Off unless var.mail_enabled says otherwise, so a deploy that forgets
       # the rest of these sends nothing rather than sending badly.

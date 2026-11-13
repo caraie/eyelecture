@@ -24,6 +24,16 @@ export interface AppConfig {
     frontendUrl: string;
     emailVerificationTtlHours: number;
   };
+  storage: {
+    /** `gcs` or `local`. See StorageModule for what each one means. */
+    driver: string;
+    /** The Cloud Storage bucket. Empty under the local driver. */
+    bucket: string;
+  };
+  converter: {
+    /** The LibreOffice service, or empty where there is not one. */
+    url: string;
+  };
   mail: {
     /**
      * Off by default. With this false the app keeps its old behaviour — the link
@@ -90,6 +100,18 @@ export const configuration = (): AppConfig => ({
       process.env.EMAIL_VERIFICATION_TTL_HOURS,
       48,
     ),
+  },
+  storage: {
+    driver: (process.env.STORAGE_DRIVER ?? 'local').toLowerCase(),
+    bucket: process.env.STORAGE_BUCKET ?? '',
+  },
+  converter: {
+    /**
+     * The LibreOffice service. Empty means there is nowhere to send a
+     * PowerPoint deck, and the API refuses one rather than accepting a file it
+     * could never show.
+     */
+    url: process.env.CONVERTER_URL ?? '',
   },
   mail: {
     enabled: toBool(process.env.MAIL_ENABLED, false),
