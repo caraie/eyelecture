@@ -7,9 +7,17 @@
 # a few times a day. So it lives here, scaled to zero, costing nothing while
 # nobody is uploading a deck.
 #
-# Private at the network edge. Only the API's identity may call it, with a
-# Google-signed ID token — unlike the API, this service has no auth of its own
-# and nothing about it should be reachable from the internet.
+# Private, and IAM is what makes it private. Only the API's service account
+# holds run.invoker, so an unauthenticated caller gets 403 and a caller with
+# the wrong identity gets 403 — this service has no auth of its own.
+#
+# Deliberately *not* ingress = INTERNAL_ONLY, which is what this started as.
+# "Internal" means traffic arriving over the VPC network, and a Cloud Run
+# service's egress goes straight to the internet unless it is given Direct VPC
+# egress or a connector. So the API's call was rejected at the front end with a
+# 404 before it ever reached the container — no request log, nothing to debug
+# from. Routing the API through a VPC to satisfy it would add a connector and
+# its cost for no security the IAM binding below does not already give.
 # ==============================================================================
 
 resource "google_service_account" "converter" {
@@ -27,7 +35,8 @@ resource "google_storage_bucket_iam_member" "converter_object_admin" {
 resource "google_cloud_run_v2_service" "converter" {
   name     = "eyelecture-converter"
   location = var.region
-  ingress  = "INGRESS_TRAFFIC_INTERNAL_ONLY"
+  # See the note above: the lock is the run.invoker binding, not the network.
+  ingress = "INGRESS_TRAFFIC_ALL"
 
   deletion_protection = false
 
