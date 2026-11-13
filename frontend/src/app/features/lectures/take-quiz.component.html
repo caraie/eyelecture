@@ -1,0 +1,155 @@
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (resuming()) {
+  <section class="el-card resume">
+    <h1 class="el-title">You left this quiz unfinished</h1>
+    <p class="r-sub">
+      {{ answered() }} of {{ questions().length }} answered. It was never
+      submitted, so it has no score yet.
+    </p>
+    <div class="r-actions">
+      <button mat-flat-button type="button" (click)="resume()">
+        Pick up where I left off
+      </button>
+      <button mat-button type="button" (click)="startOver()">
+        Throw it away and start again
+      </button>
+    </div>
+  </section>
+} @else if (attempt(); as attempt) {
+  <header class="page-head">
+    <a [routerLink]="['/app/lectures', attempt.lectureId]" class="back">
+      <mat-icon>arrow_back</mat-icon>
+      {{ attempt.lectureTitle || 'Back to the lecture' }}
+    </a>
+
+    <div class="head-row">
+      <h1 class="el-headline">Quiz</h1>
+      <span class="phase">{{ phaseLabels[attempt.phase] }}</span>
+    </div>
+  </header>
+
+  @if (done()) {
+    <section class="el-card score">
+      <p class="s-big">{{ attempt.score }} / {{ attempt.total }}</p>
+      <p class="s-pct">{{ percent() }}%</p>
+      <p class="s-sub">
+        Saved to your activity as a {{ phaseLabels[attempt.phase] | lowercase }}
+        attempt.
+      </p>
+      <div class="s-actions">
+        <a mat-flat-button [routerLink]="['/app/lectures', attempt.lectureId]">
+          Back to the lecture
+        </a>
+        <a mat-button routerLink="/app/activity">My activity</a>
+      </div>
+    </section>
+
+    <ol class="review">
+      @for (question of attempt.questions; track question.sortOrder) {
+        <li
+          class="r-item el-card"
+          [class.right]="question.chosenIndex === question.correctIndex"
+        >
+          <p class="r-prompt">
+            <span class="r-num">{{ question.sortOrder + 1 }}</span>
+            {{ question.prompt }}
+          </p>
+
+          <ul class="r-options">
+            @for (option of question.options; track $index; let i = $index) {
+              <li
+                [class.correct]="i === question.correctIndex"
+                [class.chosen]="i === question.chosenIndex"
+              >
+                <mat-icon>
+                  @if (i === question.correctIndex) {
+                    check_circle
+                  } @else if (i === question.chosenIndex) {
+                    cancel
+                  } @else {
+                    radio_button_unchecked
+                  }
+                </mat-icon>
+                {{ option }}
+              </li>
+            }
+          </ul>
+
+          @if (question.chosenIndex === null) {
+            <p class="r-blank">You left this one blank.</p>
+          }
+          @if (question.explanation) {
+            <p class="r-why">{{ question.explanation }}</p>
+          }
+        </li>
+      }
+    </ol>
+  } @else {
+    <section class="el-card sitting">
+      <mat-progress-bar mode="determinate" [value]="progress()" />
+      <p class="q-of">
+        Question {{ index() + 1 }} of {{ questions().length }}
+        <span class="q-answered">{{ answered() }} answered</span>
+      </p>
+
+      @if (current(); as question) {
+        <p class="q-prompt">{{ question.prompt }}</p>
+
+        <mat-radio-group class="q-options" [value]="question.chosenIndex">
+          @for (option of question.options; track $index; let i = $index) {
+            <mat-radio-button [value]="i" (change)="choose(i)">
+              {{ option }}
+            </mat-radio-button>
+          }
+        </mat-radio-group>
+      }
+
+      <nav class="dots">
+        @for (question of questions(); track question.sortOrder; let i = $index) {
+          <button
+            type="button"
+            class="dot"
+            [class.filled]="question.chosenIndex !== null"
+            [class.here]="i === index()"
+            [title]="'Question ' + (i + 1)"
+            (click)="goTo(i)"
+          >
+            {{ i + 1 }}
+          </button>
+        }
+      </nav>
+
+      <div class="q-actions">
+        <button
+          mat-button
+          type="button"
+          [disabled]="index() === 0"
+          (click)="go(-1)"
+        >
+          Back
+        </button>
+        <span class="spacer"></span>
+
+        @if (isLast()) {
+          @if (confirmingBlanks()) {
+            <p class="q-warn">
+              {{ blanks() }} question{{ blanks() === 1 ? '' : 's' }} still blank
+              — they will be marked wrong.
+            </p>
+          }
+          <button
+            mat-flat-button
+            type="button"
+            [disabled]="busy()"
+            (click)="trySubmit()"
+          >
+            {{ confirmingBlanks() ? 'Submit anyway' : 'Submit' }}
+          </button>
+        } @else {
+          <button mat-flat-button type="button" (click)="go(1)">Next</button>
+        }
+      </div>
+    </section>
+  }
+}

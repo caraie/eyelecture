@@ -151,6 +151,31 @@ export const routes: Routes = [
           ),
       },
       {
+        // Also before ':id', for the same reason.
+        path: 'lectures/:id/quiz',
+        title: 'Quiz · EyeLecture',
+        loadComponent: () =>
+          import('./features/lectures/take-quiz.component').then(
+            (m) => m.TakeQuizComponent,
+          ),
+      },
+      {
+        path: 'activity',
+        title: 'My activity · EyeLecture',
+        loadComponent: () =>
+          import('./features/activity/my-activity.component').then(
+            (m) => m.MyActivityComponent,
+          ),
+      },
+      {
+        path: 'activity/attempts/:id',
+        title: 'Quiz attempt · EyeLecture',
+        loadComponent: () =>
+          import('./features/activity/attempt-review.component').then(
+            (m) => m.AttemptReviewComponent,
+          ),
+      },
+      {
         path: 'lectures/:id',
         title: 'Lecture · EyeLecture',
         loadComponent: () =>

@@ -23,6 +23,33 @@
       }
     </p>
 
+    <div class="doing">
+      @if (completed()) {
+        <span class="read">
+          <mat-icon>check_circle</mat-icon>
+          Marked as read
+        </span>
+      } @else {
+        <button mat-stroked-button type="button" (click)="markCompleted()">
+          Mark as read
+        </button>
+      }
+
+      @if (hasQuiz()) {
+        <a mat-flat-button [routerLink]="['/app/lectures', lecture.id, 'quiz']">
+          <mat-icon>quiz</mat-icon>
+          Take the quiz
+        </a>
+        <span class="q-note">
+          @if (completed()) {
+            It will count as a post-lecture attempt.
+          } @else {
+            Take it now and it counts as pre-lecture.
+          }
+        </span>
+      }
+    </div>
+
     @if (lecture.keywords.length > 0) {
       <ul class="tags">
         @for (word of lecture.keywords; track word) {

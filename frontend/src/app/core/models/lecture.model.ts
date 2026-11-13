@@ -60,6 +60,56 @@ export interface SaveQuestion {
 
 export const QUIZ_RULES = { minOptions: 2, maxOptions: 6 } as const;
 
+/** Before studying the lecture, or after. The server decides, not the learner. */
+export type QuizPhase = 'pre' | 'post';
+
+export const QUIZ_PHASE_LABELS: Record<QuizPhase, string> = {
+  pre: 'Pre-lecture',
+  post: 'Post-lecture',
+};
+
+/**
+ * One question of an attempt. `correctIndex` and `explanation` only arrive
+ * once the attempt has been submitted — before that they would be the answer
+ * key.
+ */
+export interface AttemptQuestion {
+  sortOrder: number;
+  prompt: string;
+  options: string[];
+  chosenIndex: number | null;
+  correctIndex: number | null;
+  explanation: string | null;
+}
+
+export interface QuizAttempt {
+  id: string;
+  lectureId: string;
+  lectureTitle: string | null;
+  phase: QuizPhase;
+  startedAt: string;
+  submittedAt: string | null;
+  score: number;
+  total: number;
+  questions: AttemptQuestion[];
+}
+
+/** A row of the history, where the questions themselves are not needed. */
+export interface QuizAttemptSummary {
+  id: string;
+  lectureId: string;
+  lectureTitle: string | null;
+  phase: QuizPhase;
+  submittedAt: string | null;
+  score: number;
+  total: number;
+}
+
+export interface LectureProgress {
+  startedAt: string;
+  completedAt: string | null;
+}
+
 export const QUIZ_AVAILABILITY_LABELS: Record<QuizAvailability, string> = {
   pre: 'Before the lecture only',
   post: 'After the lecture only',

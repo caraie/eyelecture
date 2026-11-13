@@ -80,6 +80,9 @@ export class ShellComponent {
           // Browsing the bank is what everybody is here for, administrators
           // included, so it sits above the screens about people.
           { label: 'Lecture bank', icon: 'video_library', route: '/app/lectures' },
+          // Everybody takes quizzes, so their own results sit here rather than
+          // behind a role.
+          { label: 'My activity', icon: 'insights', route: '/app/activity' },
         ],
       },
     ];

@@ -1,0 +1,131 @@
+<header class="page-head">
+  <h1 class="el-headline">My activity</h1>
+  <p class="sub">Every quiz you have submitted. Only you can see this.</p>
+</header>
+
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (!attempts().length) {
+  <section class="el-card empty">
+    <mat-icon>quiz</mat-icon>
+    <p class="e-title">No quizzes yet</p>
+    <p class="e-sub">
+      Take a lecture's quiz before and after studying it, and the two scores
+      show up here side by side.
+    </p>
+    <a mat-flat-button routerLink="/app/lectures">Browse the lecture bank</a>
+  </section>
+} @else {
+  @if (comparisons().length) {
+    <section class="el-card block">
+      <h2 class="el-title">Before and after</h2>
+      <p class="c-sub">
+        Your best score on each lecture, before studying it and after.
+      </p>
+
+      <ul class="compare">
+        @for (row of comparisons(); track row.lectureId) {
+          <li>
+            <a [routerLink]="['/app/lectures', row.lectureId]" class="c-name">
+              {{ row.lectureTitle }}
+            </a>
+
+            <div class="bars">
+              <div class="bar pre" [style.width.%]="row.pre">
+                <span>{{ row.pre }}%</span>
+              </div>
+              <div class="bar post" [style.width.%]="row.post">
+                <span>{{ row.post }}%</span>
+              </div>
+            </div>
+
+            <span class="gain" [class.up]="gain(row) > 0" [class.down]="gain(row) < 0">
+              {{ gain(row) > 0 ? '+' : '' }}{{ gain(row) }} pts
+            </span>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <section class="el-card block">
+    <div class="h-head">
+      <h2 class="el-title">All attempts</h2>
+
+      <div class="filters">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Lecture</mat-label>
+          <mat-select
+            [value]="lectureFilter()"
+            (valueChange)="lectureFilter.set($event)"
+          >
+            <mat-option value="">Every lecture</mat-option>
+            @for (lecture of lectures(); track lecture.id) {
+              <mat-option [value]="lecture.id">{{ lecture.title }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Pre or post</mat-label>
+          <mat-select
+            [value]="phaseFilter()"
+            (valueChange)="phaseFilter.set($event)"
+          >
+            <mat-option value="">Both</mat-option>
+            @for (phase of phases; track phase) {
+              <mat-option [value]="phase">{{ phaseLabels[phase] }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="newestFirst.set(!newestFirst())"
+        >
+          <mat-icon>{{ newestFirst() ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+          {{ newestFirst() ? 'Newest first' : 'Oldest first' }}
+        </button>
+      </div>
+    </div>
+
+    @if (!shown().length) {
+      <p class="none">Nothing matches those filters.</p>
+    } @else {
+      <ul class="history">
+        @for (attempt of shown(); track attempt.id) {
+          <li>
+            <div class="a-main">
+              <a
+                [routerLink]="['/app/lectures', attempt.lectureId]"
+                class="a-title"
+              >
+                {{ attempt.lectureTitle || 'Untitled lecture' }}
+              </a>
+              <p class="a-when">
+                {{ attempt.submittedAt | date: 'medium' }}
+              </p>
+            </div>
+
+            <span class="a-phase" [class.post]="attempt.phase === 'post'">
+              {{ phaseLabels[attempt.phase] }}
+            </span>
+
+            <span class="a-score">
+              {{ attempt.score }}/{{ attempt.total }}
+              <span class="a-pct">{{ percent(attempt) }}%</span>
+            </span>
+
+            <a
+              mat-button
+              [routerLink]="['/app/activity/attempts', attempt.id]"
+            >
+              Review
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

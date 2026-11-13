@@ -52,6 +52,30 @@
   }
 }
 
+.doing {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin: var(--sp-4) 0 var(--sp-2);
+}
+
+.read {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--acc-emerald-on);
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+.q-note {
+  font-size: 12.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;

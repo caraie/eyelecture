@@ -1,0 +1,69 @@
+@if (loading()) {
+  <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (attempt(); as attempt) {
+  <header class="page-head">
+    <a routerLink="/app/activity" class="back">
+      <mat-icon>arrow_back</mat-icon>
+      My activity
+    </a>
+
+    <div class="head-row">
+      <h1 class="el-headline">
+        {{ attempt.lectureTitle || 'Untitled lecture' }}
+      </h1>
+      <span class="phase">{{ phaseLabels[attempt.phase] }}</span>
+    </div>
+  </header>
+
+  <section class="el-card score">
+    <p class="s-big">{{ attempt.score }} / {{ attempt.total }}</p>
+    <p class="s-pct">{{ percent() }}%</p>
+    <p class="s-sub">Taken {{ attempt.submittedAt | date: 'medium' }}</p>
+    <div class="s-actions">
+      <a mat-flat-button [routerLink]="['/app/lectures', attempt.lectureId]">
+        Open the lecture
+      </a>
+    </div>
+  </section>
+
+  <ol class="review">
+    @for (question of attempt.questions; track question.sortOrder) {
+      <li
+        class="r-item el-card"
+        [class.right]="question.chosenIndex === question.correctIndex"
+      >
+        <p class="r-prompt">
+          <span class="r-num">{{ question.sortOrder + 1 }}</span>
+          {{ question.prompt }}
+        </p>
+
+        <ul class="r-options">
+          @for (option of question.options; track $index; let i = $index) {
+            <li
+              [class.correct]="i === question.correctIndex"
+              [class.chosen]="i === question.chosenIndex"
+            >
+              <mat-icon>
+                @if (i === question.correctIndex) {
+                  check_circle
+                } @else if (i === question.chosenIndex) {
+                  cancel
+                } @else {
+                  radio_button_unchecked
+                }
+              </mat-icon>
+              {{ option }}
+            </li>
+          }
+        </ul>
+
+        @if (question.chosenIndex === null) {
+          <p class="r-blank">You left this one blank.</p>
+        }
+        @if (question.explanation) {
+          <p class="r-why">{{ question.explanation }}</p>
+        }
+      </li>
+    }
+  </ol>
+}
