@@ -9,6 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { LectureCoAuthor } from './lecture-co-author.entity';
 import { Subsection } from '../../lecture-bank/entities/subsection.entity';
 import { User } from '../../users/entities/user.entity';
 import { Institution } from '../../institutions/entities/institution.entity';
@@ -114,6 +115,16 @@ export class Lecture {
    * without every screen loading every option of every question.
    */
   questionCount?: number;
+
+  /**
+   * Not a column either. Who else is credited, filled in by the service.
+   *
+   * Credit only, for now: a co-author's name goes on the lecture, but editing
+   * it is still the author's and the administrators'. The story leaves that
+   * open, and the narrower rule is the one that can be widened later without
+   * anybody having quietly rewritten somebody else's lecture in between.
+   */
+  coAuthors?: LectureCoAuthor[];
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

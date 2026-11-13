@@ -120,6 +120,11 @@
                 } @else {
                   <span class="muted">Author removed</span>
                 }
+                <!-- Credited co-authors only; an outstanding invitation is
+                     between the author and the person they wrote to. -->
+                @for (person of credited(lecture); track person.id) {
+                  , {{ person.name }}
+                }
                 @if (lecture.institutionName) {
                   · {{ lecture.institutionName }}
                 }

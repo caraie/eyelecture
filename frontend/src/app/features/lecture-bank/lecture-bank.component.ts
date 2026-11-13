@@ -63,6 +63,14 @@ export class LectureBankComponent {
   readonly lectures = signal<Lecture[]>([]);
   readonly loadingLectures = signal(true);
 
+  /**
+   * The co-authors a card may name. Outstanding invitations are left out —
+   * being written to is not the same as being credited.
+   */
+  credited(lecture: Lecture) {
+    return (lecture.coAuthors ?? []).filter((person) => !person.invited);
+  }
+
   constructor() {
     this.load();
 

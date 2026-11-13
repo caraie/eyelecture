@@ -23,6 +23,15 @@
       }
     </p>
 
+    @if (credited().length) {
+      <p class="with">
+        with
+        @for (person of credited(); track person.id; let last = $last) {
+          <span class="person">{{ person.name }}</span>{{ last ? '' : ', ' }}
+        }
+      </p>
+    }
+
     <div class="doing">
       @if (completed()) {
         <span class="read">

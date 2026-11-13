@@ -18,6 +18,7 @@ import {
 } from '../users/users.service';
 import { InstitutionsService } from '../institutions/institutions.service';
 import { InstitutionInvitationsService } from '../institutions/institution-invitations.service';
+import { CoAuthorsService } from '../lectures/co-authors.service';
 import { User } from '../users/entities/user.entity';
 import {
   PROFILE_FIELDS,
@@ -66,6 +67,7 @@ export class AuthService {
     private readonly users: UsersService,
     private readonly institutions: InstitutionsService,
     private readonly invitations: InstitutionInvitationsService,
+    private readonly coAuthors: CoAuthorsService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     @InjectRepository(RefreshToken)
@@ -160,6 +162,18 @@ export class AuthService {
       autoValidated,
       ...training,
     });
+
+    // Anyone who was credited on a lecture at one of these addresses now holds
+    // that credit as an account rather than as an invitation. Deliberately not
+    // allowed to fail the sign-up: a co-author chip is not worth losing an
+    // account over, and the next sign-in would pick it up anyway.
+    try {
+      await this.coAuthors.claimInvitations(user);
+    } catch (error) {
+      this.logger.warn(
+        `Could not link co-author invitations for ${user.id}: ${String(error)}`,
+      );
+    }
 
     // Whichever address they actually gave. An attending physician is never asked
     // for an institutional one, so the institutional link has no recipient — asking

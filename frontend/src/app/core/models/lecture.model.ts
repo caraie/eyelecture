@@ -28,10 +28,35 @@ export interface Lecture {
   authorName: string | null;
   institutionName: string | null;
   assets: LectureAsset[];
+  coAuthors: CoAuthor[];
   /** Zero means the lecture has no quiz at all. */
   questionCount: number;
   quizAvailability: QuizAvailability;
   createdAt: string;
+}
+
+/**
+ * Somebody credited on a lecture besides its author.
+ *
+ * `invited` means they have only been written to — the chip the old app had no
+ * way of producing. Credit only, for now: their name goes on the lecture, but
+ * editing it stays with the author and the administrators.
+ */
+export interface CoAuthor {
+  id: string;
+  userId: string | null;
+  name: string;
+  institutionName: string | null;
+  invited: boolean;
+  expired: boolean;
+}
+
+/** Somebody to pick from when searching. No address comes back. */
+export interface Person {
+  id: string;
+  name: string;
+  institutionName: string | null;
+  role: string | null;
 }
 
 /** When a learner may take the quiz: before the lecture, after it, or both. */

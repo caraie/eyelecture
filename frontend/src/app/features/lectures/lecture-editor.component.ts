@@ -18,6 +18,7 @@ import {
 } from '../../core/models/lecture.model';
 import { Section } from '../../core/models/lecture-bank.model';
 import { QuizEditorComponent } from './quiz-editor.component';
+import { CoAuthorsComponent } from './co-authors.component';
 
 /**
  * Everything about one lecture that its author can change, including the files.
@@ -42,6 +43,7 @@ import { QuizEditorComponent } from './quiz-editor.component';
     MatProgressBarModule,
     MatSlideToggleModule,
     QuizEditorComponent,
+    CoAuthorsComponent,
   ],
   templateUrl: './lecture-editor.component.html',
   styleUrl: './lecture-editor.component.scss',

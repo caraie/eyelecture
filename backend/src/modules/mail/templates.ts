@@ -163,6 +163,53 @@ export function invitedToAdminister(
 }
 
 /**
+ * Asked to be credited on somebody's lecture.
+ *
+ * Deliberately low-key next to the institution invitation above: this grants no
+ * rank and vouches for nobody, so it should not read like an appointment.
+ */
+export function invitedToCoAuthor(
+  lectureTitle: string,
+  authorName: string,
+  link: string,
+  ttlDays: number,
+): Rendered {
+  const title = esc(lectureTitle);
+  const author = esc(authorName);
+  return {
+    subject: `${authorName} credited you on a lecture`,
+    html: shell({
+      heading: `You are credited on “${title}”`,
+      intro:
+        `EyeLecture is a teaching platform for ophthalmology. <strong>${author}</strong> ` +
+        `has listed you as a co-author of their lecture <strong>${title}</strong>. ` +
+        `Setting up an account with this link puts it under your name too.`,
+      buttonLabel: 'Set up my account',
+      buttonUrl: link,
+      after: `The link stops working after ${ttlDays} days.`,
+      footer:
+        'If you would rather not be credited, ignoring this message is enough — tell ' +
+        'the author and they can take the credit off.',
+    }),
+    text: [
+      `You are credited on “${lectureTitle}”`,
+      '',
+      'EyeLecture is a teaching platform for ophthalmology.',
+      `${authorName} has listed you as a co-author of their lecture`,
+      `“${lectureTitle}”. Setting up an account with this link puts it`,
+      'under your name too.',
+      '',
+      link,
+      '',
+      `The link stops working after ${ttlDays} days.`,
+      '',
+      'If you would rather not be credited, ignoring this message is enough — tell',
+      'the author and they can take the credit off.',
+    ].join('\n'),
+  };
+}
+
+/**
  * Confirming the optional personal address. Deliberately lower-key than the one
  * above: this address already signs the person in, so nothing is blocked on it and
  * the mail should not imply otherwise.

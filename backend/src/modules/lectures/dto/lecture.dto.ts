@@ -12,6 +12,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import { CoAuthorDto } from './co-author.dto';
 import { Lecture } from '../entities/lecture.entity';
 import { LectureAsset } from '../entities/lecture-asset.entity';
 import { LectureAssetKind } from '../enums/lecture-asset-kind.enum';
@@ -122,6 +123,7 @@ export class LectureResponseDto {
   @ApiProperty({ nullable: true }) publishedAt!: Date | null;
   @ApiProperty({ nullable: true }) authorName!: string | null;
   @ApiProperty({ nullable: true }) institutionName!: string | null;
+  @ApiProperty({ type: [CoAuthorDto] }) coAuthors!: CoAuthorDto[];
   @ApiProperty({ type: [LectureAssetDto] }) assets!: LectureAssetDto[];
   @ApiProperty({ description: 'Zero means the lecture has no quiz' })
   questionCount!: number;
@@ -143,6 +145,7 @@ export class LectureResponseDto {
       // rather than inventing a name.
       authorName: author ? `${author.firstName} ${author.lastName}`.trim() : null,
       institutionName: lecture.institution?.name ?? null,
+      coAuthors: (lecture.coAuthors ?? []).map(CoAuthorDto.from),
       assets: (lecture.assets ?? [])
         .filter((asset) => asset.uploadedAt !== null)
         .map(LectureAssetDto.from),

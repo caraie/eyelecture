@@ -6,11 +6,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import { Lecture } from './entities/lecture.entity';
 import { LectureAsset } from './entities/lecture-asset.entity';
+import { LectureCoAuthor } from './entities/lecture-co-author.entity';
 import { QuizQuestion } from './entities/quiz-question.entity';
 import { Subsection } from '../lecture-bank/entities/subsection.entity';
 import { User } from '../users/entities/user.entity';
@@ -67,6 +68,8 @@ export class LecturesService {
     private readonly subsections: Repository<Subsection>,
     @InjectRepository(QuizQuestion)
     private readonly questions: Repository<QuizQuestion>,
+    @InjectRepository(LectureCoAuthor)
+    private readonly coAuthors: Repository<LectureCoAuthor>,
     private readonly storage: StorageService,
   ) {}
 
@@ -141,6 +144,33 @@ export class LecturesService {
     for (const lecture of lectures) {
       lecture.questionCount = counts.get(lecture.id) ?? 0;
     }
+    return this.withCoAuthors(lectures);
+  }
+
+  /**
+   * Fills in `coAuthors`, again with one query for the whole list rather than
+   * one per lecture. Withdrawn credits are left out; outstanding invitations
+   * are not, because the chip that says "Invited" is the point of them.
+   */
+  private async withCoAuthors(lectures: Lecture[]): Promise<Lecture[]> {
+    if (lectures.length === 0) return lectures;
+
+    const rows = await this.coAuthors.find({
+      where: {
+        lectureId: In(lectures.map((lecture) => lecture.id)),
+        revokedAt: IsNull(),
+      },
+      relations: { user: { institution: true } },
+      order: { sortOrder: 'ASC', createdAt: 'ASC' },
+    });
+
+    const byLecture = new Map<string, LectureCoAuthor[]>();
+    for (const row of rows) {
+      byLecture.set(row.lectureId, [...(byLecture.get(row.lectureId) ?? []), row]);
+    }
+    for (const lecture of lectures) {
+      lecture.coAuthors = byLecture.get(lecture.id) ?? [];
+    }
     return lectures;
   }
 
@@ -176,7 +206,8 @@ export class LecturesService {
       throw new NotFoundException('That lecture was not found');
     }
 
-    return lecture;
+    const [withEverything] = await this.withQuestionCounts([lecture]);
+    return withEverything;
   }
 
   // --- Writing ----------------------------------------------------------------

@@ -141,6 +141,14 @@
   </div>
 
   <section class="el-card block">
+    <el-co-authors
+      [lectureId]="lecture.id"
+      [authorName]="lecture.authorName"
+      [initial]="lecture.coAuthors"
+    />
+  </section>
+
+  <section class="el-card block">
     <el-quiz-editor
       [lectureId]="lecture.id"
       [availability]="lecture.quizAvailability"

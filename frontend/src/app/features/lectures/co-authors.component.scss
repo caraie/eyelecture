@@ -1,0 +1,147 @@
+:host {
+  display: block;
+}
+
+.el-title { margin: 0; }
+
+.c-sub {
+  margin: var(--sp-1) 0 var(--sp-4);
+  font-size: 13.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.people {
+  list-style: none;
+  margin: 0 0 var(--sp-3);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 4px 6px 4px var(--sp-3);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-full);
+  font-size: 13.5px;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  button mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  /* An invitation is not a person yet, so it reads as unfinished. */
+  &.pending {
+    border-style: dashed;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+
+  /* The author cannot be taken off their own lecture. */
+  &.author { padding-right: var(--sp-3); }
+}
+
+.role,
+.where {
+  padding-left: var(--sp-1);
+  font-size: 11.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.role {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.add { margin-top: var(--sp-1); }
+
+/* --- Picking somebody ---------------------------------------------------- */
+
+.picker {
+  margin-top: var(--sp-3);
+  padding: var(--sp-4);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--md-sys-shape-corner-medium);
+
+  mat-form-field { width: 100%; }
+}
+
+.results {
+  list-style: none;
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) 0;
+    border-top: 1px solid var(--md-sys-color-outline-variant);
+
+    &:first-child { border-top: none; }
+  }
+}
+
+.p-main { flex: 1; min-width: 0; }
+
+.p-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.p-where {
+  margin: 1px 0 0;
+  font-size: 12.5px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.nobody {
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--md-sys-shape-corner-medium);
+  background: var(--md-sys-color-surface-variant);
+}
+
+.n-title {
+  margin: 0 0 var(--sp-1);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.n-sub {
+  margin: 0 0 var(--sp-3);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.invite {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.i-note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.p-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+
+  .spacer { flex: 1; }
+}

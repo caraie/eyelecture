@@ -52,6 +52,14 @@
   }
 }
 
+.with {
+  margin: var(--sp-1) 0 0;
+  font-size: 13.5px;
+  color: var(--md-sys-color-on-surface-variant);
+
+  .person { color: var(--md-sys-color-on-surface); }
+}
+
 .doing {
   display: flex;
   align-items: center;

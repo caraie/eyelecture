@@ -1,0 +1,143 @@
+<h2 class="el-title">Credit</h2>
+<p class="c-sub">Everyone who worked on this lecture, named on it.</p>
+
+<ul class="people">
+  @if (authorName()) {
+    <li class="chip author">
+      <mat-icon>person</mat-icon>
+      {{ authorName() }}
+      <span class="role">Author</span>
+    </li>
+  }
+
+  @for (coAuthor of coAuthors(); track coAuthor.id) {
+    <li class="chip" [class.pending]="coAuthor.invited">
+      <mat-icon>{{ coAuthor.invited ? 'mail_outline' : 'person' }}</mat-icon>
+      {{ coAuthor.name }}
+
+      @if (coAuthor.invited) {
+        <span class="role">{{ coAuthor.expired ? 'Expired' : 'Invited' }}</span>
+        <button
+          mat-icon-button
+          type="button"
+          title="Send the invitation again"
+          (click)="resend(coAuthor)"
+        >
+          <mat-icon>refresh</mat-icon>
+        </button>
+      } @else if (coAuthor.institutionName) {
+        <span class="where">{{ coAuthor.institutionName }}</span>
+      }
+
+      <button
+        mat-icon-button
+        type="button"
+        [title]="coAuthor.invited ? 'Withdraw the invitation' : 'Remove'"
+        (click)="remove(coAuthor)"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
+    </li>
+  }
+</ul>
+
+@if (!picking()) {
+  <button mat-stroked-button type="button" class="add" (click)="open()">
+    <mat-icon>person_add</mat-icon>
+    Add co-authors
+  </button>
+} @else {
+  <section class="picker">
+    @if (!inviting()) {
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Search by name or email</mat-label>
+        <input
+          matInput
+          autofocus
+          [value]="term()"
+          (input)="search($any($event.target).value)"
+        />
+        @if (searching()) {
+          <mat-spinner matSuffix diameter="18" />
+        }
+      </mat-form-field>
+
+      @if (results().length) {
+        <ul class="results">
+          @for (person of results(); track person.id) {
+            <li>
+              <div class="p-main">
+                <p class="p-name">{{ person.name }}</p>
+                @if (person.institutionName) {
+                  <p class="p-where">{{ person.institutionName }}</p>
+                }
+              </div>
+              <button
+                mat-button
+                type="button"
+                [disabled]="busy()"
+                (click)="add(person)"
+              >
+                Add
+              </button>
+            </li>
+          }
+        </ul>
+      } @else if (nothingFound()) {
+        <!-- The old app stopped here with "No Results". -->
+        <div class="nobody">
+          <p class="n-title">Nobody on EyeLecture matches “{{ term() }}”</p>
+          <p class="n-sub">
+            If they are not on the platform yet, write to them and they will be
+            credited as soon as they sign up.
+          </p>
+          <button mat-flat-button type="button" (click)="startInvite()">
+            <mat-icon>mail</mat-icon>
+            Invite by email
+          </button>
+        </div>
+      }
+    } @else {
+      <div class="invite">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Their email</mat-label>
+          <input
+            matInput
+            type="email"
+            [value]="inviteEmail()"
+            (input)="inviteEmail.set($any($event.target).value)"
+          />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Their name (optional)</mat-label>
+          <input
+            matInput
+            [value]="inviteName()"
+            (input)="inviteName.set($any($event.target).value)"
+          />
+        </mat-form-field>
+
+        <p class="i-note">
+          They get a link to set up an account. If that address already has
+          one, they are simply credited and no mail goes out.
+        </p>
+      </div>
+    }
+
+    <div class="p-actions">
+      <span class="spacer"></span>
+      <button mat-button type="button" (click)="close()">Cancel</button>
+      @if (inviting()) {
+        <button
+          mat-flat-button
+          type="button"
+          [disabled]="!emailLooksRight() || busy()"
+          (click)="invite()"
+        >
+          Send invitation
+        </button>
+      }
+    </div>
+  </section>
+}

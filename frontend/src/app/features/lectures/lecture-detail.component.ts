@@ -50,6 +50,14 @@ export class LectureDetailComponent {
     (this.lecture()?.assets ?? []).some((asset) => asset.kind === 'video'),
   );
   readonly hasQuiz = computed(() => (this.lecture()?.questionCount ?? 0) > 0);
+  /**
+   * Co-authors a reader should see. An outstanding invitation is left out:
+   * being written to is not the same as being credited, and a learner has no
+   * business knowing who the author asked.
+   */
+  readonly credited = computed(() =>
+    (this.lecture()?.coAuthors ?? []).filter((person) => !person.invited),
+  );
   readonly completed = computed(() => this.completedAt() !== null);
 
   constructor() {
