@@ -209,6 +209,11 @@
     box-shadow: 0 0 0 4px
       color-mix(in srgb, var(--md-sys-color-primary) 16%, transparent);
   }
+
+  /* Room for that ring, or it sits against the first letter of the label. */
+  .mdc-label {
+    padding-left: var(--sp-2);
+  }
 }
 
 /* Cards: border-led, not shadow-led. */
