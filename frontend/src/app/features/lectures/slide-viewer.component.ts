@@ -150,10 +150,13 @@ export class SlideViewerComponent implements OnDestroy {
 
     try {
       const pdfjs = await import('pdfjs-dist');
-      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.min.mjs',
-        import.meta.url,
-      ).toString();
+      // Copied to the output root by angular.json rather than resolved from
+      // the package here. `new URL('pdfjs-dist/...', import.meta.url)` looks
+      // right but esbuild does not rewrite a bare specifier, so in a built app
+      // it pointed at a path nginx answers with index.html: pdf.js fell back
+      // to its "fake worker", and that then failed on its own dynamic import.
+      // The symptom was every deck reporting "could not be opened".
+      pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
       const task = pdfjs.getDocument({ url });
       const doc = await task.promise;
@@ -166,6 +169,10 @@ export class SlideViewerComponent implements OnDestroy {
     } catch (cause) {
       this.loading.set(false);
       this.error.set('This presentation could not be opened.');
+      // The screen says something a reader can act on; the console keeps what
+      // somebody debugging actually needs. Swallowing the cause entirely is
+      // what made the worker fault above take a round of guessing to find.
+      console.error('Slide viewer could not open the PDF', cause);
       this.notify.showHttpError(cause, 'This presentation could not be opened');
     }
   }
