@@ -59,7 +59,10 @@
     @for (lecture of lectures(); track lecture.id) {
       <li class="el-card row">
         <div class="main">
-          <a class="t" [routerLink]="['/app/lectures/edit', lecture.id]">
+          <!-- The title opens the lecture as a reader sees it; Edit beside it
+               opens the editor. Both pointed at the editor, which left an
+               author with no way at all to look at a draft. -->
+          <a class="t" [routerLink]="['/app/lectures', lecture.id]">
             {{ lecture.title }}
           </a>
           <p class="shelf-line">{{ shelfOf(lecture) }}</p>

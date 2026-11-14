@@ -6,6 +6,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { LecturesService } from '../../core/services/lectures.service';
 import { QuizAttemptsService } from '../../core/services/quiz-attempts.service';
+import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Lecture } from '../../core/models/lecture.model';
 import { SlideViewerComponent } from './slide-viewer.component';
@@ -38,6 +39,7 @@ export class LectureDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly api = inject(LecturesService);
   private readonly attempts = inject(QuizAttemptsService);
+  private readonly auth = inject(AuthService);
   private readonly notify = inject(NotificationService);
 
   readonly loading = signal(true);
@@ -50,6 +52,26 @@ export class LectureDetailComponent {
     (this.lecture()?.assets ?? []).some((asset) => asset.kind === 'video'),
   );
   readonly hasQuiz = computed(() => (this.lecture()?.questionCount ?? 0) > 0);
+
+  /**
+   * Whether to offer a way into the editor from here.
+   *
+   * Deliberately generous and deliberately harmless: the API decides who may
+   * actually edit, and a draft is only visible to those people in the first
+   * place. The worst this can do is show an Edit link that the editor screen
+   * then refuses — far better than the author of a draft having no way back
+   * to it, which is where this started.
+   */
+  readonly canEdit = computed(() => {
+    const lecture = this.lecture();
+    if (!lecture || !this.auth.canWriteLectures()) return false;
+    return (
+      lecture.status === 'draft' ||
+      this.auth.isSuperUser() ||
+      this.auth.isProgramAdministrator() ||
+      lecture.authorId === this.auth.user()?.id
+    );
+  });
   /**
    * Co-authors a reader should see. An outstanding invitation is left out:
    * being written to is not the same as being credited, and a learner has no

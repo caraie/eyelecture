@@ -2,10 +2,19 @@
   <div class="state"><mat-spinner diameter="28" /></div>
 } @else if (lecture(); as lecture) {
   <header class="page-head">
-    <a routerLink="/app/lectures" class="back">
-      <mat-icon>arrow_back</mat-icon>
-      Lecture bank
-    </a>
+    <!-- A draft is not in the bank, so sending them there would be sending
+         them to a list this lecture is not on. -->
+    @if (lecture.status === 'draft') {
+      <a routerLink="/app/lectures/mine" class="back">
+        <mat-icon>arrow_back</mat-icon>
+        Your lectures
+      </a>
+    } @else {
+      <a routerLink="/app/lectures" class="back">
+        <mat-icon>arrow_back</mat-icon>
+        Lecture bank
+      </a>
+    }
 
     <h1 class="el-headline">{{ lecture.title }}</h1>
 
@@ -33,6 +42,16 @@
     }
 
     <div class="doing">
+      @if (canEdit()) {
+        <a
+          mat-stroked-button
+          [routerLink]="['/app/lectures/edit', lecture.id]"
+        >
+          <mat-icon>edit</mat-icon>
+          Edit
+        </a>
+      }
+
       @if (completed()) {
         <span class="read">
           <mat-icon>check_circle</mat-icon>

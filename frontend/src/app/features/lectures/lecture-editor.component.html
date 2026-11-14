@@ -12,6 +12,17 @@
       <span class="status" [class.live]="isPublished()">
         {{ isPublished() ? 'Published' : 'Draft' }}
       </span>
+
+      <!-- The point of a draft is that nobody else can see it yet, so this is
+           the only way its author ever looks at it. -->
+      <a
+        mat-stroked-button
+        class="preview"
+        [routerLink]="['/app/lectures', lecture.id]"
+      >
+        <mat-icon>visibility</mat-icon>
+        Preview
+      </a>
     </div>
   </header>
 

@@ -37,8 +37,12 @@
   display: flex;
   align-items: center;
   gap: var(--sp-3);
+  flex-wrap: wrap;
 
   .el-headline { margin: 0; }
+
+  /* Pushed to the far edge, away from the title and its status chip. */
+  .preview { margin-left: auto; }
 }
 
 .status {
