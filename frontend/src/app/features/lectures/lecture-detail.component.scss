@@ -106,12 +106,33 @@ el-slide-viewer {
   margin-top: var(--sp-4);
 }
 
-.video {
-  display: block;
+/* The box is the fixed thing, not its contents. Spinner, player and error
+   all sit inside the same 16:9 rectangle, so switching between them never
+   moves anything below. */
+.video-frame {
+  display: grid;
+  place-items: center;
   width: 100%;
+  aspect-ratio: 16 / 9;
   margin-top: var(--sp-4);
   border-radius: var(--md-sys-shape-corner-lg);
   background: #000;
+  overflow: hidden;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.v-msg {
+  margin: 0;
+  padding: var(--sp-4);
+  text-align: center;
+  font-size: 14px;
+  /* On the black frame, not on the page background. */
+  color: #fff;
 }
 
 .objectives {

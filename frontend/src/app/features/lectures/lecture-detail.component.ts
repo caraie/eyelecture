@@ -46,6 +46,7 @@ export class LectureDetailComponent {
   readonly lecture = signal<Lecture | null>(null);
   readonly slidesUrl = signal<string | null>(null);
   readonly videoUrl = signal<string | null>(null);
+  readonly videoError = signal<string | null>(null);
   readonly completedAt = signal<string | null>(null);
 
   readonly hasVideo = computed(() =>
@@ -143,14 +144,25 @@ export class LectureDetailComponent {
     });
   }
 
+  /** Opening the Video tab is what mints its link — never page load. */
+  onTabChange(label: string): void {
+    if (label === 'Video') this.openVideo();
+  }
+
   openVideo(): void {
     const lecture = this.lecture();
     if (!lecture || this.videoUrl() || !this.hasVideo()) return;
 
+    this.videoError.set(null);
     this.api.fileUrl(lecture.id, 'video').subscribe({
       next: ({ url }) => this.videoUrl.set(url),
-      error: (error: unknown) =>
-        this.notify.showHttpError(error, 'Could not open the video'),
+      error: (error: unknown) => {
+        // Shown inside the player's own box rather than only as a toast, so
+        // the space does not sit empty with no explanation in it.
+        this.videoError.set(
+          this.notify.fromHttpError(error, 'Could not open the video'),
+        );
+      },
     });
   }
 }

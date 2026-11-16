@@ -87,7 +87,10 @@
     }
   </header>
 
-  <mat-tab-group animationDuration="0ms">
+  <mat-tab-group
+    animationDuration="0ms"
+    (selectedTabChange)="onTabChange($event.tab.textLabel)"
+  >
     <mat-tab label="Slides">
       @if (slidesUrl(); as url) {
         <el-slide-viewer [src]="url" />
@@ -98,16 +101,30 @@
 
     @if (hasVideo()) {
       <mat-tab label="Video">
+        <!-- matTabContent means this runs when the tab is opened, not on page
+             load — which is what keeps a signed link from being minted for a
+             video nobody watches. Opening the tab is deliberate enough. -->
         <ng-template matTabContent>
-          @if (videoUrl(); as url) {
-            <video class="video" controls controlsList="nodownload" [src]="url"></video>
-          } @else {
-            <div class="state">
-              <button mat-flat-button type="button" (click)="openVideo()">
-                Load the video
-              </button>
-            </div>
-          }
+          <!-- Fixed 16:9 box, so the spinner, the player and an error all
+               occupy exactly the same space and nothing reflows underneath. -->
+          <div class="video-frame">
+            @if (videoUrl(); as url) {
+              <!-- preload="none" fetches nothing until play is pressed: the
+                   player is here to be pressed, not to start downloading a
+                   lecture-length video on the chance somebody wants it. -->
+              <video
+                class="video"
+                controls
+                preload="none"
+                controlsList="nodownload"
+                [src]="url"
+              ></video>
+            } @else if (videoError()) {
+              <p class="v-msg">{{ videoError() }}</p>
+            } @else {
+              <mat-spinner diameter="28" />
+            }
+          </div>
         </ng-template>
       </mat-tab>
     }
