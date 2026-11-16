@@ -857,10 +857,13 @@ export class UsersService {
   async createAdmin(
     data: {
       email: string;
+      username: string;
       passwordHash: string;
       firstName: string;
       lastName: string;
       personalEmail?: string;
+      role?: UserRole;
+      institutionId?: string;
     },
     creatorId: string,
   ): Promise<User> {
@@ -869,6 +872,12 @@ export class UsersService {
     if (await this.emailInUse(email)) {
       throw new ConflictException('An account with this email already exists');
     }
+    // Sign-in is by username, so an account without a free one is an account
+    // nobody can use. Checked here rather than left to the unique index,
+    // which would surface as a 500 describing a constraint.
+    if (await this.usernameInUse(data.username)) {
+      throw new ConflictException('That username is already taken');
+    }
 
     // Same gate as every other path, so an admin cannot install an institutional
     // address as somebody's "personal" one.
@@ -876,21 +885,30 @@ export class UsersService {
       ? await this.assertPersonalEmailAllowed(data.personalEmail, email)
       : null;
 
+    const role = data.role ?? UserRole.SUPER_USER;
+    // Platform staff belong to no institution by definition; every other rank
+    // may, and a trainee one is expected to.
+    const institutionId =
+      role === UserRole.SUPER_USER ? null : (data.institutionId ?? null);
+
     const now = new Date();
     return this.create({
       email,
+      username: data.username,
       emailDomain: emailDomainOf(email),
       passwordHash: data.passwordHash,
       firstName: data.firstName,
       lastName: data.lastName,
       personalEmail,
       personalEmailVerifiedAt: null,
-      role: UserRole.SUPER_USER,
+      role,
       status: UserStatus.ACTIVE,
       emailVerifiedAt: now,
       mustChangePassword: true,
-      institutionId: null,
+      institutionId,
       requestedInstitutionId: null,
+      // An administrator deciding to create the account *is* the vouching,
+      // whatever rank it is given — there is nobody left to approve it.
       validationStatus: ValidationStatus.VALIDATED,
       validationMethod: ValidationMethod.MANUAL,
       validatedAt: now,

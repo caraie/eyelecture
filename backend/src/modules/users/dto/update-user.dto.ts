@@ -12,6 +12,10 @@ import {
 } from 'class-validator';
 import { UserRole } from '../enums/user-role.enum';
 import { UserStatus } from '../enums/user-status.enum';
+import {
+  USERNAME_PATTERN,
+  normalizeUsername,
+} from '../../auth/dto/register.dto';
 
 /** What a user may change about themselves. */
 export class UpdateProfileDto {
@@ -120,6 +124,43 @@ export class CreateAdminDto {
   @IsEmail({}, { message: 'The personal email address is not valid' })
   @MaxLength(320)
   personalEmail?: string;
+
+  /**
+   * Required, because sign-in goes through the username and nothing else.
+   * Its absence here is what made this endpoint unusable: `users.username` is
+   * NOT NULL with no default, so every call died on the insert.
+   */
+  @ApiProperty({ example: 'ana.perez' })
+  @IsString()
+  @Transform(({ value }) => normalizeUsername(String(value ?? '')))
+  @MinLength(3, { message: 'Username must be at least 3 characters long' })
+  @MaxLength(30)
+  @Matches(USERNAME_PATTERN, {
+    message:
+      'Username can use letters, numbers, dots, underscores and hyphens, and must ' +
+      'start and end with a letter or number',
+  })
+  username!: string;
+
+  /**
+   * Left out, this still makes a super user, so every existing caller keeps
+   * the behaviour it had. Set it to stand up an account of any other rank —
+   * a test account, or somebody who will not be self-registering.
+   */
+  @ApiPropertyOptional({ enum: UserRole, default: UserRole.SUPER_USER })
+  @IsOptional()
+  @IsEnum(UserRole)
+  role?: UserRole;
+
+  /**
+   * A trainee rank is expected to belong to an institution; a super user
+   * never does. Ignored for SUPER_USER rather than refused, so the common
+   * call does not have to know the rule.
+   */
+  @ApiPropertyOptional({ format: 'uuid' })
+  @IsOptional()
+  @IsUUID()
+  institutionId?: string;
 }
 
 /** Editing another account as an administrator. */

@@ -141,6 +141,140 @@ describe('UsersService', () => {
     service = moduleRef.get(UsersService);
   });
 
+  /**
+   * These exist because the endpoint shipped unusable: nothing ever created an
+   * account through the service and looked at what came out, so a missing
+   * username — NOT NULL, no default — was invisible until the insert ran.
+   */
+  describe('createAdmin', () => {
+    /** Both "is this taken?" checks count rows through a query builder. */
+    const taken = (...counts: number[]) => {
+      const getCount = jest.fn();
+      for (const count of counts) getCount.mockResolvedValueOnce(count);
+      getCount.mockResolvedValue(0);
+
+      repo.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        getCount,
+      });
+    };
+
+    beforeEach(() => {
+      taken(0, 0);
+    });
+
+    it('persists the username, without which nobody can sign in', async () => {
+      await service.createAdmin(
+        {
+          email: 'nuevo@eyelecture.test',
+          username: 'nuevo.admin',
+          passwordHash: 'hashed',
+          firstName: 'Nuevo',
+          lastName: 'Admin',
+        },
+        'creator-1',
+      );
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ username: 'nuevo.admin' }),
+      );
+    });
+
+    it('still makes a super user when no role is given', async () => {
+      await service.createAdmin(
+        {
+          email: 'nuevo@eyelecture.test',
+          username: 'nuevo.admin',
+          passwordHash: 'hashed',
+          firstName: 'Nuevo',
+          lastName: 'Admin',
+        },
+        'creator-1',
+      );
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ role: UserRole.SUPER_USER }),
+      );
+    });
+
+    it('creates the rank it was asked for, with its institution', async () => {
+      await service.createAdmin(
+        {
+          email: 'student@einsteinmed.test',
+          username: 'test.student',
+          passwordHash: 'hashed',
+          firstName: 'Test',
+          lastName: 'Student',
+          role: UserRole.MEDICAL_STUDENT,
+          institutionId: 'inst-einstein',
+        },
+        'creator-1',
+      );
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          role: UserRole.MEDICAL_STUDENT,
+          institutionId: 'inst-einstein',
+        }),
+      );
+    });
+
+    it('keeps a super user out of any institution', async () => {
+      await service.createAdmin(
+        {
+          email: 'nuevo@eyelecture.test',
+          username: 'nuevo.admin',
+          passwordHash: 'hashed',
+          firstName: 'Nuevo',
+          lastName: 'Admin',
+          institutionId: 'inst-einstein',
+        },
+        'creator-1',
+      );
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ institutionId: null }),
+      );
+    });
+
+    it('asks for the password to be replaced at first sign-in', async () => {
+      await service.createAdmin(
+        {
+          email: 'nuevo@eyelecture.test',
+          username: 'nuevo.admin',
+          passwordHash: 'hashed',
+          firstName: 'Nuevo',
+          lastName: 'Admin',
+        },
+        'creator-1',
+      );
+
+      expect(repo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ mustChangePassword: true }),
+      );
+    });
+
+    it('refuses a username somebody already has', async () => {
+      // First count is the address, second is the username.
+      taken(0, 1);
+
+      await expect(
+        service.createAdmin(
+          {
+            email: 'nuevo@eyelecture.test',
+            username: 'taken',
+            passwordHash: 'hashed',
+            firstName: 'Nuevo',
+            lastName: 'Admin',
+          },
+          'creator-1',
+        ),
+      ).rejects.toThrow(/username is already taken/);
+    });
+  });
+
   describe('email helpers', () => {
     it('lowercases and trims addresses', () => {
       expect(normalizeEmail('  Ana.Perez@Stanford.EDU ')).toBe('ana.perez@stanford.edu');

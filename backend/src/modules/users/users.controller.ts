@@ -143,8 +143,9 @@ export class UsersController {
   @Post('admins')
   @Roles(UserRole.SUPER_USER)
   @ApiOperation({
-    summary: 'Create another administrator',
+    summary: 'Create an account',
     description:
+      'Defaults to another administrator; pass a role to create any other rank. ' +
       'The account is created active and validated — an admin deciding to grant this ' +
       'is the approval. The temporary password must be replaced at first sign-in.',
   })
@@ -156,10 +157,13 @@ export class UsersController {
       await this.users.createAdmin(
         {
           email: dto.email,
+          username: dto.username,
           passwordHash: await hashPassword(dto.temporaryPassword),
           firstName: dto.firstName,
           lastName: dto.lastName,
           ...(dto.personalEmail ? { personalEmail: dto.personalEmail } : {}),
+          ...(dto.role ? { role: dto.role } : {}),
+          ...(dto.institutionId ? { institutionId: dto.institutionId } : {}),
         },
         admin.id,
       ),
