@@ -21,20 +21,29 @@ export const authGuard: CanActivateFn = (_route, state): boolean | UrlTree => {
     });
   }
 
-  // Order matters: a temporary password is checked first, because somebody who has
-  // both problems has to solve that one before anything else is worth asking for.
-  if (auth.mustChangePassword() && !state.url.startsWith(FORCED_PASSWORD_ROUTE)) {
-    return router.createUrlTree([FORCED_PASSWORD_ROUTE]);
-  }
+  // One destination, decided before anything is compared against the URL.
+  //
+  // Checking each requirement against the URL in turn looks equivalent and is
+  // not: with two of them outstanding, the screen for the first fails the test
+  // for the second and vice versa, and the router ping-pongs between them
+  // until the tab stops responding. An account on a temporary password with no
+  // personal address — which is every account an admin creates — could not
+  // sign in at all.
+  //
+  // Order still matters, and it is the same order: the password first, because
+  // somebody who has several problems has to solve that one before anything
+  // else is worth asking for; the personal address last, because it only
+  // applies to accounts that already finished signing up.
+  const pinnedTo = auth.mustChangePassword()
+    ? FORCED_PASSWORD_ROUTE
+    : auth.mustCompleteProfile()
+      ? COMPLETE_PROFILE_ROUTE
+      : auth.needsPersonalEmail()
+        ? PERSONAL_EMAIL_ROUTE
+        : null;
 
-  if (auth.mustCompleteProfile() && !state.url.startsWith(COMPLETE_PROFILE_ROUTE)) {
-    return router.createUrlTree([COMPLETE_PROFILE_ROUTE]);
-  }
-
-  // Last of the three, because it only applies to accounts that already finished
-  // signing up — the ones made before a personal address was required.
-  if (auth.needsPersonalEmail() && !state.url.startsWith(PERSONAL_EMAIL_ROUTE)) {
-    return router.createUrlTree([PERSONAL_EMAIL_ROUTE]);
+  if (pinnedTo && !state.url.startsWith(pinnedTo)) {
+    return router.createUrlTree([pinnedTo]);
   }
 
   return true;
