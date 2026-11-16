@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -40,6 +40,7 @@ export class MyLecturesComponent {
   private readonly api = inject(LecturesService);
   private readonly bank = inject(LectureBankService);
   private readonly notify = inject(NotificationService);
+  private readonly router = inject(Router);
 
   readonly loading = signal(true);
   readonly lectures = signal<Lecture[]>([]);
@@ -86,9 +87,16 @@ export class MyLecturesComponent {
         this.title.set('');
         this.lectures.update((all) => [lecture, ...all]);
         this.notify.success(`${lecture.title} created as a draft`);
+        // Straight into it. A new lecture is empty by definition, so the next
+        // thing anybody wants is the screen where they add the presentation —
+        // leaving them on the list meant finding the row they just made and
+        // pressing Edit.
+        void this.router.navigate(['/app/lectures/edit', lecture.id]);
       },
       error: (error: unknown) => {
         this.creating.set(false);
+        // The title is deliberately left in the field: they stay here and can
+        // press the button again without typing it a second time.
         this.notify.showHttpError(error, 'Could not create that lecture');
       },
     });

@@ -30,8 +30,16 @@
     <section class="el-card block">
       <h2 class="el-title">Files</h2>
 
+      <p class="f-hint">Drop a file on a slot, or use the buttons.</p>
+
       @for (kind of kinds; track kind) {
-        <div class="file">
+        <div
+          class="file"
+          [class.over]="dragOver() === kind"
+          (dragover)="onDragOver(kind, $event)"
+          (dragleave)="onDragLeave(kind)"
+          (drop)="onDrop(kind, $event)"
+        >
           <div class="f-head">
             <p class="f-label">{{ rules[kind].label }}</p>
             <span class="f-max">up to {{ rules[kind].maxLabel }}</span>

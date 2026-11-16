@@ -165,6 +165,67 @@ export class LectureEditorComponent {
     });
   }
 
+  /** Which slot a file is currently hovering over, for the drop outline. */
+  readonly dragOver = signal<LectureAssetKind | null>(null);
+
+  /**
+   * Dropping a file on a slot does exactly what its Upload button does.
+   *
+   * `dragover` has to be cancelled for a drop to be allowed at all, and
+   * without that the browser navigates away to display the file — taking the
+   * half-filled form with it.
+   */
+  onDragOver(kind: LectureAssetKind, event: DragEvent): void {
+    event.preventDefault();
+    if (this.uploading()) return;
+    this.dragOver.set(kind);
+  }
+
+  onDragLeave(kind: LectureAssetKind): void {
+    if (this.dragOver() === kind) this.dragOver.set(null);
+  }
+
+  onDrop(kind: LectureAssetKind, event: DragEvent): void {
+    event.preventDefault();
+    this.dragOver.set(null);
+    if (this.uploading()) return;
+
+    const files = Array.from(event.dataTransfer?.files ?? []);
+    if (!files.length) return;
+    if (files.length > 1) {
+      this.notify.info(
+        `One file per slot — taking ${files[0].name} and leaving the rest.`,
+      );
+    }
+
+    const file = files[0];
+    // The same rule the file picker enforces, applied here too: a drop
+    // bypasses `accept` entirely, so without this the server would be the
+    // first thing to say no, after the whole file had gone up.
+    if (!this.accepts(kind, file)) {
+      this.notify.error(
+        `${file.name} is not ${this.rules[kind].label.toLowerCase()}.`,
+      );
+      return;
+    }
+
+    this.send(kind, file);
+  }
+
+  /** Does this file match the slot's `accept` list, by type or by extension? */
+  private accepts(kind: LectureAssetKind, file: File): boolean {
+    const patterns = this.rules[kind].accept
+      .split(',')
+      .map((pattern) => pattern.trim().toLowerCase())
+      .filter(Boolean);
+    const name = file.name.toLowerCase();
+    const type = file.type.toLowerCase();
+
+    return patterns.some((pattern) =>
+      pattern.startsWith('.') ? name.endsWith(pattern) : type === pattern,
+    );
+  }
+
   pick(kind: LectureAssetKind, input: HTMLInputElement): void {
     const file = input.files?.[0];
     // Clearing it means picking the same file twice in a row still fires a
@@ -172,12 +233,17 @@ export class LectureEditorComponent {
     input.value = '';
     if (!file) return;
 
+    this.send(kind, file);
+  }
+
+  /** The upload itself, shared by the file picker and by dropping a file. */
+  private send(kind: LectureAssetKind, file: File): void {
+    const lecture = this.lecture();
+    if (!lecture) return;
+
     this.uploading.set(kind);
     this.progress.set(0);
     this.converting.set(false);
-
-    const lecture = this.lecture();
-    if (!lecture) return;
 
     this.api.upload(lecture.id, kind, file).subscribe({
       next: (event) => {

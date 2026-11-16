@@ -13,6 +13,30 @@ export class App {
 
   constructor() {
     this.watchForRestoredPages();
+    this.swallowStrayFileDrops();
+  }
+
+  /**
+   * A file dropped anywhere the app is not expecting one does nothing.
+   *
+   * The browser's default is to navigate to the dropped file and display it,
+   * which throws away whatever was on screen — a lecture form filled in but
+   * not saved, most of the time. Missing the upload slot by a few pixels
+   * should cost nothing.
+   *
+   * Only drags that carry files. Cancelling every drop would also stop
+   * somebody dropping selected text into a textarea, which is a perfectly
+   * good thing to do and has nothing to do with uploads.
+   */
+  private swallowStrayFileDrops(): void {
+    const carriesFiles = (event: DragEvent): boolean =>
+      Array.from(event.dataTransfer?.types ?? []).includes('Files');
+
+    for (const name of ['dragover', 'drop'] as const) {
+      window.addEventListener(name, (event: DragEvent) => {
+        if (carriesFiles(event)) event.preventDefault();
+      });
+    }
   }
 
   /**

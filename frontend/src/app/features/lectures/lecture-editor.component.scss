@@ -78,11 +78,32 @@
   mat-form-field { width: 100%; margin-bottom: var(--sp-3); }
 }
 
+.f-hint {
+  margin: 0 0 var(--sp-3);
+  font-size: 12.5px;
+  color: var(--md-sys-color-on-surface-muted);
+}
+
 .file {
   padding: var(--sp-3) 0;
   border-top: 1px solid var(--md-sys-color-outline-variant);
 
   &:first-of-type { border-top: 0; padding-top: 0; }
+
+  /* While a file is over this slot. The dashed outline is inset so the three
+     slots do not shift as it appears — a layout that jumps under a dragged
+     file is how you drop it on the wrong one. */
+  &.over {
+    position: relative;
+    border-radius: var(--md-sys-shape-corner-medium);
+    background: color-mix(
+      in srgb,
+      var(--md-sys-color-primary) 6%,
+      transparent
+    );
+    outline: 2px dashed var(--md-sys-color-primary);
+    outline-offset: -4px;
+  }
 }
 
 .f-head {
