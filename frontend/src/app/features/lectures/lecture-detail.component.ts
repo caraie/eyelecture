@@ -47,6 +47,8 @@ export class LectureDetailComponent {
   readonly slidesUrl = signal<string | null>(null);
   readonly videoUrl = signal<string | null>(null);
   readonly videoError = signal<string | null>(null);
+  /** Drives the big play button. True until the video is actually running. */
+  readonly videoPaused = signal(true);
   readonly completedAt = signal<string | null>(null);
 
   readonly hasVideo = computed(() =>

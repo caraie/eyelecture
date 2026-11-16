@@ -146,6 +146,17 @@
   font-weight: 500;
 }
 
+/* A button that happens to be a link is still a button.
+   `<a mat-stroked-button routerLink>` is how a button that navigates is
+   written, and it was picking up the underline every other anchor gets on
+   hover — so Edit underlined itself and Mark as read, a real <button> beside
+   it, did not. */
+a.mat-mdc-button-base,
+a.mat-mdc-button-base:hover,
+a.mat-mdc-button-base:focus {
+  text-decoration: none;
+}
+
 /* A button is as wide as its label, full stop.
    Put one in a flex row next to a text input and the input takes every pixel it
    can while the button, being shrinkable by default, gets squeezed until

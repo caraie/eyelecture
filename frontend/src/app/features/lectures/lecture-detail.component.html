@@ -113,12 +113,29 @@
                    player is here to be pressed, not to start downloading a
                    lecture-length video on the chance somebody wants it. -->
               <video
+                #player
                 class="video"
                 controls
                 preload="none"
                 controlsList="nodownload"
                 [src]="url"
+                (play)="videoPaused.set(false)"
+                (pause)="videoPaused.set(true)"
               ></video>
+
+              <!-- The native play control sits in the corner at 12px. This is
+                   the one people actually aim at, in our own colours. It is
+                   clear of the controls bar, so it never covers the scrubber. -->
+              @if (videoPaused()) {
+                <button
+                  type="button"
+                  class="v-play"
+                  aria-label="Play the video"
+                  (click)="player.play()"
+                >
+                  <mat-icon>play_arrow</mat-icon>
+                </button>
+              }
             } @else if (videoError()) {
               <p class="v-msg">{{ videoError() }}</p>
             } @else {

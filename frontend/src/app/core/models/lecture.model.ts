@@ -172,7 +172,14 @@ export interface UploadTicket {
  */
 export const ASSET_RULES: Record<
   LectureAssetKind,
-  { accept: string; label: string; maxLabel: string }
+  {
+    accept: string;
+    /** The heading over the slot. */
+    label: string;
+    /** Reads after "that file is not …", so it carries its own article. */
+    takes: string;
+    maxLabel: string;
+  }
 > = {
   presentation: {
     // The deck is converted to a PDF server-side; both are kept. `.pptx` and
@@ -184,16 +191,19 @@ export const ASSET_RULES: Record<
       'application/vnd.ms-powerpoint,.ppt,' +
       'application/vnd.oasis.opendocument.presentation,.odp',
     label: 'Presentation (PDF or PowerPoint)',
+    takes: 'a PDF or a PowerPoint deck',
     maxLabel: '200 MB',
   },
   video: {
     accept: 'video/mp4,video/quicktime',
     label: 'Video (MP4 or MOV)',
+    takes: 'an MP4 or MOV video',
     maxLabel: '5 GB',
   },
   tile: {
     accept: 'image/jpeg,image/png,image/webp',
     label: 'Tile image',
+    takes: 'a JPEG, PNG or WebP image',
     maxLabel: '10 MB',
   },
 };

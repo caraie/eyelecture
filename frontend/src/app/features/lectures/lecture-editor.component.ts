@@ -203,9 +203,7 @@ export class LectureEditorComponent {
     // bypasses `accept` entirely, so without this the server would be the
     // first thing to say no, after the whole file had gone up.
     if (!this.accepts(kind, file)) {
-      this.notify.error(
-        `${file.name} is not ${this.rules[kind].label.toLowerCase()}.`,
-      );
+      this.notify.error(`${file.name} is not ${this.rules[kind].takes}.`);
       return;
     }
 
