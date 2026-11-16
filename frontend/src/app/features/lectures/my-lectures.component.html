@@ -55,41 +55,49 @@
 } @else if (lectures().length === 0) {
   <p class="none">You have not written a lecture yet.</p>
 } @else {
-  <ul class="rows">
+  <ul class="grid">
     @for (lecture of lectures(); track lecture.id) {
-      <li class="el-card row">
-        <div class="main">
-          <!-- The title opens the lecture as a reader sees it; Edit beside it
-               opens the editor. Both pointed at the editor, which left an
-               author with no way at all to look at a draft. -->
+      <li class="el-card card">
+        <!-- The thumbnail and the title both open the lecture as a reader
+             sees it; Edit below opens the editor. -->
+        <a class="thumb" [routerLink]="['/app/lectures', lecture.id]">
+          @if (lecture.tileUrl) {
+            <img [src]="lecture.tileUrl" [alt]="" loading="lazy" />
+          } @else {
+            <!-- Not a gap and not a broken image: a lecture without a tile
+                 should look unfinished, not malfunctioning. -->
+            <span class="no-thumb"><mat-icon>image</mat-icon></span>
+          }
+
+          @if (hasFile(lecture, 'video')) {
+            <span class="badge"><mat-icon>play_arrow</mat-icon> Video</span>
+          }
+        </a>
+
+        <div class="body">
           <a class="t" [routerLink]="['/app/lectures', lecture.id]">
             {{ lecture.title }}
           </a>
           <p class="shelf-line">{{ shelfOf(lecture) }}</p>
+
+          <div class="foot">
+            <span class="status" [class.live]="lecture.status === 'published'">
+              {{ lecture.status === 'published' ? 'Published' : 'Draft' }}
+            </span>
+
+            @if (!hasFile(lecture, 'presentation')) {
+              <span class="chip missing">
+                <mat-icon>picture_as_pdf</mat-icon> No slides
+              </span>
+            }
+
+            <span class="spacer"></span>
+
+            <a mat-stroked-button [routerLink]="['/app/lectures/edit', lecture.id]">
+              Edit
+            </a>
+          </div>
         </div>
-
-        <div class="files">
-          @if (hasFile(lecture, 'presentation')) {
-            <span class="chip ok"><mat-icon>picture_as_pdf</mat-icon> Slides</span>
-          } @else {
-            <span class="chip missing"><mat-icon>picture_as_pdf</mat-icon> No slides</span>
-          }
-          @if (hasFile(lecture, 'video')) {
-            <span class="chip ok"><mat-icon>movie</mat-icon> Video</span>
-          }
-        </div>
-
-        <span class="status" [class.live]="lecture.status === 'published'">
-          {{ lecture.status === 'published' ? 'Published' : 'Draft' }}
-        </span>
-
-        <a
-          mat-stroked-button
-          [routerLink]="['/app/lectures/edit', lecture.id]"
-          class="edit"
-        >
-          Edit
-        </a>
       </li>
     }
   </ul>

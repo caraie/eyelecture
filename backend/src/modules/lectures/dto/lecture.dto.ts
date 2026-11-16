@@ -153,6 +153,11 @@ export class LectureResponseDto {
   createdByName!: string | null;
   @ApiProperty({ nullable: true }) institutionName!: string | null;
   @ApiProperty({ type: [CoAuthorDto] }) coAuthors!: CoAuthorDto[];
+  @ApiProperty({
+    nullable: true,
+    description: 'Short-lived link to the tile image, for listing thumbnails',
+  })
+  tileUrl!: string | null;
   @ApiProperty({ type: [LectureAssetDto] }) assets!: LectureAssetDto[];
   @ApiProperty({ description: 'Zero means the lecture has no quiz' })
   questionCount!: number;
@@ -182,6 +187,7 @@ export class LectureResponseDto {
           : null,
       institutionName: lecture.institution?.name ?? null,
       coAuthors: (lecture.coAuthors ?? []).map(CoAuthorDto.from),
+      tileUrl: lecture.tileUrl ?? null,
       assets: (lecture.assets ?? [])
         .filter((asset) => asset.uploadedAt !== null)
         .map(LectureAssetDto.from),

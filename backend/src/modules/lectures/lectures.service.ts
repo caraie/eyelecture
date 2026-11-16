@@ -191,6 +191,46 @@ export class LecturesService {
     for (const lecture of lectures) {
       lecture.coAuthors = byLecture.get(lecture.id) ?? [];
     }
+    return this.withTileUrls(lectures);
+  }
+
+  /**
+   * Fills in `tileUrl` so a listing can show thumbnails.
+   *
+   * Signed in parallel rather than one after another: without a private key
+   * the signer asks the IAM API each time, so a page of twenty lectures is
+   * twenty round trips — concurrently that is about one trip's worth of wait,
+   * sequentially it is twenty.
+   *
+   * A link that cannot be minted is left null. A missing thumbnail is a card
+   * with a placeholder on it; a thrown error is a lecture bank that does not
+   * load at all.
+   */
+  private async withTileUrls(lectures: Lecture[]): Promise<Lecture[]> {
+    await Promise.all(
+      lectures.map(async (lecture) => {
+        const tile = lecture.assets?.find(
+          (asset) =>
+            asset.kind === LectureAssetKind.TILE && asset.uploadedAt !== null,
+        );
+        if (!tile) {
+          lecture.tileUrl = null;
+          return;
+        }
+
+        try {
+          lecture.tileUrl = await this.storage.readUrl(
+            tile.objectKey,
+            tile.fileName,
+          );
+        } catch (error) {
+          this.logger.warn(
+            `Could not sign the tile for ${lecture.id}: ${String(error)}`,
+          );
+          lecture.tileUrl = null;
+        }
+      }),
+    );
     return lectures;
   }
 

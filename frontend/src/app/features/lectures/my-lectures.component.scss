@@ -35,30 +35,86 @@
   }
 }
 
-.rows {
+/* Thumbnail cards, like a video library — the shelf is scanned by eye.
+   auto-fill rather than a fixed count, so the grid keeps its card width
+   instead of stretching three cards across a wide screen. */
+.grid {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--sp-4);
 }
 
-.row {
+.card {
   display: flex;
-  align-items: center;
-  gap: var(--sp-4);
-  padding: var(--sp-3) var(--sp-4);
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
 
-  .main {
-    flex: 1 1 auto;
-    min-width: 0;
+.thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--md-sys-color-surface-container);
+  overflow: hidden;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
+}
 
+.no-thumb {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+
+  mat-icon {
+    font-size: 34px;
+    width: 34px;
+    height: 34px;
+    color: var(--md-sys-color-outline);
+  }
+}
+
+/* Bottom-right, where a running time sits on a video thumbnail. */
+.badge {
+  position: absolute;
+  right: var(--sp-2);
+  bottom: var(--sp-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px 2px 4px;
+  border-radius: var(--md-sys-shape-corner-sm);
+  background: rgb(0 0 0 / 72%);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 600;
+
+  mat-icon { font-size: 15px; width: 15px; height: 15px; }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-3) var(--sp-4) var(--sp-4);
+  flex: 1 1 auto;
+}
+
+.card {
   .t {
     font-family: var(--font-display);
-    font-size: 16px;
+    font-size: 15.5px;
     font-weight: 600;
+    line-height: 1.35;
     color: var(--md-sys-color-on-surface);
     text-decoration: none;
 
@@ -70,6 +126,18 @@
     font-size: 13px;
     color: var(--md-sys-color-on-surface-muted);
   }
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  /* Pinned to the bottom, so the row of cards lines up however long the
+     titles are. */
+  margin-top: auto;
+  padding-top: var(--sp-3);
+
+  .spacer { flex: 1; }
 }
 
 .files {

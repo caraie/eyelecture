@@ -42,6 +42,12 @@ export interface Lecture {
   createdByName: string | null;
   institutionName: string | null;
   assets: LectureAsset[];
+  /**
+   * A short-lived link to the tile image, for the listing thumbnails. Minted
+   * with the list so a page of cards is one request, not one per card. Null
+   * when the lecture has no tile.
+   */
+  tileUrl: string | null;
   coAuthors: CoAuthor[];
   /** Zero means the lecture has no quiz at all. */
   questionCount: number;

@@ -11,7 +11,6 @@ import { Lecture } from './entities/lecture.entity';
 import { LectureAsset } from './entities/lecture-asset.entity';
 import { QuizQuestion } from './entities/quiz-question.entity';
 import { LectureCoAuthor } from './entities/lecture-co-author.entity';
-import { User } from '../users/entities/user.entity';
 import { Subsection } from '../lecture-bank/entities/subsection.entity';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/enums/user-role.enum';

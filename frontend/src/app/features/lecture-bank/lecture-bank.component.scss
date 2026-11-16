@@ -188,7 +188,57 @@
 }
 
 .lecture {
-  padding: var(--sp-4);
+  /* The thumbnail runs to the card's edges, so the padding moves inside. */
+  padding: 0;
+  overflow: hidden;
+
+  .thumb {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    background: var(--md-sys-color-surface-container);
+    overflow: hidden;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  .no-thumb {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+
+    mat-icon {
+      font-size: 34px;
+      width: 34px;
+      height: 34px;
+      color: var(--md-sys-color-outline);
+    }
+  }
+
+  .badge {
+    position: absolute;
+    right: var(--sp-2);
+    bottom: var(--sp-2);
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 8px 2px 4px;
+    border-radius: var(--md-sys-shape-corner-sm);
+    background: rgb(0 0 0 / 72%);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+
+    mat-icon { font-size: 15px; width: 15px; height: 15px; }
+  }
+
+  .body { padding: var(--sp-4); }
 
   .t {
     font-family: var(--font-display);

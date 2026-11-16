@@ -111,6 +111,19 @@
         <ul class="lectures">
           @for (lecture of lectures(); track lecture.id) {
             <li class="el-card el-card-hover lecture">
+              <a class="thumb" [routerLink]="['/app/lectures', lecture.id]">
+                @if (lecture.tileUrl) {
+                  <img [src]="lecture.tileUrl" [alt]="" loading="lazy" />
+                } @else {
+                  <span class="no-thumb"><mat-icon>image</mat-icon></span>
+                }
+
+                @if (hasVideo(lecture)) {
+                  <span class="badge"><mat-icon>play_arrow</mat-icon> Video</span>
+                }
+              </a>
+
+              <div class="body">
               <a class="t" [routerLink]="['/app/lectures', lecture.id]">
                 {{ lecture.title }}
               </a>
@@ -131,9 +144,14 @@
               </p>
               <div class="marks">
                 <span class="chip"><mat-icon>picture_as_pdf</mat-icon> Slides</span>
-                @if (hasVideo(lecture)) {
-                  <span class="chip"><mat-icon>movie</mat-icon> Video</span>
+                @if (lecture.questionCount > 0) {
+                  <span class="chip">
+                    <mat-icon>quiz</mat-icon>
+                    {{ lecture.questionCount }}
+                    {{ lecture.questionCount === 1 ? 'question' : 'questions' }}
+                  </span>
                 }
+              </div>
               </div>
             </li>
           }

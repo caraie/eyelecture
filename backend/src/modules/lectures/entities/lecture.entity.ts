@@ -145,6 +145,13 @@ export class Lecture {
    */
   coAuthors?: LectureCoAuthor[];
 
+  /**
+   * Not a column either. A short-lived link to the tile image, minted with
+   * the list so a page of cards is one request rather than one per card.
+   * Null when the lecture has no tile.
+   */
+  tileUrl?: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
