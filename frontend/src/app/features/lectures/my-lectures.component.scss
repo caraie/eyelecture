@@ -35,6 +35,26 @@
   }
 }
 
+/* Reads as a problem rather than as a tidy empty list. */
+.trouble {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+
+  > div { flex: 1; min-width: 0; }
+
+  mat-icon { flex: none; color: var(--md-sys-color-error); }
+
+  .t { margin: 0; font-weight: 600; font-size: 14.5px; }
+
+  .s {
+    margin: 2px 0 0;
+    font-size: 13.5px;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+}
+
 /* Thumbnail cards, like a video library — the shelf is scanned by eye.
    auto-fill rather than a fixed count, so the grid keeps its card width
    instead of stretching three cards across a wide screen. */

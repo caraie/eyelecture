@@ -11,6 +11,20 @@
 
 @if (loading()) {
   <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (sectionsError(); as problem) {
+  <!-- Never the empty state when the load failed: saying "no sections yet"
+       to somebody the API is refusing explains their own account away as
+       somebody else's missing setup. -->
+  <section class="el-card trouble">
+    <mat-icon>error_outline</mat-icon>
+    <div>
+      <p class="t">The lecture bank could not be loaded</p>
+      <p class="s">{{ problem }}</p>
+    </div>
+    <button mat-stroked-button type="button" (click)="reload()">
+      Try again
+    </button>
+  </section>
 } @else {
   <div class="bank">
     <nav class="el-card side" aria-label="Sections">
@@ -99,6 +113,17 @@
 
       @if (loadingLectures()) {
         <div class="state"><mat-spinner diameter="24" /></div>
+      } @else if (lecturesError(); as problem) {
+        <div class="el-card trouble">
+          <mat-icon>error_outline</mat-icon>
+          <div>
+            <p class="t">These lectures could not be loaded</p>
+            <p class="s">{{ problem }}</p>
+          </div>
+          <button mat-stroked-button type="button" (click)="reload()">
+            Try again
+          </button>
+        </div>
       } @else if (lectures().length === 0) {
         <div class="el-card empty">
           <mat-icon>video_library</mat-icon>

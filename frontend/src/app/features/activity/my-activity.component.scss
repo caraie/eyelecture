@@ -22,6 +22,26 @@
   .el-title { margin: 0; }
 }
 
+/* Reads as a problem rather than as a tidy empty history. */
+.trouble {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+
+  > div { flex: 1; min-width: 0; }
+
+  mat-icon { flex: none; color: var(--md-sys-color-error); }
+
+  .t { margin: 0; font-weight: 600; font-size: 14.5px; }
+
+  .s {
+    margin: 2px 0 0;
+    font-size: 13.5px;
+    color: var(--md-sys-color-on-surface-variant);
+  }
+}
+
 .empty {
   padding: var(--sp-10) var(--sp-6);
   text-align: center;

@@ -61,6 +61,9 @@ export class MyActivityComponent {
   readonly loading = signal(true);
   readonly attempts = signal<QuizAttemptSummary[]>([]);
 
+  /** Why the history is not here. See the note in the lecture bank. */
+  readonly loadError = signal<string | null>(null);
+
   /** Filters applied here rather than refetching — the history is one list. */
   readonly lectureFilter = signal<string>('');
   readonly phaseFilter = signal<QuizPhase | ''>('');
@@ -130,6 +133,13 @@ export class MyActivityComponent {
   });
 
   constructor() {
+    this.load();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    this.loadError.set(null);
+
     this.api.history().subscribe({
       next: (attempts) => {
         this.attempts.set(attempts);
@@ -137,7 +147,10 @@ export class MyActivityComponent {
       },
       error: (error: unknown) => {
         this.loading.set(false);
-        this.notify.showHttpError(error, 'Could not load your activity');
+        this.attempts.set([]);
+        this.loadError.set(
+          this.notify.fromHttpError(error, 'Could not load your activity'),
+        );
       },
     });
   }

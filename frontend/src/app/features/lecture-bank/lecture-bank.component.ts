@@ -42,6 +42,17 @@ export class LectureBankComponent {
   readonly sections = signal<Section[]>([]);
   readonly filter = signal<BankFilter>({ kind: 'all' });
 
+  /**
+   * Why a list is not here, when it is not here because something failed.
+   *
+   * Kept apart from "the list is empty" on purpose. A toast says it once and
+   * disappears; what stays on screen was the empty state, telling a blocked
+   * learner that the library has nothing in it and an administrator has not
+   * set it up — a confident explanation, and the wrong one.
+   */
+  readonly sectionsError = signal<string | null>(null);
+  readonly lecturesError = signal<string | null>(null);
+
   /** Expanded sections. The selected one is always open; the rest start closed. */
   readonly expanded = signal<Set<string>>(new Set());
 
@@ -83,6 +94,7 @@ export class LectureBankComponent {
 
   private loadLectures(current: BankFilter): void {
     this.loadingLectures.set(true);
+    this.lecturesError.set(null);
     this.lectureApi
       .list({
         sectionId: current.kind === 'section' ? current.sectionId : undefined,
@@ -96,7 +108,10 @@ export class LectureBankComponent {
         },
         error: (error: unknown) => {
           this.loadingLectures.set(false);
-          this.notify.showHttpError(error, 'Could not load the lectures');
+          this.lectures.set([]);
+          this.lecturesError.set(
+            this.notify.fromHttpError(error, 'Could not load the lectures'),
+          );
         },
       });
   }
@@ -107,6 +122,7 @@ export class LectureBankComponent {
 
   load(): void {
     this.loading.set(true);
+    this.sectionsError.set(null);
     this.api.sections().subscribe({
       next: (sections) => {
         this.sections.set(sections);
@@ -114,9 +130,18 @@ export class LectureBankComponent {
       },
       error: (error: unknown) => {
         this.loading.set(false);
-        this.notify.showHttpError(error, 'Could not load the lecture bank');
+        this.sections.set([]);
+        this.sectionsError.set(
+          this.notify.fromHttpError(error, 'Could not load the lecture bank'),
+        );
       },
     });
+  }
+
+  /** Both lists, for the retry buttons. */
+  reload(): void {
+    this.load();
+    this.loadLectures(this.filter());
   }
 
   isExpanded(sectionId: string): boolean {

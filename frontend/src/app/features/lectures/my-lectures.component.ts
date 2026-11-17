@@ -42,6 +42,14 @@ export class MyLecturesComponent {
   private readonly notify = inject(NotificationService);
   private readonly router = inject(Router);
 
+  /** Why the list is not here. See the note in the lecture bank. */
+  readonly loadError = signal<string | null>(null);
+
+  reload(): void {
+    this.loadError.set(null);
+    this.load();
+  }
+
   readonly loading = signal(true);
   readonly lectures = signal<Lecture[]>([]);
   readonly sections = signal<Section[]>([]);
@@ -70,7 +78,10 @@ export class MyLecturesComponent {
       },
       error: (error: unknown) => {
         this.loading.set(false);
-        this.notify.showHttpError(error, 'Could not load your lectures');
+        this.lectures.set([]);
+        this.loadError.set(
+          this.notify.fromHttpError(error, 'Could not load your lectures'),
+        );
       },
     });
   }

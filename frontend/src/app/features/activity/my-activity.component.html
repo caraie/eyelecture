@@ -5,6 +5,17 @@
 
 @if (loading()) {
   <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (loadError(); as problem) {
+  <section class="el-card trouble">
+    <mat-icon>error_outline</mat-icon>
+    <div>
+      <p class="t">Your activity could not be loaded</p>
+      <p class="s">{{ problem }}</p>
+    </div>
+    <button mat-stroked-button type="button" (click)="load()">
+      Try again
+    </button>
+  </section>
 } @else if (!attempts().length) {
   <section class="el-card empty">
     <mat-icon>quiz</mat-icon>

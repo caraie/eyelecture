@@ -52,6 +52,17 @@
 
 @if (loading()) {
   <div class="state"><mat-spinner diameter="28" /></div>
+} @else if (loadError(); as problem) {
+  <section class="el-card trouble">
+    <mat-icon>error_outline</mat-icon>
+    <div>
+      <p class="t">Your lectures could not be loaded</p>
+      <p class="s">{{ problem }}</p>
+    </div>
+    <button mat-stroked-button type="button" (click)="reload()">
+      Try again
+    </button>
+  </section>
 } @else if (lectures().length === 0) {
   <p class="none">You have not written a lecture yet.</p>
 } @else {
