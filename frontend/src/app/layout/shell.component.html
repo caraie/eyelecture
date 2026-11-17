@@ -102,6 +102,9 @@
     }
 
     <main class="content">
+      <!-- Above the page's own content, so it is read before whatever the
+           screen is saying — including a screen that looks empty. -->
+      <el-account-banner />
       <router-outlet />
     </main>
   </div>

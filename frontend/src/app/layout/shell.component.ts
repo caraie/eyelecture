@@ -8,6 +8,7 @@ import { AuthService } from '../core/services/auth.service';
 import { ThemeService } from '../core/services/theme.service';
 import { UsersService } from '../core/services/users.service';
 import { EyeLogoComponent } from '../shared/components/eye-logo.component';
+import { AccountBannerComponent } from './account-banner.component';
 import { ROLE_LABELS, initialsOf } from '../core/models/user.model';
 
 interface NavItem {
@@ -30,6 +31,7 @@ interface NavItem {
     MatMenuModule,
     MatDividerModule,
     EyeLogoComponent,
+    AccountBannerComponent,
   ],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.scss',
