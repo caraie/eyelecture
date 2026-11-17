@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../core/services/auth.service';
@@ -26,7 +27,7 @@ import { NotificationService } from '../core/services/notification.service';
 @Component({
   selector: 'el-account-banner',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatIconModule, MatButtonModule],
+  imports: [RouterLink, MatIconModule, MatButtonModule],
   template: `
     @if (state(); as state) {
       <aside class="banner" [class.warn]="state.tone === 'warn'" role="status">
@@ -36,6 +37,12 @@ import { NotificationService } from '../core/services/notification.service';
           <span class="t">{{ state.title }}</span>
           <span class="s">{{ state.detail }}</span>
         </p>
+
+        @if (state.kind === 'no-personal-email') {
+          <a mat-stroked-button routerLink="/app/personal-email">
+            Add one now
+          </a>
+        }
 
         @if (state.kind === 'personal-email') {
           @if (sent()) {
@@ -75,12 +82,23 @@ export class AccountBannerComponent {
     if (!user) return null;
 
     // Pinned to a screen of its own: that screen is the explanation.
-    if (
-      this.auth.mustChangePassword() ||
-      this.auth.mustCompleteProfile() ||
-      this.auth.needsPersonalEmail()
-    ) {
+    if (this.auth.mustChangePassword() || this.auth.mustCompleteProfile()) {
       return null;
+    }
+
+    // No longer a lock, so this is the only thing that asks. It has to carry
+    // the reason, because "we need another address" on its own sounds like
+    // paperwork rather than the thing that keeps the account after graduation.
+    if (this.auth.needsPersonalEmail()) {
+      return {
+        kind: 'no-personal-email' as const,
+        tone: 'warn' as const,
+        icon: 'alternate_email',
+        title: 'Add a personal email address',
+        detail:
+          'Your account is tied to an address your institution controls. A ' +
+          'personal one is what keeps it when that mailbox is switched off.',
+      };
     }
 
     if (user.personalEmail && !user.personalEmailVerified) {

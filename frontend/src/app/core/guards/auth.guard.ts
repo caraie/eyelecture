@@ -34,13 +34,13 @@ export const authGuard: CanActivateFn = (_route, state): boolean | UrlTree => {
   // somebody who has several problems has to solve that one before anything
   // else is worth asking for; the personal address last, because it only
   // applies to accounts that already finished signing up.
+  // A missing personal address is deliberately absent: it is asked for by the
+  // banner in the shell, not by taking the app away. See EYE-22.
   const pinnedTo = auth.mustChangePassword()
     ? FORCED_PASSWORD_ROUTE
     : auth.mustCompleteProfile()
       ? COMPLETE_PROFILE_ROUTE
-      : auth.needsPersonalEmail()
-        ? PERSONAL_EMAIL_ROUTE
-        : null;
+      : null;
 
   if (pinnedTo && !state.url.startsWith(pinnedTo)) {
     return router.createUrlTree([pinnedTo]);
@@ -51,7 +51,6 @@ export const authGuard: CanActivateFn = (_route, state): boolean | UrlTree => {
 
 const FORCED_PASSWORD_ROUTE = '/app/change-password';
 const COMPLETE_PROFILE_ROUTE = '/app/complete-profile';
-const PERSONAL_EMAIL_ROUTE = '/app/personal-email';
 
 /**
  * The inverse, for the complete-profile screen. Somebody who already finished has

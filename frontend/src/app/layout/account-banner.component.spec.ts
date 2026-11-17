@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ComponentFixture } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import { provideRouter } from '@angular/router';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { AccountBannerComponent } from './account-banner.component';
@@ -58,6 +59,7 @@ describe('AccountBannerComponent', () => {
     TestBed.configureTestingModule({
       imports: [AccountBannerComponent],
       providers: [
+        provideRouter([]),
         { provide: AuthService, useValue: auth },
         {
           provide: NotificationService,
@@ -149,15 +151,42 @@ describe('AccountBannerComponent', () => {
     });
   });
 
+  describe('no personal address at all', () => {
+    beforeEach(() => {
+      auth.needsPersonalEmail.set(true);
+      auth.user.set(makeUser({ personalEmail: null }));
+      fixture.detectChanges();
+    });
+
+    it('asks for one, and says why it matters', () => {
+      expect(text()).toContain('Add a personal email address');
+      expect(text()).toContain('switched off');
+    });
+
+    it('links to the screen that adds one', () => {
+      const link = fixture.nativeElement.querySelector('a[href]');
+      expect(link?.getAttribute('href')).toBe('/app/personal-email');
+    });
+
+    it('takes priority over membership still being confirmed', () => {
+      auth.user.set(
+        makeUser({ personalEmail: null, validationStatus: 'pending' }),
+      );
+      fixture.detectChanges();
+
+      expect(text()).toContain('Add a personal email address');
+    });
+  });
+
   describe('on a screen somebody is pinned to', () => {
     /**
      * Those screens are the explanation already. A banner there would be a
-     * second copy of the heading being read.
+     * second copy of the heading being read. A missing personal address is
+     * deliberately not among them any more — it nags instead of locking.
      */
     it.each([
       ['a temporary password', 'mustChangePassword'],
       ['an unfinished profile', 'mustCompleteProfile'],
-      ['no personal address at all', 'needsPersonalEmail'],
     ])('stays out of the way for %s', (_label, flag) => {
       // Something that would otherwise show a banner.
       auth.user.set(makeUser({ validationStatus: 'pending' }));

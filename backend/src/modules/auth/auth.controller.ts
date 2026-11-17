@@ -34,7 +34,6 @@ import {
 import { Public } from '../../common/decorators/public.decorator';
 import { AllowPendingPasswordChange } from '../../common/decorators/allow-password-change.decorator';
 import { AllowPendingProfile } from '../../common/decorators/allow-pending-profile.decorator';
-import { AllowMissingPersonalEmail } from '../../common/decorators/allow-missing-personal-email.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { UserResponseDto } from '../users/dto/user-response.dto';
@@ -195,7 +194,6 @@ export class AuthController {
 
   @Post('personal-email')
   @ApiBearerAuth()
-  @AllowMissingPersonalEmail()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Add or replace your personal address',
@@ -211,7 +209,6 @@ export class AuthController {
 
   @Post('personal-email/resend')
   @ApiBearerAuth()
-  @AllowMissingPersonalEmail()
   @HttpCode(HttpStatus.OK)
   resendPersonalEmailVerification(
     @CurrentUser() user: User,
@@ -223,7 +220,6 @@ export class AuthController {
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
   @AllowPendingProfile()
-  @AllowMissingPersonalEmail()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Change your own password',
@@ -246,7 +242,6 @@ export class AuthController {
 
   // Signing out has to work in every state, including a pending password change.
   @Post('logout')
-  @AllowMissingPersonalEmail()
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
   @AllowPendingProfile()
@@ -256,7 +251,6 @@ export class AuthController {
   }
 
   @Post('logout-all')
-  @AllowMissingPersonalEmail()
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
   @AllowPendingProfile()
@@ -269,7 +263,6 @@ export class AuthController {
   // Reachable on a temporary password: the client needs it to discover that a
   // password change is pending in the first place.
   @Get('me')
-  @AllowMissingPersonalEmail()
   @ApiBearerAuth()
   @AllowPendingPasswordChange()
   @AllowPendingProfile()

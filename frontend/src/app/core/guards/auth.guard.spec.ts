@@ -79,10 +79,14 @@ describe('authGuard', () => {
       expect(sentTo('/app/dashboard')).toBe('/app/complete-profile');
     });
 
-    it('pins a missing personal address to its own screen', () => {
+    /**
+     * No longer a pin: the banner in the shell asks for it instead, so the
+     * app stays usable while somebody decides. See EYE-22.
+     */
+    it('lets a missing personal address through', () => {
       auth.needsPersonalEmail.mockReturnValue(true);
 
-      expect(sentTo('/app/dashboard')).toBe('/app/personal-email');
+      expect(sentTo('/app/dashboard')).toBeNull();
     });
 
     it('leaves them alone once they are on the right screen', () => {
@@ -106,11 +110,11 @@ describe('authGuard', () => {
       expect(sentTo('/app/change-password')).toBeNull();
     });
 
-    it('moves on to the address only once the password is replaced', () => {
+    it('stops pinning them once the password is replaced', () => {
       auth.mustChangePassword.mockReturnValue(false);
 
-      expect(sentTo('/app/change-password')).toBe('/app/personal-email');
-      expect(sentTo('/app/personal-email')).toBeNull();
+      // The address is asked for by the banner now, not by the router.
+      expect(sentTo('/app/dashboard')).toBeNull();
     });
   });
 
@@ -132,18 +136,16 @@ describe('authGuard', () => {
      * the loop was.
      */
     it('never redirects away from a screen it just chose', () => {
+      // Only the two that still pin. A missing personal address no longer
+      // redirects at all, so it cannot take part in a loop.
       for (const flags of [
-        [true, true, true],
-        [true, true, false],
-        [true, false, true],
-        [false, true, true],
-        [true, false, false],
-        [false, true, false],
-        [false, false, true],
+        [true, true],
+        [true, false],
+        [false, true],
       ]) {
         auth.mustChangePassword.mockReturnValue(flags[0]);
         auth.mustCompleteProfile.mockReturnValue(flags[1]);
-        auth.needsPersonalEmail.mockReturnValue(flags[2]);
+        auth.needsPersonalEmail.mockReturnValue(true);
 
         const first = sentTo('/app/dashboard');
         expect(first).not.toBeNull();

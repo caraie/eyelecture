@@ -62,8 +62,8 @@ export class User {
    *
    * It used to be the optional extra and is now required of everybody — that is the
    * inversion the September review asked for. The column stays nullable so existing
-   * accounts are not invented an address they never gave; `PersonalEmailGuard` pins
-   * anybody in that state to a single screen until they supply one.
+   * accounts are not invented an address they never gave; the app asks them for one
+   * with a banner on every screen rather than refusing to work until they comply.
    *
    * Unique, and checked against institutional addresses too, so one person's
    * personal address can never collide with another's institutional one.
@@ -245,8 +245,12 @@ export class User {
   }
 
   /**
-   * True for an account that predates the personal address being required. They are
-   * pinned to one screen until they give one — see PersonalEmailGuard.
+   * True for an account that predates the personal address being required.
+   *
+   * Advisory, not a gate. It used to be enforced by a guard that refused every
+   * call; the address matters when the institutional mailbox is switched off at
+   * graduation, which is not a reason to lock somebody out today. The shell
+   * shows a banner asking for one instead.
    *
    * Deliberately not a status enum value: the condition is derivable, and a third
    * enum migration to record something Postgres can work out from a null is churn.
