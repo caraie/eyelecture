@@ -15,6 +15,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from '../../core/services/notification.service';
 
+/** The error in one line, for the panel and for a screenshot of it. */
+const describe = (cause: unknown): string | null => {
+  const name = (cause as { name?: string })?.name;
+  const message = (cause as { message?: string })?.message;
+  const text = [name, message].filter(Boolean).join(': ');
+  return text ? text.slice(0, 200) : null;
+};
+
 /**
  * Reads a lecture's presentation one slide at a time, inside the app.
  *
@@ -40,6 +48,15 @@ import { NotificationService } from '../../core/services/notification.service';
         <div class="state err">
           <mat-icon>error_outline</mat-icon>
           <p>{{ error() }}</p>
+          <!-- Small, and deliberately present: a screenshot of this panel
+               should be enough to tell us what happened, because the person
+               reporting it will not be opening the console. -->
+          @if (detail()) {
+            <p class="detail">{{ detail() }}</p>
+          }
+          <button mat-stroked-button type="button" (click)="retry()">
+            Try again
+          </button>
         </div>
       }
 
@@ -100,6 +117,8 @@ export class SlideViewerComponent implements OnDestroy {
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  /** The underlying error, kept on screen rather than only in the console. */
+  readonly detail = signal<string | null>(null);
   readonly page = signal(1);
   readonly total = signal(0);
   readonly isFullscreen = signal(false);
@@ -147,6 +166,7 @@ export class SlideViewerComponent implements OnDestroy {
   private async load(url: string): Promise<void> {
     this.loading.set(true);
     this.error.set(null);
+    this.detail.set(null);
 
     try {
       const pdfjs = await import('pdfjs-dist');
@@ -168,13 +188,50 @@ export class SlideViewerComponent implements OnDestroy {
       await this.render(1);
     } catch (cause) {
       this.loading.set(false);
-      this.error.set('This presentation could not be opened.');
-      // The screen says something a reader can act on; the console keeps what
-      // somebody debugging actually needs. Swallowing the cause entirely is
-      // what made the worker fault above take a round of guessing to find.
+      this.error.set(this.explain(cause));
+      this.detail.set(describe(cause));
       console.error('Slide viewer could not open the PDF', cause);
-      this.notify.showHttpError(cause, 'This presentation could not be opened');
     }
+  }
+
+  retry(): void {
+    const url = this.src();
+    if (url) void this.load(url);
+  }
+
+  /**
+   * What to tell the reader.
+   *
+   * Every failure used to come out as one sentence, which fit them all equally
+   * and so told nobody anything — including us, when the people who could not
+   * see a deck were on a hospital network and we were not.
+   *
+   * The distinction that matters is whether the file arrived. The browser
+   * fetches it straight from Cloud Storage, so a network that blocks or
+   * inspects that host fails here and nowhere else in the app.
+   */
+  private explain(cause: unknown): string {
+    const name = (cause as { name?: string })?.name ?? '';
+    const message = String((cause as { message?: string })?.message ?? '');
+
+    const neverArrived =
+      name === 'MissingPDFException' ||
+      name === 'UnexpectedResponseException' ||
+      /failed to fetch|networkerror|load failed/i.test(message);
+
+    if (neverArrived) {
+      return (
+        'The slides could not be downloaded. A network or firewall on this ' +
+        'connection may be blocking them — on a hospital network, try again ' +
+        'off it.'
+      );
+    }
+
+    if (name === 'InvalidPDFException') {
+      return 'The slides downloaded but the file could not be read.';
+    }
+
+    return 'This presentation could not be opened.';
   }
 
   private async render(pageNumber: number): Promise<void> {

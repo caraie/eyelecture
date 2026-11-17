@@ -29,6 +29,18 @@ canvas {
   }
 }
 
+/* Small and monospaced: it is there to be read off a screenshot, not to be
+   the thing somebody notices first. */
+.detail {
+  margin: 0 0 var(--sp-3);
+  max-width: 60ch;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-muted);
+  word-break: break-word;
+}
+
 .state {
   display: grid;
   place-items: center;
