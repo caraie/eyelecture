@@ -1,3 +1,4 @@
+import { Readable } from 'node:stream';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import {
@@ -140,6 +141,11 @@ describe('LecturesService', () => {
         expiresAt: new Date(),
       }),
       readUrl: jest.fn().mockResolvedValue('https://storage.test/get'),
+      readStream: jest.fn().mockResolvedValue({
+        stream: Readable.from([Buffer.from('%PDF-1.7')]),
+        size: 2048,
+        contentType: 'application/pdf',
+      }),
       stat: jest.fn().mockResolvedValue({ size: 2048 }),
       remove: jest.fn().mockResolvedValue(undefined),
     };
@@ -677,6 +683,102 @@ describe('LecturesService', () => {
       expect(storage.remove).toHaveBeenCalledWith('a');
       expect(storage.remove).toHaveBeenCalledWith('b');
       expect(lectures.delete).toHaveBeenCalledWith({ id: 'lec-1' });
+    });
+  });
+
+  /**
+   * The slides come through the API rather than straight from the bucket, so
+   * that a browser which cannot reach Cloud Storage can still read a lecture.
+   * See EYE-24.
+   */
+  describe('fileContent', () => {
+    it('hands back the PDF the viewer should read', async () => {
+      lectures.findOne.mockResolvedValue(
+        makeLecture({ assets: [makeAsset()] }),
+      );
+
+      const file = await service.fileContent(
+        'lec-1',
+        LectureAssetKind.PRESENTATION,
+        makeUser(),
+      );
+
+      expect(storage.readStream).toHaveBeenCalledWith(
+        'lectures/lec-1/presentation/abc.pdf',
+      );
+      expect(file.contentType).toBe('application/pdf');
+      expect(file.filename).toBe('slides.pdf');
+      expect(file.size).toBe(2048);
+    });
+
+    it('serves the converted copy of a deck, named as a PDF', async () => {
+      lectures.findOne.mockResolvedValue(
+        makeLecture({
+          assets: [
+            makeAsset({
+              fileName: 'slides.pptx',
+              contentType: PPTX,
+              derivedObjectKey: 'lectures/lec-1/presentation/abc.pdf',
+              conversionStatus: AssetConversionStatus.READY,
+            }),
+          ],
+        }),
+      );
+
+      const file = await service.fileContent(
+        'lec-1',
+        LectureAssetKind.PRESENTATION,
+        makeUser(),
+      );
+
+      expect(storage.readStream).toHaveBeenCalledWith(
+        'lectures/lec-1/presentation/abc.pdf',
+      );
+      expect(file.filename).toBe('slides.pdf');
+    });
+
+    it('refuses a deck that has not been converted yet', async () => {
+      lectures.findOne.mockResolvedValue(
+        makeLecture({
+          assets: [
+            makeAsset({
+              fileName: 'slides.pptx',
+              contentType: PPTX,
+              derivedObjectKey: null,
+              conversionStatus: AssetConversionStatus.PENDING,
+            }),
+          ],
+        }),
+      );
+
+      await expect(
+        service.fileContent(
+          'lec-1',
+          LectureAssetKind.PRESENTATION,
+          makeUser(),
+        ),
+      ).rejects.toThrow(ConflictException);
+      expect(storage.readStream).not.toHaveBeenCalled();
+    });
+
+    // A 404 rather than a 403, same as everywhere else: a draft should not be
+    // discoverable by poking at ids.
+    it('does not open the store for a lecture this reader may not see', async () => {
+      lectures.findOne.mockResolvedValue(
+        makeLecture({
+          status: LectureStatus.DRAFT,
+          assets: [makeAsset()],
+        }),
+      );
+
+      await expect(
+        service.fileContent(
+          'lec-1',
+          LectureAssetKind.PRESENTATION,
+          makeUser({ id: 'someone-else', role: UserRole.RESIDENT }),
+        ),
+      ).rejects.toThrow(NotFoundException);
+      expect(storage.readStream).not.toHaveBeenCalled();
     });
   });
 });

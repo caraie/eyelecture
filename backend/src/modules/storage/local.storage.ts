@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { createHash } from 'node:crypto';
+import { createReadStream } from 'node:fs';
+import type { Readable } from 'node:stream';
 import { mkdir, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { StorageService, UploadTicket } from './storage.service';
@@ -57,6 +59,12 @@ export class LocalStorage extends StorageService {
       { expiresIn: READ_TTL_SECONDS },
     );
     return `${this.apiUrl}/api/v1/storage/local?token=${encodeURIComponent(token)}`;
+  }
+
+  async readStream(key: string): Promise<{ stream: Readable; size: number }> {
+    const info = await this.stat(key);
+    if (!info) throw new Error(`No object at ${key}`);
+    return { stream: createReadStream(this.pathFor(key)), size: info.size };
   }
 
   async stat(key: string): Promise<{ size: number } | null> {

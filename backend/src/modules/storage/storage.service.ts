@@ -12,6 +12,8 @@
  * API's own endpoint. The browser does the same plain PUT either way, so there
  * is one upload path in the frontend rather than one per environment.
  */
+import type { Readable } from 'node:stream';
+
 export interface UploadTicket {
   /** Where to PUT the bytes. */
   url: string;
@@ -30,6 +32,25 @@ export abstract class StorageService {
    * than as the opaque key.
    */
   abstract readUrl(key: string, filename?: string): Promise<string>;
+
+  /**
+   * The bytes, for the few cases where the browser must not talk to the store.
+   *
+   * The signed URL above is still the right answer for a video: hundreds of
+   * megabytes, seeked back and forth, and the store does ranges properly. But
+   * it sends the browser to a second host, and a browser that cannot reach
+   * that host fails on exactly one screen while the rest of the app works —
+   * which is what happened to readers whose Chrome would not fetch from
+   * storage.googleapis.com though Safari on the same machine would.
+   *
+   * A presentation is a few megabytes and is read start to finish, so the API
+   * can hand it over itself and the browser only ever has one host to reach.
+   */
+  abstract readStream(key: string): Promise<{
+    stream: Readable;
+    size: number;
+    contentType?: string;
+  }>;
 
   /**
    * Whether the object is really there, and how big. Called when the client

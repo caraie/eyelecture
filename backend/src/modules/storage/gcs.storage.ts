@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Bucket, Storage } from '@google-cloud/storage';
+import type { Readable } from 'node:stream';
 import { StorageService, UploadTicket } from './storage.service';
 
 /** Long enough to upload a large video on a poor connection, short enough to matter. */
@@ -49,6 +50,22 @@ export class GcsStorage extends StorageService {
         : {}),
     });
     return url;
+  }
+
+  async readStream(
+    key: string,
+  ): Promise<{ stream: Readable; size: number; contentType?: string }> {
+    const file = this.bucket.file(key);
+    // Asked for before opening the stream so a missing object fails here, as a
+    // 404 with nothing written, rather than mid-response with the status line
+    // already sent.
+    const [metadata] = await file.getMetadata();
+
+    return {
+      stream: file.createReadStream(),
+      size: Number(metadata.size ?? 0),
+      contentType: metadata.contentType ?? undefined,
+    };
   }
 
   async stat(key: string): Promise<{ size: number } | null> {

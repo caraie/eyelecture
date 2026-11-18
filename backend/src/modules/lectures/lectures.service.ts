@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
+import type { Readable } from 'node:stream';
 import { Lecture } from './entities/lecture.entity';
 import { LectureAsset } from './entities/lecture-asset.entity';
 import { LectureCoAuthor } from './entities/lecture-co-author.entity';
@@ -655,6 +656,57 @@ export class LecturesService {
         converted ? asset.fileName.replace(/\.[^./]*$/, '.pdf') : asset.fileName,
       ),
       contentType: converted ? 'application/pdf' : asset.contentType,
+    };
+  }
+
+  /**
+   * The readable file itself, streamed through the API.
+   *
+   * Same access rules as `fileUrl` — this is the other end of the same
+   * decision, not a way around it. What changes is who fetches the bytes from
+   * the store: us, over a connection we know works, instead of a browser that
+   * may not be able to reach storage.googleapis.com at all. See EYE-24.
+   */
+  async fileContent(
+    id: string,
+    kind: LectureAssetKind,
+    viewer: User,
+  ): Promise<{
+    stream: Readable;
+    size: number;
+    contentType: string;
+    filename: string;
+  }> {
+    const lecture = await this.findOneFor(id, viewer);
+
+    const asset = lecture.assets?.find(
+      (candidate) => candidate.kind === kind && candidate.uploadedAt !== null,
+    );
+    if (!asset) throw new NotFoundException('This lecture has no such file');
+
+    if (!asset.isReadable) {
+      throw new ConflictException(
+        asset.conversionStatus === AssetConversionStatus.PENDING
+          ? 'That deck is still being turned into a PDF.'
+          : 'That deck could not be turned into a PDF.',
+      );
+    }
+
+    const converted = asset.derivedObjectKey !== null;
+    const { stream, size, contentType } = await this.storage.readStream(
+      asset.readableKey,
+    );
+
+    return {
+      stream,
+      size,
+      // The store's own answer is preferred: it is what the object actually
+      // is, whereas the row records what the upload claimed it would be.
+      contentType:
+        contentType ?? (converted ? 'application/pdf' : asset.contentType),
+      filename: converted
+        ? asset.fileName.replace(/\.[^./]*$/, '.pdf')
+        : asset.fileName,
     };
   }
 

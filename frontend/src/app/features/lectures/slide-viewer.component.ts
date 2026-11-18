@@ -14,12 +14,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from '../../core/services/notification.service';
+import { AuthService } from '../../core/services/auth.service';
 
 /** The error in one line, for the panel and for a screenshot of it. */
 const describe = (cause: unknown): string | null => {
   const name = (cause as { name?: string })?.name;
   const message = (cause as { message?: string })?.message;
-  const text = [name, message].filter(Boolean).join(': ');
+  const status = (cause as { status?: number })?.status;
+  const text = [name, message, status ? `(${status})` : null]
+    .filter(Boolean)
+    .join(': ');
   return text ? text.slice(0, 200) : null;
 };
 
@@ -108,8 +112,9 @@ const describe = (cause: unknown): string | null => {
 })
 export class SlideViewerComponent implements OnDestroy {
   private readonly notify = inject(NotificationService);
+  private readonly auth = inject(AuthService);
 
-  /** A short-lived link to the PDF, issued by the API. */
+  /** Where the API serves the PDF. */
   readonly src = input.required<string>();
 
   readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
@@ -178,7 +183,20 @@ export class SlideViewerComponent implements OnDestroy {
       // The symptom was every deck reporting "could not be opened".
       pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
-      const task = pdfjs.getDocument({ url });
+      // The file comes from our own API now, so the request has to carry the
+      // session — a signed URL carried its own permission, this does not.
+      //
+      // Ranges are off on purpose. pdf.js would otherwise fetch the document
+      // in pieces over the whole time somebody is reading it, and a token that
+      // expires between slide 4 and slide 5 would break the deck halfway
+      // through. One request, one token, at the moment the reader opens it.
+      const token = this.auth.accessToken;
+      const task = pdfjs.getDocument({
+        url,
+        httpHeaders: token ? { Authorization: `Bearer ${token}` } : undefined,
+        disableRange: true,
+        disableStream: true,
+      });
       const doc = await task.promise;
 
       this.document_ = doc as unknown as typeof this.document_;
@@ -203,28 +221,30 @@ export class SlideViewerComponent implements OnDestroy {
    * What to tell the reader.
    *
    * Every failure used to come out as one sentence, which fit them all equally
-   * and so told nobody anything — including us, when the people who could not
-   * see a deck were on a hospital network and we were not.
-   *
-   * The distinction that matters is whether the file arrived. The browser
-   * fetches it straight from Cloud Storage, so a network that blocks or
-   * inspects that host fails here and nowhere else in the app.
+   * and so told nobody anything. The distinction that matters is whether the
+   * file arrived, and now that it comes from our own API rather than from
+   * Cloud Storage, a download that fails is the app failing — not a host the
+   * reader's network happens to treat differently. See EYE-24.
    */
   private explain(cause: unknown): string {
     const name = (cause as { name?: string })?.name ?? '';
     const message = String((cause as { message?: string })?.message ?? '');
+    const status = (cause as { status?: number })?.status ?? 0;
+
+    if (status === 401 || status === 403) {
+      return 'Your session may have expired. Sign in again and reopen the lecture.';
+    }
+
+    if (status === 404 || name === 'MissingPDFException') {
+      return 'The slides for this lecture are no longer where we left them.';
+    }
 
     const neverArrived =
-      name === 'MissingPDFException' ||
       name === 'UnexpectedResponseException' ||
       /failed to fetch|networkerror|load failed/i.test(message);
 
     if (neverArrived) {
-      return (
-        'The slides could not be downloaded. A network or firewall on this ' +
-        'connection may be blocking them — on a hospital network, try again ' +
-        'off it.'
-      );
+      return 'The slides could not be downloaded. Check the connection and try again.';
     }
 
     if (name === 'InvalidPDFException') {

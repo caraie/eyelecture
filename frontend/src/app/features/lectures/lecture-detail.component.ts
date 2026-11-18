@@ -105,15 +105,17 @@ export class LectureDetailComponent {
     });
   }
 
+  /**
+   * No round trip to mint a link any more: the slides come from our own API,
+   * so the address is known without asking for it. Whether the lecture may be
+   * read is still decided by the server, on the request for the bytes. See
+   * EYE-24.
+   */
   openSlides(): void {
     const lecture = this.lecture();
     if (!lecture || this.slidesUrl()) return;
 
-    this.api.fileUrl(lecture.id, 'presentation').subscribe({
-      next: ({ url }) => this.slidesUrl.set(url),
-      error: (error: unknown) =>
-        this.notify.showHttpError(error, 'Could not open the presentation'),
-    });
+    this.slidesUrl.set(this.api.fileContentUrl(lecture.id, 'presentation'));
   }
 
   /**

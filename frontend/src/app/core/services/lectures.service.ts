@@ -90,6 +90,17 @@ export class LecturesService {
     );
   }
 
+  /**
+   * Where the API serves the file itself.
+   *
+   * Not a request — just the address, because the viewer is the thing that
+   * fetches it. It points at our own origin rather than at Cloud Storage, so
+   * a browser that can load the app can load the slides. See EYE-24.
+   */
+  fileContentUrl(id: string, kind: LectureAssetKind): string {
+    return `${this.base}/${id}/files/${kind}/content`;
+  }
+
   /** The deck as it was uploaded, for whoever may edit the lecture. */
   originalUrl(
     id: string,

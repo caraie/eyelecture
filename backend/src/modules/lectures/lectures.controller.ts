@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
   HttpStatus,
   Param,
@@ -11,8 +12,10 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { LecturesService } from './lectures.service';
 import {
@@ -193,6 +196,36 @@ export class LecturesController {
     @CurrentUser() user: User,
   ): Promise<{ url: string; contentType: string }> {
     return this.lectures.fileUrl(id, kind, user);
+  }
+
+  @Get(':id/files/:kind/content')
+  @Header('Cache-Control', 'private, max-age=0, no-store')
+  @ApiOperation({
+    summary: 'The file itself, served by the API',
+    description:
+      'Same access rules as the link above. This exists because a browser ' +
+      'that cannot reach Cloud Storage can still reach us — see EYE-24.',
+  })
+  async fileContent(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('kind', new ParseEnumPipe(LectureAssetKind)) kind: LectureAssetKind,
+    @CurrentUser() user: User,
+    @Res() response: Response,
+  ): Promise<void> {
+    const file = await this.lectures.fileContent(id, kind, user);
+
+    response.setHeader('Content-Type', file.contentType);
+    response.setHeader('Content-Length', String(file.size));
+    response.setHeader(
+      'Content-Disposition',
+      `inline; filename="${file.filename.replace(/"/g, '')}"`,
+    );
+
+    // The status line is already out by the time the store can fail, so a
+    // broken read ends the response rather than turning into a 500 body that
+    // the viewer would try to parse as a PDF.
+    file.stream.on('error', () => response.destroy());
+    file.stream.pipe(response);
   }
 
   @Get(':id/files/:kind/original')
